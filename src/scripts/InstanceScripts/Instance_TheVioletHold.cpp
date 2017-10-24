@@ -52,6 +52,7 @@ class TheVioletHoldScript : public InstanceScript
             sealHP(100),
             portalCount(0)
         {
+            //TODO: this should be redone by checking actual saved data for heroic mode
             memset(m_VHencounterData, State_NotStarted, sizeof(m_VHencounterData));
         }
 
@@ -96,8 +97,8 @@ class TheVioletHoldScript : public InstanceScript
                         // Return sinclari to spawn location
                         if (Creature* pCreature = GetInstance()->GetCreature(m_sinclariGUID))
                         {
-                            pCreature->GetAIInterface()->MoveTo(pCreature->GetSpawnX(), pCreature->GetSpawnY(), pCreature->GetSpawnZ());
-                            pCreature->SetFacing(pCreature->GetSpawnO());
+                            // Despawn and respawn her in 1 sec (totally 2 seconds)
+                            pCreature->Despawn(1000, 1000);
                         }
 
                         // Spawn all other npcs and start mini portal intro
@@ -194,6 +195,7 @@ class TheVioletHoldScript : public InstanceScript
                     break;
                 case CN_DEFENSE_SYSTEM:
                 {
+                    // Only one defense system trigger npc should be summoned
                     m_defenseSystemGUID = GET_LOWGUID_PART(pCreature->GetGUID());
                 }break;
                 default:
@@ -227,27 +229,6 @@ class TheVioletHoldScript : public InstanceScript
             }
         }
 
-        void RemoveDeadIntroNpcs()
-        {
-            // In some cases intro npcs aren't despawned on OnDied event
-            if (!intro_spawns.empty())
-            {
-                for (std::list<uint32_t>::iterator itr = intro_spawns.begin(); itr != intro_spawns.end();)
-                {
-                    if (Creature* pIntroSummon = GetInstance()->GetCreature(*itr))
-                    {
-                        if (!pIntroSummon->isAlive() && pIntroSummon->IsInInstance())
-                        {
-                            pIntroSummon->Despawn(4000, 0);
-                            itr = intro_spawns.erase(itr);
-                            continue;
-                        }
-                        ++itr;
-                    }
-                }
-            }
-        }
-
         void UpdateEvent()
         {
             RemoveDeadIntroNpcs();
@@ -269,7 +250,29 @@ class TheVioletHoldScript : public InstanceScript
             }
         }
 
-        void RemoveIntroNpc(uint32_t guid)
+        /// Removes all dead intro npcs
+        void RemoveDeadIntroNpcs()
+        {
+            // In some cases intro npcs aren't despawned on OnDied event
+            if (!intro_spawns.empty())
+            {
+                for (std::list<uint32_t>::iterator itr = intro_spawns.begin(); itr != intro_spawns.end();)
+                {
+                    if (Creature* pIntroSummon = GetInstance()->GetCreature(*itr))
+                    {
+                        if (!pIntroSummon->isAlive() && pIntroSummon->IsInInstance())
+                        {
+                            pIntroSummon->Despawn(4000, 0);
+                            itr = intro_spawns.erase(itr);
+                            continue;
+                        }
+                        ++itr;
+                    }
+                }
+            }
+        }
+
+        void RemoveIntroNpcByGuid(uint32_t guid)
         {
             if (!intro_spawns.empty())
             {
@@ -317,6 +320,7 @@ class TheVioletHoldScript : public InstanceScript
             spawnCreature(CN_DEFENSE_SYSTEM, DefenseSystemLocation.x, DefenseSystemLocation.y, DefenseSystemLocation.z, DefenseSystemLocation.o);
         }
 
+        /// Resets activation crystals
         void ResetCrystals(bool isSelectable)
         {
             for (std::list<uint32_t>::iterator itr = m_crystalGuids.begin(); itr != m_crystalGuids.end(); ++itr)
@@ -393,24 +397,31 @@ class SinclariAI : public CreatureAIScript
                     // Walk to crystal
                     case 0:
                     {
-                        GetUnit()->GetAIInterface()->MoveTo(SinclariPositions[0].x, SinclariPositions[0].y, SinclariPositions[0].z, SinclariPositions[0].o);
+                        ModifyAIUpdateEvent(2000);
+                        moveTo(SinclariPositions[0].x, SinclariPositions[0].y, SinclariPositions[0].z);
+                    }break;
+                    // Update facing
+                    case 1:
+                    {
+                        ModifyAIUpdateEvent(500);
+                        GetUnit()->SetFacing(SinclariPositions[0].o);
                     }break;
                     // Do emote and spawn defense system
-                    case 1:
+                    case 2:
                     {
                         ModifyAIUpdateEvent(3000);
                         GetUnit()->Emote(EMOTE_ONESHOT_USESTANDING);
                         spawnCreature(CN_DEFENSE_SYSTEM, DefenseSystemLocation.x, DefenseSystemLocation.y, DefenseSystemLocation.z, DefenseSystemLocation.o);
                     }break;
                     // Face to guards
-                    case 2:
+                    case 3:
                     {
                         VH_instance->SetInstanceData(0, INDEX_INSTANCE_PROGRESS, State_Performed);
                         GetUnit()->SetFacing(6.239587f);
                         ModifyAIUpdateEvent(2000);
                     }break;
                     // call them out
-                    case 3:
+                    case 4:
                     {
                         GetUnit()->Emote(EMOTE_ONESHOT_SHOUT);
                         sendChatMessage(CHAT_MSG_MONSTER_YELL, 0, SINCLARI_YELL);
@@ -418,20 +429,20 @@ class SinclariAI : public CreatureAIScript
                         // Call guards out of dungeon
                     }break;
                     // Move her to guards
-                    case 4:
+                    case 5:
                     {
                         ModifyAIUpdateEvent(4000);
                         GetUnit()->GetAIInterface()->MoveTo(SinclariPositions[1].x, SinclariPositions[1].y, SinclariPositions[1].z, SinclariPositions[1].o);
                     }break;
                     // Face her to gates (shes outside of door) and say text
                     // Goodbye everyone
-                    case 5:
+                    case 6:
                     {
                         ModifyAIUpdateEvent(6000);
                         sendChatMessage(CHAT_MSG_MONSTER_SAY, 0, SINCLARI_SAY);
                     }break;
                     // Start instance event
-                    case 6:
+                    case 7:
                     {
                         RemoveAIUpdateEvent();
                         VH_instance->SetInstanceData(0, INDEX_INSTANCE_PROGRESS, State_InProgress);
@@ -459,17 +470,19 @@ class SinclariGossip : public Arcemu::Gossip::Script
         void OnHello(Object* pObject, Player* pPlayer)
         {
             InstanceScript* pInstance = pObject->GetMapMgr()->GetScript();
-            Arcemu::Gossip::Menu menu(pObject->GetGUID(), SINCLARI_ON_HELLO);
+            Arcemu::Gossip::Menu menu(pObject->GetGUID(), 1);
             if (pInstance)
             {
                 // If instance is not finished, show escort gossip option
                 if (pInstance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_NotStarted)
                 {
+                    menu.setTextID(13853);
                     menu.AddItem(GOSSIP_ICON_CHAT, SINCLARI_GO_OPTION1, 0);
                 }
                 // else show option to port player to dungeon
                 else
                 {
+                    menu.setTextID(14271);
                     menu.AddItem(GOSSIP_ICON_CHAT, SINCLARI_GO_OPTION3, 1);
                 }
                 menu.Send(pPlayer);
@@ -483,7 +496,7 @@ class SinclariGossip : public Arcemu::Gossip::Script
                 // Start escort event
                 case 0:
                 {
-                    Arcemu::Gossip::Menu menu(pObject->GetGUID(), 1);
+                    Arcemu::Gossip::Menu menu(pObject->GetGUID(), 13854);
                     menu.AddItem(GOSSIP_ICON_CHAT, SINCLARI_GO_OPTION2, 2);
                     menu.Send(pPlayer);
                 }break;
@@ -557,7 +570,7 @@ class VHIntroNpcAI : public CreatureAIScript
             // Make sure guid is removed from list
             if (TheVioletHoldScript* pInstance = static_cast<TheVioletHoldScript*>(GetUnit()->GetMapMgr()->GetScript()))
             {
-                pInstance->RemoveIntroNpc(GET_LOWGUID_PART(GetUnit()->GetLowGUID()));
+                pInstance->RemoveIntroNpcByGuid(GET_LOWGUID_PART(GetUnit()->GetLowGUID()));
             }
         }
 
@@ -584,11 +597,11 @@ class VH_guardAI : public CreatureAIScript
 
         void OnCombatStop(Unit* /*pEnemey*/)
         {
-            // Correctly move to spawn origin
+            // Correctly set facing
             InstanceScript* pInstance = GetUnit()->GetMapMgr()->GetScript();
             if (pInstance && pInstance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) != State_Performed)
             {
-                moveToSpawn();
+                GetUnit()->SetFacing(GetUnit()->GetSpawnO());
             }
         }
 };

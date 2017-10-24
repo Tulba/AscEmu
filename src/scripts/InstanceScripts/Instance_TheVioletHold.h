@@ -172,20 +172,23 @@ enum GameObjects
 //
 //};
 
+/// Sinclari event data
 // TODO: check values and move this to cpp generally, it won't be used to multiple scripts
-enum CreatureGossip
+enum SinclariTexts
 {
-    //Lieutnant Sinclari
-    //text
-    SINCLARI_ON_HELLO = 13853,
-    SINCLARI_ON_FINISH = 13854,
-    SINCLARI_OUTSIDE = 14271,
-
-    //item
-    SINCLARI_ACTIVATE = 600,
-    SINCLARI_GET_SAFETY = 601,
-    SINCLARI_SEND_ME_IN = 602
+    // Gossip items
+    GOSSIP_SINCLARI_ACTIVATE    = 600,
+    GOSSIP_SINCLARI_GET_SAFETY  = 601,
+    GOSSIP_SINCLARI_SEND_ME_IN  = 602
 };
+
+// Temporally used constants
+const char* SINCLARI_YELL = "Prison guards, we are leaving! These adventurers are taking over! Go go go!";
+const char* SINCLARI_SAY = "I'm locking the door. Good luck, and thank you for doing this.";
+const char* SINCLARI_GO_OPTION1 = "Activate the cystals when we get in trouble, right.";
+const char* SINCLARI_GO_OPTION2 = "Get your people to safety, we'll keep the Blue Dragonblight's forces at bay.";
+const char* SINCLARI_GO_OPTION3 = "I'm not fighting, so send me in now!";
+
 
 // Worldstate entries used in instance
 enum VHWorldStateIds
@@ -212,12 +215,6 @@ enum VH_Spells
 };
 
 const Movement::Location fGuardExitLoc = {1806.955f, 803.851f, 44.36f, 0};
-
-const char* SINCLARI_YELL = "Prison guards, we are leaving! These adventurers are taking over! Go go go!";
-const char* SINCLARI_SAY = "I'm locking the door. Good luck, and thank you for doing this.";
-const char* SINCLARI_GO_OPTION1 = "Activate the cystals when we get in trouble, right.";
-const char* SINCLARI_GO_OPTION2 = "Get your people to safety, we'll keep the Blue Dragonblight's forces at bay.";
-const char* SINCLARI_GO_OPTION3 = "I'm not fighting, so send me in now!";
 
 // Guards spawn location
 const uint8_t guardsCount = 4;
