@@ -29,7 +29,6 @@ class TheVioletHoldScript : public InstanceScript
 
     // Low guids of creatures
     uint32_t m_sinclariGUID;
-    uint32_t m_defenseSystemGUID;
 
     // used for gates seal
     uint32_t sealHP;
@@ -48,7 +47,6 @@ class TheVioletHoldScript : public InstanceScript
             m_isDefAchievFailed(false),
             mainGatesGUID(0),
             m_sinclariGUID(0),
-            m_defenseSystemGUID(0),
             sealHP(100),
             portalCount(0)
         {
@@ -69,7 +67,7 @@ class TheVioletHoldScript : public InstanceScript
                 {
                     if (pData == State_Performed)
                     {
-
+                        spawnCreature(CN_DEFENSE_SYSTEM, DefenseSystemLocation.x, DefenseSystemLocation.y, DefenseSystemLocation.z, DefenseSystemLocation.o);
                     }
 
                     if (pData == State_InProgress)
@@ -126,12 +124,15 @@ class TheVioletHoldScript : public InstanceScript
 
         void OnLoad()
         {
-            FillInitialWorldStates();
+            FillInitialWorldStates();   // Only for testing, this will need to be repalced
+
+            // For most creatures movements mmaps is needed
             if (!sWorld.settings.terrainCollision.isPathfindingEnabled)
             {
                 LOG_ERROR("Violet Hold: dungeon requires pathfinding support.");
             }
 
+            // Spawn intro
             if (GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_NotStarted && !introStarted)
             {
                 ResetIntro();
@@ -167,10 +168,15 @@ class TheVioletHoldScript : public InstanceScript
                     m_isDefAchievFailed = true;
                 }
 
-                plr->CastSpell(plr, SPELL_VH_CRYSTAL_ACTIVATION, true);
-
                 // Make object not selectable
                 pGo->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NONSELECTABLE);
+
+                // Spell actually sends script event 20001 but theres no handling for such effects
+                // Lets cast spell to mimic original event
+                plr->CastSpell(plr, SPELL_VH_CRYSTAL_ACTIVATION, true);
+
+                // Defense system will do its event on spawn, nothing else we don't need to do
+                spawnCreature(CN_DEFENSE_SYSTEM, DefenseSystemLocation.x, DefenseSystemLocation.y, DefenseSystemLocation.z, DefenseSystemLocation.o);
             }
         }
 
@@ -194,10 +200,6 @@ class TheVioletHoldScript : public InstanceScript
                     intro_spawns.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
                     break;
                 case CN_DEFENSE_SYSTEM:
-                {
-                    // Only one defense system trigger npc should be summoned
-                    m_defenseSystemGUID = GET_LOWGUID_PART(pCreature->GetGUID());
-                }break;
                 default:
                     break;
             }
@@ -411,17 +413,20 @@ class SinclariAI : public CreatureAIScript
                     {
                         ModifyAIUpdateEvent(3000);
                         GetUnit()->Emote(EMOTE_ONESHOT_USESTANDING);
-                        spawnCreature(CN_DEFENSE_SYSTEM, DefenseSystemLocation.x, DefenseSystemLocation.y, DefenseSystemLocation.z, DefenseSystemLocation.o);
                     }break;
-                    // Face to guards
                     case 3:
                     {
+                        ModifyAIUpdateEvent(1000);
                         VH_instance->SetInstanceData(0, INDEX_INSTANCE_PROGRESS, State_Performed);
+                    }break;
+                    // Face to guards
+                    case 4:
+                    {
                         GetUnit()->SetFacing(6.239587f);
                         ModifyAIUpdateEvent(2000);
                     }break;
                     // call them out
-                    case 4:
+                    case 5:
                     {
                         GetUnit()->Emote(EMOTE_ONESHOT_SHOUT);
                         sendChatMessage(CHAT_MSG_MONSTER_YELL, 0, SINCLARI_YELL);
@@ -429,20 +434,20 @@ class SinclariAI : public CreatureAIScript
                         // Call guards out of dungeon
                     }break;
                     // Move her to guards
-                    case 5:
+                    case 6:
                     {
                         ModifyAIUpdateEvent(4000);
                         GetUnit()->GetAIInterface()->MoveTo(SinclariPositions[1].x, SinclariPositions[1].y, SinclariPositions[1].z, SinclariPositions[1].o);
                     }break;
                     // Face her to gates (shes outside of door) and say text
                     // Goodbye everyone
-                    case 6:
+                    case 7:
                     {
                         ModifyAIUpdateEvent(6000);
                         sendChatMessage(CHAT_MSG_MONSTER_SAY, 0, SINCLARI_SAY);
                     }break;
                     // Start instance event
-                    case 7:
+                    case 8:
                     {
                         RemoveAIUpdateEvent();
                         VH_instance->SetInstanceData(0, INDEX_INSTANCE_PROGRESS, State_InProgress);
@@ -629,8 +634,7 @@ class VH_DefenseAI : public CreatureAIScript
             if (counter == 3)
             {
                 GetUnit()->CastSpell(GetUnit(), SPELL_VH_ARCANE_LIGHTNING_INSTAKILL, false);
-                counter = 0;
-                RemoveAIUpdateEvent();
+                despawn(1000, 0);
             }
         }
 };
