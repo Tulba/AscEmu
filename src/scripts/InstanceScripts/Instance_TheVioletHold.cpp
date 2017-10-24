@@ -21,14 +21,15 @@ class TheVioletHoldScript : public InstanceScript
     // Guids holder for portal waves
     std::vector<uint32_t /*guid*/> m_eventSpawns;
 
+    // Activation crystal guids
+    std::list<uint32_t /*guid*/> m_crystalGuids;
+
     // Low guids of gameobjects
     uint32_t mainGatesGUID;
 
     // Low guids of creatures
     uint32_t m_sinclariGUID;
-
-    // Activation crystal guids
-    std::list<uint32_t /*guid*/> m_crystalGuids;
+    uint32_t m_defenseSystemGUID;
 
     // used for gates seal
     uint32_t sealHP;
@@ -47,6 +48,7 @@ class TheVioletHoldScript : public InstanceScript
             m_isDefAchievFailed(false),
             mainGatesGUID(0),
             m_sinclariGUID(0),
+            m_defenseSystemGUID(0),
             sealHP(100),
             portalCount(0)
         {
@@ -102,14 +104,7 @@ class TheVioletHoldScript : public InstanceScript
                         SpawnIntro();
 
                         // Set activation crystals selectable
-                        for (std::list<uint32_t>::iterator itr = m_crystalGuids.begin(); itr != m_crystalGuids.end(); ++itr)
-                        {
-                            if (GameObject* pGO = GetInstance()->GetGameObject(*itr))
-                            {
-                                pGO->SetState(GO_STATE_OPEN);
-                                pGO->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NONSELECTABLE);
-                            }
-                        }
+                        ResetCrystals(true);
                     }
                 }break;
                 default:
@@ -199,14 +194,14 @@ class TheVioletHoldScript : public InstanceScript
                     break;
                 case CN_DEFENSE_SYSTEM:
                 {
-
+                    m_defenseSystemGUID = GET_LOWGUID_PART(pCreature->GetGUID());
                 }break;
                 default:
                     break;
             }
         }
 
-        void OnCreatureDeath(Creature* pCreature)
+        void OnCreatureDeath(Creature* pCreature, Unit* /*pKiller*/)
         {
             switch (pCreature->GetEntry())
             {
@@ -258,6 +253,10 @@ class TheVioletHoldScript : public InstanceScript
             RemoveDeadIntroNpcs();
         }
 
+        /////////////////////////////////////////////////////////
+        /// Helper functions
+        ///
+
         void ResetIntro()
         {
             SpawnIntro();
@@ -284,10 +283,6 @@ class TheVioletHoldScript : public InstanceScript
                 }
             }
         }
-
-        /////////////////////////////////////////////////////////
-        /// Helper functions
-        ///
 
         void FillInitialWorldStates()
         {
@@ -320,6 +315,25 @@ class TheVioletHoldScript : public InstanceScript
         void ActivateCrystal()
         {
             spawnCreature(CN_DEFENSE_SYSTEM, DefenseSystemLocation.x, DefenseSystemLocation.y, DefenseSystemLocation.z, DefenseSystemLocation.o);
+        }
+
+        void ResetCrystals(bool isSelectable)
+        {
+            for (std::list<uint32_t>::iterator itr = m_crystalGuids.begin(); itr != m_crystalGuids.end(); ++itr)
+            {
+                if (GameObject* pCrystal = GetInstance()->GetGameObject(*itr))
+                {
+                    pCrystal->SetState(GO_STATE_CLOSED);
+                    if (!isSelectable)
+                    {
+                        pCrystal->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NONSELECTABLE);
+                    }
+                    else
+                    {
+                        pCrystal->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NONSELECTABLE);
+                    }
+                }
+            }
         }
 
         /// Update achievement criteria for all players by id
