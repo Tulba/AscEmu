@@ -245,10 +245,17 @@ class TheVioletHoldScript : public InstanceScript
         void UpdateEvent()
         {
             // If instance currently is performed for main event
-            if (GetInstanceData(0, INDEX_INSTANCE_PROGRESS) > State_NotStarted)
-                RemoveDeadIntroNpcs(true);
-            else
-                RemoveDeadIntroNpcs(false);
+            if (GetInstanceData(0, INDEX_INSTANCE_PROGRESS) != State_InProgress)
+            {
+                if (GetInstanceData(0, INDEX_INSTANCE_PROGRESS) > State_NotStarted)
+                {
+                    RemoveIntroNpcs(true);
+                }
+                else
+                {
+                    RemoveIntroNpcs(false);
+                }
+            }
         }
 
         /////////////////////////////////////////////////////////
@@ -268,7 +275,7 @@ class TheVioletHoldScript : public InstanceScript
         }
 
         // Removes all dead intro npcs
-        void RemoveDeadIntroNpcs(bool checkForDead)
+        void RemoveIntroNpcs(bool checkForDead)
         {
             // In some cases intro npcs aren't despawned on OnDied event
             if (!intro_spawns.empty())
@@ -289,6 +296,7 @@ class TheVioletHoldScript : public InstanceScript
                             {
                                 pIntroSummon->Despawn(4000, 0);
                                 itr = intro_spawns.erase(itr);
+                                continue;
                             }
                         }
                     }
