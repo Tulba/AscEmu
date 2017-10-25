@@ -6,3 +6,10 @@ delete from creature_spawns where entry in (31011, 31010, 31009, 31008, 31007, 3
 
 -- Update guards faction
 update creature_properties set faction = 1718 where entry = 30659;
+
+-- Worldstate entries
+delete from worldstate_templates where map = 608;
+insert into `worldstate_templates` (`map`, `zone`, `field`, `value`) values
+('608','0','3810','0'),
+('608','0','3815','100'),
+('608','0','3816','0');

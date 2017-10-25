@@ -48,7 +48,7 @@ class TheVioletHoldScript : public InstanceScript
             mainGatesGUID(0),
             m_sinclariGUID(0),
             sealHP(100),
-            portalCount(0)
+            portalCount(1)
         {
             //TODO: this should be redone by checking actual saved data for heroic mode
             memset(m_VHencounterData, State_NotStarted, sizeof(m_VHencounterData));
@@ -72,6 +72,9 @@ class TheVioletHoldScript : public InstanceScript
 
                     if (pData == State_InProgress)
                     {
+                        // In case if they erent removed in past cases
+                        RemoveIntroNpcs(false);
+
                         // Close the gates
                         if (GameObject* pGO = GetInstance()->GetGameObject(mainGatesGUID))
                         {
@@ -238,16 +241,9 @@ class TheVioletHoldScript : public InstanceScript
         void UpdateEvent()
         {
             // If instance currently is performed for main event
-            if (GetInstanceData(0, INDEX_INSTANCE_PROGRESS) != State_InProgress)
+            if (GetInstanceData(0, INDEX_INSTANCE_PROGRESS) > State_NotStarted && GetInstanceData(0, INDEX_INSTANCE_PROGRESS) < State_InProgress)
             {
-                if (GetInstanceData(0, INDEX_INSTANCE_PROGRESS) > State_NotStarted)
-                {
-                    RemoveIntroNpcs(true);
-                }
-                else
-                {
-                    RemoveIntroNpcs(false);
-                }
+                RemoveIntroNpcs(true);
             }
         }
 
@@ -284,11 +280,14 @@ class TheVioletHoldScript : public InstanceScript
                     {
                         if (pIntroSummon->IsInInstance())
                         {
-                            if (checkForDead && pIntroSummon->isAlive())
+                            if (checkForDead)
                             {
-                                pIntroSummon->Despawn(4000, 0);
-                                itr = intro_spawns.erase(itr);
-                                continue;
+                                if (!pIntroSummon->isAlive())
+                                {
+                                    pIntroSummon->Despawn(4000, 0);
+                                    itr = intro_spawns.erase(itr);
+                                    continue;
+                                }
                             }
                             else
                             {
@@ -421,34 +420,26 @@ class SinclariAI : public CreatureAIScript
                     // Walk to crystal
                     case 0:
                     {
-                        ModifyAIUpdateEvent(2000);
+                        ModifyAIUpdateEvent(3000);
                         moveTo(SinclariPositions[0].x, SinclariPositions[0].y, SinclariPositions[0].z, false);
                     }break;
-                    // Update facing
+                    // Do emote and spawn defense system
                     case 1:
                     {
-                        ModifyAIUpdateEvent(500);
-                        GetUnit()->SetFacing(SinclariPositions[0].o);
+                        ModifyAIUpdateEvent(3000);
+                        GetUnit()->EventAddEmote(EMOTE_ONESHOT_USESTANDING, 3000);
                     }break;
-                    // Do emote and spawn defense system
                     case 2:
                     {
-                        ModifyAIUpdateEvent(3000);
-                        GetUnit()->Emote(EMOTE_ONESHOT_USESTANDING);
-                    }break;
-                    case 3:
-                    {
-                        ModifyAIUpdateEvent(1000);
                         VH_instance->SetInstanceData(0, INDEX_INSTANCE_PROGRESS, State_Performed);
                     }break;
                     // Face to guards
-                    case 4:
+                    case 3:
                     {
                         GetUnit()->SetFacing(6.239587f);
-                        ModifyAIUpdateEvent(2000);
                     }break;
                     // call them out
-                    case 5:
+                    case 4:
                     {
                         GetUnit()->Emote(EMOTE_ONESHOT_SHOUT);
                         sendChatMessage(CHAT_MSG_MONSTER_YELL, 0, SINCLARI_YELL);
@@ -456,30 +447,29 @@ class SinclariAI : public CreatureAIScript
                         // Call guards out of dungeon
                     }break;
                     // Move her to guards
-                    case 6:
+                    case 5:
                     {
                         ModifyAIUpdateEvent(4000);
                         moveTo(SinclariPositions[1].x, SinclariPositions[1].y, SinclariPositions[1].z, false);
                     }break;
                     // Face her to gates (shes outside of door)
-                    case 7:
+                    case 6:
                     {
                         ModifyAIUpdateEvent(1000);
-                        GetUnit()->SetFacing(SinclariPositions[1].o);
+                        GetUnit()->SetFacing(6.239587f);
                     }break;
                     // Goodbye everyone
-                    case 8:
+                    case 7:
                     {
                         ModifyAIUpdateEvent(6000);
                         sendChatMessage(CHAT_MSG_MONSTER_SAY, 0, SINCLARI_SAY);
                     }break;
                     // Start instance event
-                    case 9:
+                    case 8:
                     {
                         RemoveAIUpdateEvent();
                         VH_instance->SetInstanceData(0, INDEX_INSTANCE_PROGRESS, State_InProgress);
                         moveTo(SinclariPositions[2].x, SinclariPositions[2].y, SinclariPositions[2].z, false);
-                        // GetUnit()->SetFacing(M_PI_FLOAT);
                     }break;
                     default:
                         break;
@@ -649,7 +639,7 @@ class VH_guardAI : public CreatureAIScript
         {
             // Correctly set facing
             InstanceScript* pInstance = GetUnit()->GetMapMgr()->GetScript();
-            if (pInstance && pInstance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) != State_Performed)
+            if (pInstance && pInstance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_NotStarted)
             {
                 GetUnit()->SetFacing(GetUnit()->GetSpawnO());
             }
