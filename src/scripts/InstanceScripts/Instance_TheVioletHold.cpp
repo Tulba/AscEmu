@@ -244,7 +244,11 @@ class TheVioletHoldScript : public InstanceScript
 
         void UpdateEvent()
         {
-            RemoveDeadIntroNpcs();
+            // If instance currently is performed for main event
+            if (GetInstanceData(0, INDEX_INSTANCE_PROGRESS) > State_NotStarted)
+                RemoveDeadIntroNpcs(true);
+            else
+                RemoveDeadIntroNpcs(false);
         }
 
         /////////////////////////////////////////////////////////
@@ -264,7 +268,7 @@ class TheVioletHoldScript : public InstanceScript
         }
 
         // Removes all dead intro npcs
-        void RemoveDeadIntroNpcs()
+        void RemoveDeadIntroNpcs(bool checkForDead)
         {
             // In some cases intro npcs aren't despawned on OnDied event
             if (!intro_spawns.empty())
@@ -273,14 +277,22 @@ class TheVioletHoldScript : public InstanceScript
                 {
                     if (Creature* pIntroSummon = GetInstance()->GetCreature(*itr))
                     {
-                        if (!pIntroSummon->isAlive() && pIntroSummon->IsInInstance())
+                        if (pIntroSummon->IsInInstance())
                         {
-                            pIntroSummon->Despawn(4000, 0);
-                            itr = intro_spawns.erase(itr);
-                            continue;
+                            if (checkForDead && pIntroSummon->isAlive())
+                            {
+                                pIntroSummon->Despawn(4000, 0);
+                                itr = intro_spawns.erase(itr);
+                                continue;
+                            }
+                            else
+                            {
+                                pIntroSummon->Despawn(4000, 0);
+                                itr = intro_spawns.erase(itr);
+                            }
                         }
-                        ++itr;
                     }
+                    ++itr;
                 }
             }
         }
@@ -656,15 +668,15 @@ class VH_DefenseAI : public CreatureAIScript
 
         void AIUpdate()
         {
-            // Make storm animation 2 times
-            if (counter < 2)
+            // Make storm animation 3 times
+            if (counter < 3)
             {
                 GetUnit()->CastSpell(GetUnit(), SPELL_VH_LIGHTNING_INTRO, true);
                 ++counter;
             }
 
-            // You were warned 2 times with animation, lets purge xD
-            if (counter == 2)
+            // You were warned 3 times with animation, lets purge xD
+            if (counter == 3)
             {
                 GetUnit()->CastSpell(GetUnit(), SPELL_VH_ARCANE_LIGHTNING_INSTAKILL, false);
                 despawn(1000, 0);
