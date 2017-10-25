@@ -182,6 +182,8 @@ enum SinclariTexts
     GOSSIP_SINCLARI_SEND_ME_IN  = 602
 };
 
+const Movement::Location SinclariSpawnLoc = { 1830.95f, 799.463f, 44.418f, 2.3911f };
+
 // Temporally used constants
 const char* SINCLARI_YELL = "Prison guards, we are leaving! These adventurers are taking over! Go go go!";
 const char* SINCLARI_SAY = "I'm locking the door. Good luck, and thank you for doing this.";

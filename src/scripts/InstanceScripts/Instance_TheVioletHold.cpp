@@ -92,18 +92,9 @@ class TheVioletHoldScript : public InstanceScript
 
                     if (pData == State_Failed)
                     {
-                        // Return sinclari to spawn location
-                        if (Creature* pCreature = GetInstance()->GetCreature(m_sinclariGUID))
-                        {
-                            // Despawn and respawn her in 1 sec (totally 2 seconds)
-                            pCreature->Despawn(1000, 1000);
-                        }
-
-                        // Spawn all other npcs and start mini portal intro
-                        SpawnIntro();
-
-                        // Set activation crystals selectable
+                        ResetIntro();
                         ResetCrystals(true);
+                        SetInstanceData(0, INDEX_INSTANCE_PROGRESS, State_NotStarted);
                     }
                 }break;
                 default:
@@ -267,10 +258,14 @@ class TheVioletHoldScript : public InstanceScript
             SpawnIntro();
 
             // Return sinclari to spawn location
-            if (Creature* pSinclari = GetInstance()->GetCreature(m_sinclariGUID))
+            if (Creature* pCreature = GetInstance()->GetCreature(m_sinclariGUID))
             {
-                pSinclari->GetAIInterface()->MoveTo(pSinclari->GetSpawnX(), pSinclari->GetSpawnY(), pSinclari->GetSpawnZ());
-                pSinclari->SetFacing(pSinclari->GetSpawnO());
+                // Despawn and respawn her in 1 sec (totally 2 seconds)
+                pCreature->Despawn(1000, 1000);
+            }
+            else
+            {
+                spawnCreature(CN_LIEUTNANT_SINCLARI, SinclariSpawnLoc.x, SinclariSpawnLoc.y, SinclariSpawnLoc.z, SinclariSpawnLoc.o);
             }
         }
 
