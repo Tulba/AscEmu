@@ -51,19 +51,19 @@ const Movement::Location introMoveLoc = { 1817.377930f, 803.973633f, 44.363861f,
 enum CreatureEntry : uint32_t
 {
     //Main event
-    CN_VIOLET_HOLD_GUARD                    = 30659,
     CN_PORTAL_GUARDIAN                      = 30660,
     CN_DEFENSE_SYSTEM                       = 30837,
 
     // Sinclari event
     CN_LIEUTNANT_SINCLARI                   = 30658,
-    CN_PORTAL_INTRO                         = 31011,
 
     // Intro event
+    CN_VIOLET_HOLD_GUARD                    = 30659,
     CN_INTRO_AZURE_BINDER_ARCANE            = 31007,
     CN_INTRO_AZURE_INVADER_ARMS             = 31008,
-    CN_INTRO_AZURE_MAGE_SLAYER_MELEE        = 31010,
     CN_INTRO_AZURE_SPELLBREAKER_ARCANE      = 31009,
+    CN_INTRO_AZURE_MAGE_SLAYER_MELEE        = 31010,
+    CN_PORTAL_INTRO                         = 31011,
 
     // Portal npcs
     CN_PORTAL                               = 30679,
@@ -206,8 +206,7 @@ enum VH_Spells
     SPELL_VH_CRYSTAL_ACTIVATION         = 57804,
     SPELL_VH_DEFENSE_SYSTEM_VISUAL      = 57887,
     SPELL_VH_DEFENSE_SYSTEM_SPAWN       = 57886,
-    SPELL_VH_LIGHTNING_INTRO            = 60038,                    // intro kill spells, also related to spell 58152
-    SPELL_VH_ARCANE_LIGHTNING           = 57930, // damage spells, related to spell 57912
+    SPELL_VH_LIGHTNING_INTRO            = 60038,
     SPELL_VH_ARCANE_LIGHTNING_INSTAKILL = 57930,
 
     SPELL_VH_TELEPORT_PLAYER            = 62138,

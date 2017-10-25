@@ -193,12 +193,14 @@ class TheVioletHoldScript : public InstanceScript
                 {
                     m_sinclariGUID = GET_LOWGUID_PART(pCreature->GetGUID());
                 }break;
+                case CN_PORTAL_INTRO:
                 case CN_INTRO_AZURE_BINDER_ARCANE:
                 case CN_INTRO_AZURE_INVADER_ARMS:
                 case CN_INTRO_AZURE_MAGE_SLAYER_MELEE:
                 case CN_INTRO_AZURE_SPELLBREAKER_ARCANE:
+                {
                     intro_spawns.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
-                    break;
+                }break;
                 case CN_DEFENSE_SYSTEM:
                 default:
                     break;
@@ -391,6 +393,7 @@ class SinclariAI : public CreatureAIScript
 
         void StartEvent()
         {
+            GetUnit()->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_NPC_FLAG_GOSSIP);
             RegisterAIUpdateEvent(1000);
         }
 
@@ -528,7 +531,6 @@ class SinclariGossip : public Arcemu::Gossip::Script
                         if (SinclariAI *pScript = static_cast<SinclariAI*>(pCreature->GetScript()))
                         {
                             // Remove gossip flag
-                            pCreature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_NPC_FLAG_GOSSIP);
                             pScript->StartEvent();
                         }
                     }
@@ -551,8 +553,25 @@ class IntroPortalAI : public CreatureAIScript
             VH_instance = pCreature->GetMapMgr()->GetScript();
         }
 
+        void OnDied(Unit* /*pKiller*/)
+        {
+            despawn();
+        }
+
+        void OnDespawn()
+        {
+            // Make sure guid is removed from list
+            if (TheVioletHoldScript* pInstance = static_cast<TheVioletHoldScript*>(GetUnit()->GetMapMgr()->GetScript()))
+            {
+                pInstance->RemoveIntroNpcByGuid(GET_LOWGUID_PART(GetUnit()->GetLowGUID()));
+            }
+        }
+
         void OnLoad()
         {
+            setRooted(true);
+            GetUnit()->m_canRegenerateHP = false;
+            setCanEnterCombat(false);
             GetUnit()->Phase(PHASE_SET, 1);
             // Register AIUpdate event in 2 sec
             RegisterAIUpdateEvent(5000);
