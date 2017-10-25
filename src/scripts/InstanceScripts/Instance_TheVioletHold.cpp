@@ -49,7 +49,7 @@ class TheVioletHoldScript : public InstanceScript
         }
 
         // Guids holder for portal waves
-        std::vector<uint32_t> m_eventSpawns;
+        std::list<uint32_t> m_eventSpawns;
 
         // List holds summoned intro creatures guids before main event
         std::list<uint32_t> intro_spawns;
@@ -198,8 +198,6 @@ class TheVioletHoldScript : public InstanceScript
                 case CN_INTRO_AZURE_SPELLBREAKER_ARCANE:
                 {
                     intro_spawns.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
-                    pCreature->GetAIInterface()->setWalkMode(WALKMODE_RUN);
-                    pCreature->GetAIInterface()->MoveTo(sealAttackLoc.x, sealAttackLoc.y, sealAttackLoc.z);
                 }break;
                 case CN_DEFENSE_SYSTEM_TRIGGER:
                 {
@@ -599,10 +597,10 @@ class VHIntroNpcAI : public CreatureAIScript
     public:
 
         static CreatureAIScript* Create(Creature* c) { return new VHIntroNpcAI(c); }
-        VHIntroNpcAI(Creature* pCreature) : CreatureAIScript(pCreature)
+        VHIntroNpcAI(Creature* pCreature) : CreatureAIScript(pCreature), isMoveSet(false)
         {
+            RegisterAIUpdateEvent(1000);
         }
-
 
         void OnDespawn()
         {
@@ -612,6 +610,19 @@ class VHIntroNpcAI : public CreatureAIScript
                 pInstance->RemoveIntroNpcByGuid(GET_LOWGUID_PART(GetUnit()->GetLowGUID()));
             }
         }
+
+        void AIUpdate()
+        {
+            if (!isMoveSet)
+            {
+                moveTo(sealAttackLoc.x, sealAttackLoc.y, sealAttackLoc.z);
+                isMoveSet = true;
+            }
+        }
+
+    protected:
+
+        bool isMoveSet;
 };
 
 class VH_DefenseAI : public CreatureAIScript
@@ -631,6 +642,7 @@ class VH_DefenseAI : public CreatureAIScript
         {
             if (TheVioletHoldScript* pInstance = static_cast<TheVioletHoldScript*>(GetUnit()->GetMapMgr()->GetScript()))
             {
+                // Intro spawns
                 if (!pInstance->intro_spawns.empty())
                 {
                     for (std::list<uint32_t>::iterator itr = pInstance->intro_spawns.begin(); itr != pInstance->intro_spawns.end(); ++itr)
@@ -655,9 +667,10 @@ class VH_DefenseAI : public CreatureAIScript
                     }
                 }
 
+                // Main event spawns
                 if (!pInstance->m_eventSpawns.empty())
                 {
-                    for (std::list<uint32_t>::iterator itr = pInstance->intro_spawns.begin(); itr != pInstance->m_eventSpawns.end(); ++itr)
+                    for (std::list<uint32_t>::iterator itr = pInstance->m_eventSpawns.begin(); itr != pInstance->m_eventSpawns.end(); ++itr)
                     {
                         if (counter == 3)
                         {
@@ -679,13 +692,14 @@ class VH_DefenseAI : public CreatureAIScript
                     }
                 }
 
+                // Defense triggers
                 if (!pInstance->defenseTriggers.empty() && counter < 3)
                 {
                     for (std::list<uint32_t>::iterator itr = pInstance->defenseTriggers.begin(); itr != pInstance->defenseTriggers.end(); ++itr)
                     {
                         if (Creature* pTarget = pInstance->GetInstance()->GetCreature(*itr))
                         {
-                            GetUnit()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_ARCANE_LIGHTNING_INSTAKILL), false);
+                            GetUnit()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_LIGHTNING_INTRO), true);
                         }
                     }
                 }
