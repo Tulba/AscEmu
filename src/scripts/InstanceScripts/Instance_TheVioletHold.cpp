@@ -179,10 +179,12 @@ class TheVioletHoldScript : public InstanceScript
                 {
                     m_guardsGuids.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
                     pCreature->Phase(PHASE_SET, 1);
+                    pCreature->setByteFlag(UNIT_FIELD_BYTES_2, 0, SHEATH_STATE_MELEE);
                 }break;
                 case CN_LIEUTNANT_SINCLARI:
                 {
                     m_sinclariGUID = GET_LOWGUID_PART(pCreature->GetGUID());
+                    pCreature->setByteFlag(UNIT_FIELD_BYTES_2, 0, SHEATH_STATE_MELEE);
                 }break;
                 case CN_PORTAL_INTRO:
                 case CN_INTRO_AZURE_BINDER_ARCANE:
@@ -260,7 +262,7 @@ class TheVioletHoldScript : public InstanceScript
             // Return sinclari to spawn location
             if (Creature* pCreature = GetInstance()->GetCreature(m_sinclariGUID))
             {
-                // Despawn and respawn her in 1 sec (totally 2 seconds)
+                // Despawn and respawn her in 1 sec (2 seconds)
                 pCreature->Despawn(1000, 1000);
             }
             else
@@ -330,11 +332,7 @@ class TheVioletHoldScript : public InstanceScript
             // Spawn guards
             for (uint8_t i = 0; i < guardsCount; i++)
             {
-                if (Creature* pGuard = spawnCreature(CN_VIOLET_HOLD_GUARD, guardsSpawnLoc[i].x, guardsSpawnLoc[i].y, guardsSpawnLoc[i].z, guardsSpawnLoc[i].o))
-                {
-                    // Prepare melee weapon
-                    pGuard->setByteFlag(UNIT_FIELD_BYTES_2, 0, SHEATH_STATE_MELEE);
-                }
+                spawnCreature(CN_VIOLET_HOLD_GUARD, guardsSpawnLoc[i].x, guardsSpawnLoc[i].y, guardsSpawnLoc[i].z, guardsSpawnLoc[i].o))
             }
 
             // Spawn portals
