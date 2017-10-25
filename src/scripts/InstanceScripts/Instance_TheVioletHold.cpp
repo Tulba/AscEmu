@@ -224,8 +224,16 @@ class TheVioletHoldScript : public InstanceScript
                 case CN_INTRO_AZURE_INVADER_ARMS:
                 case CN_INTRO_AZURE_MAGE_SLAYER_MELEE:
                 case CN_INTRO_AZURE_SPELLBREAKER_ARCANE:
+                {
                     pCreature->Despawn(4000, 0);
-                    break;
+                }break;
+                case CN_CYANIGOSA:
+                {
+                    if (!m_isDefAchievFailed)
+                    {
+                        UpdateAchievCriteriaForPlayers(ACHIEV_CRIT_DEFENSELES, 1);
+                    }
+                }break;
                 default:
                     break;
             }
@@ -252,7 +260,7 @@ class TheVioletHoldScript : public InstanceScript
             }
         }
 
-        /// Removes all dead intro npcs
+        // Removes all dead intro npcs
         void RemoveDeadIntroNpcs()
         {
             // In some cases intro npcs aren't despawned on OnDied event
