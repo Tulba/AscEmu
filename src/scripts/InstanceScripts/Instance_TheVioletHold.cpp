@@ -642,14 +642,14 @@ class VH_DefenseAI : public CreatureAIScript
         void AIUpdate()
         {
             // Make storm animation 2 times
-            if (counter < 3)
+            if (counter < 2)
             {
                 GetUnit()->CastSpell(GetUnit(), SPELL_VH_LIGHTNING_INTRO, true);
                 ++counter;
             }
 
             // You were warned 2 times with animation, lets purge xD
-            if (counter == 3)
+            if (counter == 2)
             {
                 GetUnit()->CastSpell(GetUnit(), SPELL_VH_ARCANE_LIGHTNING_INSTAKILL, false);
                 despawn(1000, 0);
