@@ -267,6 +267,7 @@ class TheVioletHoldScript : public InstanceScript
             }
             else
             {
+                // GUID will be set at OnCreaturePushToWorld event
                 spawnCreature(CN_LIEUTNANT_SINCLARI, SinclariSpawnLoc.x, SinclariSpawnLoc.y, SinclariSpawnLoc.z, SinclariSpawnLoc.o);
             }
         }
@@ -332,7 +333,7 @@ class TheVioletHoldScript : public InstanceScript
             // Spawn guards
             for (uint8_t i = 0; i < guardsCount; i++)
             {
-                spawnCreature(CN_VIOLET_HOLD_GUARD, guardsSpawnLoc[i].x, guardsSpawnLoc[i].y, guardsSpawnLoc[i].z, guardsSpawnLoc[i].o))
+                spawnCreature(CN_VIOLET_HOLD_GUARD, guardsSpawnLoc[i].x, guardsSpawnLoc[i].y, guardsSpawnLoc[i].z, guardsSpawnLoc[i].o);
             }
 
             // Spawn portals
@@ -421,7 +422,7 @@ class SinclariAI : public CreatureAIScript
                     case 0:
                     {
                         ModifyAIUpdateEvent(2000);
-                        moveTo(SinclariPositions[0].x, SinclariPositions[0].y, SinclariPositions[0].z);
+                        moveTo(SinclariPositions[0].x, SinclariPositions[0].y, SinclariPositions[0].z, false);
                     }break;
                     // Update facing
                     case 1:
