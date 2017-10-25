@@ -441,22 +441,27 @@ class SinclariAI : public CreatureAIScript
                     case 6:
                     {
                         ModifyAIUpdateEvent(4000);
-                        GetUnit()->GetAIInterface()->MoveTo(SinclariPositions[1].x, SinclariPositions[1].y, SinclariPositions[1].z, SinclariPositions[1].o);
+                        moveTo(SinclariPositions[1].x, SinclariPositions[1].y, SinclariPositions[1].z, false);
                     }break;
-                    // Face her to gates (shes outside of door) and say text
-                    // Goodbye everyone
+                    // Face her to gates (shes outside of door)
                     case 7:
+                    {
+                        ModifyAIUpdateEvent(1000);
+                        GetUnit()->SetFacing(SinclariPositions[1].o);
+                    }break;
+                    // Goodbye everyone
+                    case 8:
                     {
                         ModifyAIUpdateEvent(6000);
                         sendChatMessage(CHAT_MSG_MONSTER_SAY, 0, SINCLARI_SAY);
                     }break;
                     // Start instance event
-                    case 8:
+                    case 9:
                     {
                         RemoveAIUpdateEvent();
                         VH_instance->SetInstanceData(0, INDEX_INSTANCE_PROGRESS, State_InProgress);
-                        GetUnit()->GetAIInterface()->MoveTo(SinclariPositions[2].x, SinclariPositions[2].y, SinclariPositions[2].z, SinclariPositions[2].o);
-                        GetUnit()->SetFacing(M_PI_FLOAT);
+                        moveTo(SinclariPositions[2].x, SinclariPositions[2].y, SinclariPositions[2].z);
+                        // GetUnit()->SetFacing(M_PI_FLOAT);
                     }break;
                     default:
                         break;
