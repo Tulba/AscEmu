@@ -460,7 +460,7 @@ class SinclariAI : public CreatureAIScript
                     {
                         RemoveAIUpdateEvent();
                         VH_instance->SetInstanceData(0, INDEX_INSTANCE_PROGRESS, State_InProgress);
-                        moveTo(SinclariPositions[2].x, SinclariPositions[2].y, SinclariPositions[2].z);
+                        moveTo(SinclariPositions[2].x, SinclariPositions[2].y, SinclariPositions[2].z, false);
                         // GetUnit()->SetFacing(M_PI_FLOAT);
                     }break;
                     default:
