@@ -571,6 +571,7 @@ class VHIntroNpcAI : public CreatureAIScript
         static CreatureAIScript* Create(Creature* c) { return new VHIntroNpcAI(c); }
         VHIntroNpcAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
+            // Lets start init event
             RegisterAIUpdateEvent(1000);
         }
 
@@ -581,6 +582,12 @@ class VHIntroNpcAI : public CreatureAIScript
             {
                 pInstance->RemoveIntroNpcByGuid(GET_LOWGUID_PART(GetUnit()->GetLowGUID()));
             }
+        }
+
+        void OnCombatStop(Unit* /*pEnemy*/)
+        {
+            GetUnit()->GetAIInterface()->MoveTo(sealAttackLoc.x, sealAttackLoc.y, sealAttackLoc.z, sealAttackLoc.o);
+            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
