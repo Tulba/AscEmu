@@ -18,9 +18,6 @@ class TheVioletHoldScript : public InstanceScript
     // Guards
     std::list<uint32_t /*guid*/> m_guardsGuids;
 
-    // Guids holder for portal waves
-    std::vector<uint32_t /*guid*/> m_eventSpawns;
-
     // Activation crystal guids
     std::list<uint32_t /*guid*/> m_crystalGuids;
 
@@ -33,9 +30,6 @@ class TheVioletHoldScript : public InstanceScript
     // used for gates seal
     uint32_t sealHP;
     uint32_t portalCount;
-
-    // List holds summoned intro creatures guids before main event
-    std::list<uint32_t> intro_spawns;
 
     public:
 
@@ -53,6 +47,15 @@ class TheVioletHoldScript : public InstanceScript
             //TODO: this should be redone by checking actual saved data for heroic mode
             memset(m_VHencounterData, State_NotStarted, sizeof(m_VHencounterData));
         }
+
+        // Guids holder for portal waves
+        std::vector<uint32_t> m_eventSpawns;
+
+        // List holds summoned intro creatures guids before main event
+        std::list<uint32_t> intro_spawns;
+
+        // List holds trigger npcs used for visual effect in defense npc AI
+        std::list<uint32_t> defenseTriggers;
 
         void SetInstanceData(uint32_t /*pType*/, uint32_t pIndex, uint32_t pData)
         {
@@ -72,9 +75,7 @@ class TheVioletHoldScript : public InstanceScript
 
                     if (pData == State_InProgress)
                     {
-                        // In case if they erent removed in past cases
                         RemoveIntroNpcs(false);
-
                         // Close the gates
                         if (GameObject* pGO = GetInstance()->GetGameObject(mainGatesGUID))
                         {
@@ -118,8 +119,6 @@ class TheVioletHoldScript : public InstanceScript
 
         void OnLoad()
         {
-            FillInitialWorldStates();   // Only for testing, this will need to be repalced
-
             // For most creatures movements mmaps is needed
             if (!sWorld.settings.terrainCollision.isPathfindingEnabled)
             {
@@ -132,6 +131,7 @@ class TheVioletHoldScript : public InstanceScript
                 ResetIntro();
                 introStarted = true;
             }
+
             RegisterUpdateEvent(1000);
         }
 
@@ -183,11 +183,13 @@ class TheVioletHoldScript : public InstanceScript
                     m_guardsGuids.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
                     pCreature->Phase(PHASE_SET, 1);
                     pCreature->setByteFlag(UNIT_FIELD_BYTES_2, 0, SHEATH_STATE_MELEE);
+                    pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLUS_MOB | UNIT_FLAG_UNKNOWN_16);
                 }break;
                 case CN_LIEUTNANT_SINCLARI:
                 {
                     m_sinclariGUID = GET_LOWGUID_PART(pCreature->GetGUID());
                     pCreature->setByteFlag(UNIT_FIELD_BYTES_2, 0, SHEATH_STATE_MELEE);
+                    pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLUS_MOB | UNIT_FLAG_UNKNOWN_16);
                 }break;
                 case CN_PORTAL_INTRO:
                 case CN_INTRO_AZURE_BINDER_ARCANE:
@@ -196,8 +198,13 @@ class TheVioletHoldScript : public InstanceScript
                 case CN_INTRO_AZURE_SPELLBREAKER_ARCANE:
                 {
                     intro_spawns.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
+                    pCreature->GetAIInterface()->setWalkMode(WALKMODE_RUN);
+                    pCreature->GetAIInterface()->MoveTo(sealAttackLoc.x, sealAttackLoc.y, sealAttackLoc.z);
                 }break;
-                case CN_DEFENSE_SYSTEM:
+                case CN_DEFENSE_SYSTEM_TRIGGER:
+                {
+                    defenseTriggers.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
+                }
                 default:
                     break;
             }
@@ -240,11 +247,7 @@ class TheVioletHoldScript : public InstanceScript
 
         void UpdateEvent()
         {
-            // If instance currently is performed for main event
-            if (GetInstanceData(0, INDEX_INSTANCE_PROGRESS) > State_NotStarted && GetInstanceData(0, INDEX_INSTANCE_PROGRESS) < State_InProgress)
-            {
-                RemoveIntroNpcs(true);
-            }
+            RemoveIntroNpcs(true);
         }
 
         /////////////////////////////////////////////////////////
@@ -269,32 +272,29 @@ class TheVioletHoldScript : public InstanceScript
         }
 
         // Removes all dead intro npcs
-        void RemoveIntroNpcs(bool checkForDead)
+        void RemoveIntroNpcs(bool deadOnly)
         {
-            // In some cases intro npcs aren't despawned on OnDied event
             if (!intro_spawns.empty())
             {
                 for (std::list<uint32_t>::iterator itr = intro_spawns.begin(); itr != intro_spawns.end();)
                 {
-                    if (Creature* pIntroSummon = GetInstance()->GetCreature(*itr))
+                    Creature* pIntroSummon = GetInstance()->GetCreature(*itr);
+                    if (pIntroSummon && pIntroSummon->IsInInstance())
                     {
-                        if (pIntroSummon->IsInInstance())
+                        if (deadOnly)
                         {
-                            if (checkForDead)
-                            {
-                                if (!pIntroSummon->isAlive())
-                                {
-                                    pIntroSummon->Despawn(4000, 0);
-                                    itr = intro_spawns.erase(itr);
-                                    continue;
-                                }
-                            }
-                            else
+                            if (!pIntroSummon->isAlive())
                             {
                                 pIntroSummon->Despawn(4000, 0);
                                 itr = intro_spawns.erase(itr);
                                 continue;
                             }
+                        }
+                        else
+                        {
+                            pIntroSummon->Despawn(4000, 0);
+                            itr = intro_spawns.erase(itr);
+                            continue;
                         }
                     }
                     ++itr;
@@ -321,9 +321,17 @@ class TheVioletHoldScript : public InstanceScript
 
         void FillInitialWorldStates()
         {
-            GetInstance()->GetWorldStatesHandler().SetWorldStateForZone(0, VH_DEFAULT_AREA, WORLD_STATE_VH_SHOW, 1);
-            GetInstance()->GetWorldStatesHandler().SetWorldStateForZone(0, VH_DEFAULT_AREA, WORLD_STATE_VH_PRISON_STATE, sealHP);
-            GetInstance()->GetWorldStatesHandler().SetWorldStateForZone(0, VH_DEFAULT_AREA, WORLD_STATE_VH_WAVE_COUNT, portalCount);
+            UpdateWorldStates(WORLD_STATE_VH_SHOW, 1);
+            UpdateWorldStates(WORLD_STATE_VH_PRISON_STATE, sealHP);
+            UpdateWorldStates(WORLD_STATE_VH_WAVE_COUNT, portalCount);
+        }
+
+        void UpdateWorldStates(uint32_t field, uint32_t value)
+        {
+            WorldPacket data(SMSG_UPDATE_WORLD_STATE, 8);
+            data << field;
+            data << value;
+            GetInstance()->SendPacketToAllPlayers(&data);
         }
 
         // Spawn instance intro
@@ -376,18 +384,20 @@ class TheVioletHoldScript : public InstanceScript
             }
         }
 
-        /// Calls guards out
+        // Calls guards out
         void CallGuardsOut()
         {
-            for (std::list<uint32_t>::iterator itr = m_guardsGuids.begin(); itr != m_guardsGuids.end();)
+            if (m_guardsGuids.empty())
+                return;
+
+            for (std::list<uint32_t>::iterator itr = m_guardsGuids.begin(); itr != m_guardsGuids.end(); itr = m_guardsGuids.erase(itr))
             {
                 if (Creature* pGuard = GetInstance()->GetCreature(*itr))
                 {
                     pGuard->GetAIInterface()->setWalkMode(WALKMODE_RUN);
                     pGuard->GetAIInterface()->MoveTo(introMoveLoc.x, introMoveLoc.y, introMoveLoc.z);
-                    pGuard->Despawn(6000, 0); // Despawn in 6 sec
+                    pGuard->Despawn(5000, 0);
                 }
-                itr = m_guardsGuids.erase(itr);
             }
         }
 };
@@ -453,19 +463,15 @@ class SinclariAI : public CreatureAIScript
                         moveTo(SinclariPositions[1].x, SinclariPositions[1].y, SinclariPositions[1].z, false);
                     }break;
                     // Face her to gates (shes outside of door)
+                    // Goodbye everyone
                     case 6:
                     {
-                        ModifyAIUpdateEvent(1000);
-                        GetUnit()->SetFacing(6.239587f);
-                    }break;
-                    // Goodbye everyone
-                    case 7:
-                    {
                         ModifyAIUpdateEvent(6000);
+                        GetUnit()->SetFacing(6.239587f);
                         sendChatMessage(CHAT_MSG_MONSTER_SAY, 0, SINCLARI_SAY);
                     }break;
                     // Start instance event
-                    case 8:
+                    case 7:
                     {
                         RemoveAIUpdateEvent();
                         VH_instance->SetInstanceData(0, INDEX_INSTANCE_PROGRESS, State_InProgress);
@@ -595,9 +601,8 @@ class VHIntroNpcAI : public CreatureAIScript
         static CreatureAIScript* Create(Creature* c) { return new VHIntroNpcAI(c); }
         VHIntroNpcAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
-            // Lets start init event
-            RegisterAIUpdateEvent(1000);
         }
+
 
         void OnDespawn()
         {
@@ -605,43 +610,6 @@ class VHIntroNpcAI : public CreatureAIScript
             if (TheVioletHoldScript* pInstance = static_cast<TheVioletHoldScript*>(GetUnit()->GetMapMgr()->GetScript()))
             {
                 pInstance->RemoveIntroNpcByGuid(GET_LOWGUID_PART(GetUnit()->GetLowGUID()));
-            }
-        }
-
-        void OnCombatStop(Unit* /*pEnemy*/)
-        {
-            GetUnit()->GetAIInterface()->MoveTo(sealAttackLoc.x, sealAttackLoc.y, sealAttackLoc.z, sealAttackLoc.o);
-            RemoveAIUpdateEvent();
-        }
-
-        void AIUpdate()
-        {
-            if (!GetUnit()->CombatStatus.IsInCombat())
-            {
-                GetUnit()->GetAIInterface()->setWalkMode(WALKMODE_RUN);
-                GetUnit()->GetAIInterface()->MoveTo(sealAttackLoc.x, sealAttackLoc.y, sealAttackLoc.z, sealAttackLoc.o);
-                RemoveAIUpdateEvent();
-            }
-        }
-};
-
-class VH_guardAI : public CreatureAIScript
-{
-    public:
-
-        static CreatureAIScript* Create(Creature* c) { return new VH_guardAI(c); }
-        VH_guardAI(Creature* pCreature) : CreatureAIScript(pCreature)
-        {
-            RegisterAIUpdateEvent(1000);
-        }
-
-        void OnCombatStop(Unit* /*pEnemey*/)
-        {
-            // Correctly set facing
-            InstanceScript* pInstance = GetUnit()->GetMapMgr()->GetScript();
-            if (pInstance && pInstance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_NotStarted)
-            {
-                GetUnit()->SetFacing(GetUnit()->GetSpawnO());
             }
         }
 };
@@ -655,23 +623,73 @@ class VH_DefenseAI : public CreatureAIScript
         VH_DefenseAI(Creature* pCreature) : CreatureAIScript(pCreature), counter(0)
         {
             RegisterAIUpdateEvent(1000);
+            despawn(7000);
             GetUnit()->CastSpell(pCreature, sSpellCustomizations.GetSpellInfo(SPELL_VH_DEFENSE_SYSTEM_VISUAL), true);
         }
 
         void AIUpdate()
         {
-            // Make storm animation 3 times
-            if (counter < 3)
+            if (TheVioletHoldScript* pInstance = static_cast<TheVioletHoldScript*>(GetUnit()->GetMapMgr()->GetScript()))
             {
-                GetUnit()->CastSpell(GetUnit(), SPELL_VH_LIGHTNING_INTRO, true);
-                ++counter;
-            }
+                if (!pInstance->intro_spawns.empty())
+                {
+                    for (std::list<uint32_t>::iterator itr = pInstance->intro_spawns.begin(); itr != pInstance->intro_spawns.end(); ++itr)
+                    {
+                        if (counter == 3)
+                        {
+                            if (Creature* pTarget = pInstance->GetInstance()->GetCreature(*itr))
+                            {
+                                GetUnit()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_ARCANE_LIGHTNING_INSTAKILL), true);
+                                // Make sure they all dies
+                                pTarget->SetHealth(0);
+                                pTarget->Die(GetUnit(), 0, 0);
+                            }
+                        }
+                        else
+                        {
+                            if (Creature* pTarget = pInstance->GetInstance()->GetCreature(*itr))
+                            {
+                                GetUnit()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_LIGHTNING_INTRO), true);
+                            }
+                        }
+                    }
+                }
 
-            // You were warned 3 times with animation, lets purge xD
-            if (counter == 3)
-            {
-                GetUnit()->CastSpell(GetUnit(), SPELL_VH_ARCANE_LIGHTNING_INSTAKILL, false);
-                despawn(1000, 0);
+                if (!pInstance->m_eventSpawns.empty())
+                {
+                    for (std::list<uint32_t>::iterator itr = pInstance->intro_spawns.begin(); itr != pInstance->m_eventSpawns.end(); ++itr)
+                    {
+                        if (counter == 3)
+                        {
+                            if (Creature* pTarget = pInstance->GetInstance()->GetCreature(*itr))
+                            {
+                                GetUnit()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_ARCANE_LIGHTNING_INSTAKILL), true);
+                                // Make sure they all dies
+                                pTarget->SetHealth(0);
+                                pTarget->Die(GetUnit(), 0, 0);
+                            }
+                        }
+                        else
+                        {
+                            if (Creature* pTarget = pInstance->GetInstance()->GetCreature(*itr))
+                            {
+                                GetUnit()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_LIGHTNING_INTRO), true);
+                            }
+                        }
+                    }
+                }
+
+                if (!pInstance->defenseTriggers.empty() && counter < 3)
+                {
+                    for (std::list<uint32_t>::iterator itr = pInstance->defenseTriggers.begin(); itr != pInstance->defenseTriggers.end(); ++itr)
+                    {
+                        if (Creature* pTarget = pInstance->GetInstance()->GetCreature(*itr))
+                        {
+                            GetUnit()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_ARCANE_LIGHTNING_INSTAKILL), false);
+                        }
+                    }
+                }
+                ++counter;
             }
         }
 };
@@ -705,7 +723,6 @@ void SetupTheVioletHold(ScriptMgr* mgr)
     mgr->register_creature_script(CN_INTRO_AZURE_INVADER_ARMS, &VHIntroNpcAI::Create);
     mgr->register_creature_script(CN_INTRO_AZURE_MAGE_SLAYER_MELEE, &VHIntroNpcAI::Create);
     mgr->register_creature_script(CN_INTRO_AZURE_SPELLBREAKER_ARCANE, &VHIntroNpcAI::Create);
-    mgr->register_creature_script(CN_VIOLET_HOLD_GUARD, &VH_guardAI::Create);
     mgr->register_creature_script(CN_DEFENSE_SYSTEM, &VH_DefenseAI::Create);
 
     // Spells

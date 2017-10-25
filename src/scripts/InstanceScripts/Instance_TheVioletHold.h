@@ -53,6 +53,7 @@ enum CreatureEntry : uint32_t
     //Main event
     CN_PORTAL_GUARDIAN                      = 30660,
     CN_DEFENSE_SYSTEM                       = 30837,
+    CN_DEFENSE_SYSTEM_TRIGGER               = 30857,
 
     // Sinclari event
     CN_LIEUTNANT_SINCLARI                   = 30658,
@@ -215,7 +216,7 @@ enum VH_Spells
     SPELL_VH_TELEPORT_PLAYER_EFFECT     = 62139
 };
 
-const Movement::Location fGuardExitLoc = {1806.955f, 803.851f, 44.36f, 0};
+const Movement::Location fGuardExitLoc = { 1802.099f, 803.7724f, 44.36466f, 0.0f};
 
 // Guards spawn location
 const uint8_t guardsCount = 4;
