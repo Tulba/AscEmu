@@ -274,6 +274,8 @@ class TheVioletHoldScript : public InstanceScript
             }
         }
 
+        // Removes intro npc from list by guid
+        // ONLY called on despawn event
         void RemoveIntroNpcByGuid(uint32_t guid)
         {
             if (!intro_spawns.empty())
@@ -296,7 +298,7 @@ class TheVioletHoldScript : public InstanceScript
             GetInstance()->GetWorldStatesHandler().SetWorldStateForZone(0, VH_DEFAULT_AREA, WORLD_STATE_VH_WAVE_COUNT, portalCount);
         }
 
-        /// Spawn instance intro
+        // Spawn instance intro
         void SpawnIntro()
         {
             // Spawn guards
@@ -316,13 +318,7 @@ class TheVioletHoldScript : public InstanceScript
             }
         }
 
-        /// Despawn portals and npcs summoned by them
-        void ActivateCrystal()
-        {
-            spawnCreature(CN_DEFENSE_SYSTEM, DefenseSystemLocation.x, DefenseSystemLocation.y, DefenseSystemLocation.z, DefenseSystemLocation.o);
-        }
-
-        /// Resets activation crystals
+        // Resets activation crystals
         void ResetCrystals(bool isSelectable)
         {
             for (std::list<uint32_t>::iterator itr = m_crystalGuids.begin(); itr != m_crystalGuids.end(); ++itr)
@@ -619,18 +615,20 @@ class VH_DefenseAI : public CreatureAIScript
         static CreatureAIScript* Create(Creature* c) { return new VH_DefenseAI(c); }
         VH_DefenseAI(Creature* pCreature) : CreatureAIScript(pCreature), counter(0)
         {
-            RegisterAIUpdateEvent(500);
+            RegisterAIUpdateEvent(1000);
             GetUnit()->CastSpell(pCreature, sSpellCustomizations.GetSpellInfo(SPELL_VH_DEFENSE_SYSTEM_VISUAL), true);
         }
 
         void AIUpdate()
         {
+            // Make storm animation 2 times
             if (counter < 3)
             {
                 GetUnit()->CastSpell(GetUnit(), SPELL_VH_LIGHTNING_INTRO, true);
                 ++counter;
             }
 
+            // You were warned 2 times with animation, lets purge xD
             if (counter == 3)
             {
                 GetUnit()->CastSpell(GetUnit(), SPELL_VH_ARCANE_LIGHTNING_INSTAKILL, false);
