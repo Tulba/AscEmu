@@ -13,3 +13,6 @@ insert into `worldstate_templates` (`map`, `zone`, `field`, `value`) values
 ('608','0','3810','0'),
 ('608','0','3815','100'),
 ('608','0','3816','0');
+
+-- Update repop location
+update worldmap_info set repopx = '5847.220215', repopy = '761.578979', repopz = '640.950745' where entry = 608;
