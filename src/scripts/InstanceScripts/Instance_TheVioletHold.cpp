@@ -222,6 +222,7 @@ class TheVioletHoldScript : public InstanceScript
                 {
                     m_isZuramatAchievFailed = true;
                 }break;
+                case CN_PORTAL_INTRO:
                 case CN_INTRO_AZURE_BINDER_ARCANE:
                 case CN_INTRO_AZURE_INVADER_ARMS:
                 case CN_INTRO_AZURE_MAGE_SLAYER_MELEE:
@@ -551,11 +552,6 @@ class IntroPortalAI : public CreatureAIScript
         IntroPortalAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             VH_instance = pCreature->GetMapMgr()->GetScript();
-        }
-
-        void OnDied(Unit* /*pKiller*/)
-        {
-            despawn();
         }
 
         void OnDespawn()
