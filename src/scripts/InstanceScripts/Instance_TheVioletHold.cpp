@@ -6,20 +6,16 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Setup.h"
 #include "Instance_TheVioletHold.h"
 
+class VH_DefenseAI;
 class TheVioletHoldScript : public InstanceScript
 {
     uint32_t m_VHencounterData[INDEX_MAX];
+
     bool introStarted;
 
     // Achievements
     bool m_isZuramatAchievFailed;
     bool m_isDefAchievFailed;
-
-    // Guards
-    std::list<uint32_t /*guid*/> m_guardsGuids;
-
-    // Activation crystal guids
-    std::list<uint32_t /*guid*/> m_crystalGuids;
 
     // Low guids of gameobjects
     uint32_t mainGatesGUID;
@@ -27,9 +23,22 @@ class TheVioletHoldScript : public InstanceScript
     // Low guids of creatures
     uint32_t m_sinclariGUID;
 
-    // used for gates seal
+    // Used by gates seal event
     uint32_t sealHP;
     uint32_t portalCount;
+
+    // Guid lists
+    std::list<uint32_t> m_guardsGuids;      // Guards at entrance guids
+    std::list<uint32_t> m_crystalGuids;     // Activation crystal guids
+    std::list<uint32_t> m_eventSpawns;      // Portal event spawns
+    std::list<uint32_t> m_introSpawns;       // intro creatures guids
+    std::list<uint32_t> m_defenseTriggers;    // Used for visual effect in defense npc AI
+
+    // Portal summoning event
+    uint32_t portalSummonTimer;
+
+    // Let Defence system to use private instance data
+    friend VH_DefenseAI;
 
     public:
 
@@ -42,20 +51,12 @@ class TheVioletHoldScript : public InstanceScript
             mainGatesGUID(0),
             m_sinclariGUID(0),
             sealHP(100),
-            portalCount(1)
+            portalCount(1),
+            portalSummonTimer(0)
         {
             //TODO: this should be redone by checking actual saved data for heroic mode
             memset(m_VHencounterData, State_NotStarted, sizeof(m_VHencounterData));
         }
-
-        // Guids holder for portal waves
-        std::list<uint32_t> m_eventSpawns;
-
-        // List holds summoned intro creatures guids before main event
-        std::list<uint32_t> intro_spawns;
-
-        // List holds trigger npcs used for visual effect in defense npc AI
-        std::list<uint32_t> defenseTriggers;
 
         void SetInstanceData(uint32_t /*pType*/, uint32_t pIndex, uint32_t pData)
         {
@@ -70,7 +71,7 @@ class TheVioletHoldScript : public InstanceScript
                 {
                     if (pData == State_Performed)
                     {
-                        spawnCreature(CN_DEFENSE_SYSTEM, DefenseSystemLocation.x, DefenseSystemLocation.y, DefenseSystemLocation.z, DefenseSystemLocation.o);
+                        DoCrystalActivation();
                     }
 
                     if (pData == State_InProgress)
@@ -97,7 +98,7 @@ class TheVioletHoldScript : public InstanceScript
                     if (pData == State_Failed)
                     {
                         ResetIntro();
-                        ResetCrystals(true);
+                        ResetCrystals(false);
                         SetInstanceData(0, INDEX_INSTANCE_PROGRESS, State_NotStarted);
                     }
                 }break;
@@ -132,7 +133,7 @@ class TheVioletHoldScript : public InstanceScript
                 introStarted = true;
             }
 
-            RegisterUpdateEvent(1000);
+            RegisterUpdateEvent(VH_UPDATE_TIMER);
         }
 
         void OnGameObjectPushToWorld(GameObject* pGo)
@@ -164,13 +165,13 @@ class TheVioletHoldScript : public InstanceScript
 
                 // Make object not selectable
                 pGo->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NONSELECTABLE);
+                pGo->SetState(GO_STATE_OPEN);
 
                 // Spell actually sends script event 20001 but theres no handling for such effects
-                // Lets cast spell to mimic original event
-                plr->CastSpell(plr, SPELL_VH_CRYSTAL_ACTIVATION, true);
+                // plr->CastSpell(plr, SPELL_VH_CRYSTAL_ACTIVATION, true);
 
                 // Defense system will do its event on spawn, nothing else we don't need to do
-                spawnCreature(CN_DEFENSE_SYSTEM, DefenseSystemLocation.x, DefenseSystemLocation.y, DefenseSystemLocation.z, DefenseSystemLocation.o);
+                DoCrystalActivation();
             }
         }
 
@@ -188,6 +189,7 @@ class TheVioletHoldScript : public InstanceScript
                 case CN_LIEUTNANT_SINCLARI:
                 {
                     m_sinclariGUID = GET_LOWGUID_PART(pCreature->GetGUID());
+                    pCreature->Phase(PHASE_SET, 1);
                     pCreature->setByteFlag(UNIT_FIELD_BYTES_2, 0, SHEATH_STATE_MELEE);
                     pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLUS_MOB | UNIT_FLAG_UNKNOWN_16);
                 }break;
@@ -197,12 +199,12 @@ class TheVioletHoldScript : public InstanceScript
                 case CN_INTRO_AZURE_MAGE_SLAYER_MELEE:
                 case CN_INTRO_AZURE_SPELLBREAKER_ARCANE:
                 {
-                    intro_spawns.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
+                    m_introSpawns.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
                 }break;
                 case CN_DEFENSE_SYSTEM_TRIGGER:
                 {
-                    defenseTriggers.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
-                }
+                    m_defenseTriggers.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
+                }break;
                 default:
                     break;
             }
@@ -238,6 +240,10 @@ class TheVioletHoldScript : public InstanceScript
                         UpdateAchievCriteriaForPlayers(ACHIEV_CRIT_DEFENSELES, 1);
                     }
                 }break;
+                case CN_VIOLET_HOLD_GUARD:
+                {
+                    pCreature->Despawn(1000, 1000);
+                }break;
                 default:
                     break;
             }
@@ -249,8 +255,21 @@ class TheVioletHoldScript : public InstanceScript
         }
 
         /////////////////////////////////////////////////////////
+        /// Main event
+        ///
+
+        void MainEvent()
+        {
+
+        }
+        /////////////////////////////////////////////////////////
         /// Helper functions
         ///
+
+        void DoCrystalActivation()
+        {
+            spawnCreature(CN_DEFENSE_SYSTEM, DefenseSystemLocation.x, DefenseSystemLocation.y, DefenseSystemLocation.z, DefenseSystemLocation.o);
+        }
 
         void ResetIntro()
         {
@@ -272,9 +291,9 @@ class TheVioletHoldScript : public InstanceScript
         // Removes all dead intro npcs
         void RemoveIntroNpcs(bool deadOnly)
         {
-            if (!intro_spawns.empty())
+            if (!m_introSpawns.empty())
             {
-                for (std::list<uint32_t>::iterator itr = intro_spawns.begin(); itr != intro_spawns.end();)
+                for (std::list<uint32_t>::iterator itr = m_introSpawns.begin(); itr != m_introSpawns.end();)
                 {
                     Creature* pIntroSummon = GetInstance()->GetCreature(*itr);
                     if (pIntroSummon && pIntroSummon->IsInInstance())
@@ -284,14 +303,14 @@ class TheVioletHoldScript : public InstanceScript
                             if (!pIntroSummon->isAlive())
                             {
                                 pIntroSummon->Despawn(4000, 0);
-                                itr = intro_spawns.erase(itr);
+                                itr = m_introSpawns.erase(itr);
                                 continue;
                             }
                         }
                         else
                         {
                             pIntroSummon->Despawn(4000, 0);
-                            itr = intro_spawns.erase(itr);
+                            itr = m_introSpawns.erase(itr);
                             continue;
                         }
                     }
@@ -300,17 +319,15 @@ class TheVioletHoldScript : public InstanceScript
             }
         }
 
-        // Removes intro npc from list by guid
-        // ONLY called on despawn event
         void RemoveIntroNpcByGuid(uint32_t guid)
         {
-            if (!intro_spawns.empty())
+            if (!m_introSpawns.empty())
             {
-                for (std::list<uint32_t>::iterator itr = intro_spawns.begin(); itr != intro_spawns.end(); ++itr)
+                for (std::list<uint32_t>::iterator itr = m_introSpawns.begin(); itr != m_introSpawns.end(); ++itr)
                 {
                     if ((*itr) == guid)
                     {
-                        intro_spawns.erase(itr);
+                        m_introSpawns.erase(itr);
                         break;
                     }
                 }
@@ -319,12 +336,17 @@ class TheVioletHoldScript : public InstanceScript
 
         void FillInitialWorldStates()
         {
-            UpdateWorldStates(WORLD_STATE_VH_SHOW, 1);
-            UpdateWorldStates(WORLD_STATE_VH_PRISON_STATE, sealHP);
-            UpdateWorldStates(WORLD_STATE_VH_WAVE_COUNT, portalCount);
+            UpdateInstanceWorldState(WORLD_STATE_VH_SHOW, 1);
+            UpdateWorldStates();
         }
 
-        void UpdateWorldStates(uint32_t field, uint32_t value)
+        void UpdateWorldStates()
+        {
+            UpdateInstanceWorldState(WORLD_STATE_VH_PRISON_STATE, sealHP);
+            UpdateInstanceWorldState(WORLD_STATE_VH_WAVE_COUNT, portalCount);
+        }
+
+        void UpdateInstanceWorldState(uint32_t field, uint32_t value)
         {
             WorldPacket data(SMSG_UPDATE_WORLD_STATE, 8);
             data << field;
@@ -394,7 +416,7 @@ class TheVioletHoldScript : public InstanceScript
                 {
                     pGuard->GetAIInterface()->setWalkMode(WALKMODE_RUN);
                     pGuard->GetAIInterface()->MoveTo(introMoveLoc.x, introMoveLoc.y, introMoveLoc.z);
-                    pGuard->Despawn(5000, 0);
+                    pGuard->Despawn(7000, 0);
                 }
             }
         }
@@ -440,11 +462,12 @@ class SinclariAI : public CreatureAIScript
                     case 2:
                     {
                         VH_instance->SetInstanceData(0, INDEX_INSTANCE_PROGRESS, State_Performed);
+                        ModifyAIUpdateEvent(6000);
                     }break;
                     // Face to guards
                     case 3:
                     {
-                        GetUnit()->SetFacing(6.239587f);
+                        GetUnit()->SetOrientation(6.239587f);
                     }break;
                     // call them out
                     case 4:
@@ -454,22 +477,26 @@ class SinclariAI : public CreatureAIScript
                         VH_instance->CallGuardsOut();
                         // Call guards out of dungeon
                     }break;
-                    // Move her to guards
+                    // Move her outside
                     case 5:
                     {
                         ModifyAIUpdateEvent(4000);
                         moveTo(SinclariPositions[1].x, SinclariPositions[1].y, SinclariPositions[1].z, false);
                     }break;
                     // Face her to gates (shes outside of door)
-                    // Goodbye everyone
                     case 6:
                     {
-                        ModifyAIUpdateEvent(6000);
-                        GetUnit()->SetFacing(6.239587f);
+                        GetUnit()->SetOrientation(6.239587f);
+                        ModifyAIUpdateEvent(1000);
+                    }break;
+                    // Goodbye everyone
+                    case 7:
+                    {
+                        ModifyAIUpdateEvent(6000);  // Start main e
                         sendChatMessage(CHAT_MSG_MONSTER_SAY, 0, SINCLARI_SAY);
                     }break;
                     // Start instance event
-                    case 7:
+                    case 8:
                     {
                         RemoveAIUpdateEvent();
                         VH_instance->SetInstanceData(0, INDEX_INSTANCE_PROGRESS, State_InProgress);
@@ -597,32 +624,36 @@ class VHIntroNpcAI : public CreatureAIScript
     public:
 
         static CreatureAIScript* Create(Creature* c) { return new VHIntroNpcAI(c); }
-        VHIntroNpcAI(Creature* pCreature) : CreatureAIScript(pCreature), isMoveSet(false)
+        VHIntroNpcAI(Creature* pCreature) : CreatureAIScript(pCreature), isMoveDone(false)
         {
             RegisterAIUpdateEvent(1000);
         }
 
-        void OnDespawn()
+        void OnCombatStop(Unit* /*pEnemy*/) override
         {
-            // Make sure guid is removed from list
-            if (TheVioletHoldScript* pInstance = static_cast<TheVioletHoldScript*>(GetUnit()->GetMapMgr()->GetScript()))
-            {
-                pInstance->RemoveIntroNpcByGuid(GET_LOWGUID_PART(GetUnit()->GetLowGUID()));
-            }
+            _unit->GetAIInterface()->setAiState(AI_STATE_IDLE);
+            stopMovement();
+            moveTo(sealAttackLoc.x, sealAttackLoc.y, sealAttackLoc.z);
         }
 
         void AIUpdate()
         {
-            if (!isMoveSet)
+            if (!GetUnit()->getcombatstatus()->IsInCombat())
             {
-                moveTo(sealAttackLoc.x, sealAttackLoc.y, sealAttackLoc.z);
-                isMoveSet = true;
+                if (!isMoveDone && GetUnit()->GetPositionY() < sealAttackLoc.y)
+                {
+                    moveTo(sealAttackLoc.x, sealAttackLoc.y, sealAttackLoc.z);
+                }
+                else
+                {
+                    isMoveDone = true;
+                }
             }
         }
 
     protected:
 
-        bool isMoveSet;
+        bool isMoveDone;
 };
 
 class VH_DefenseAI : public CreatureAIScript
@@ -633,7 +664,7 @@ class VH_DefenseAI : public CreatureAIScript
         static CreatureAIScript* Create(Creature* c) { return new VH_DefenseAI(c); }
         VH_DefenseAI(Creature* pCreature) : CreatureAIScript(pCreature), counter(0)
         {
-            RegisterAIUpdateEvent(1000);
+            RegisterAIUpdateEvent(2000);
             despawn(7000);
             GetUnit()->CastSpell(pCreature, sSpellCustomizations.GetSpellInfo(SPELL_VH_DEFENSE_SYSTEM_VISUAL), true);
         }
@@ -643,9 +674,9 @@ class VH_DefenseAI : public CreatureAIScript
             if (TheVioletHoldScript* pInstance = static_cast<TheVioletHoldScript*>(GetUnit()->GetMapMgr()->GetScript()))
             {
                 // Intro spawns
-                if (!pInstance->intro_spawns.empty())
+                if (!pInstance->m_introSpawns.empty())
                 {
-                    for (std::list<uint32_t>::iterator itr = pInstance->intro_spawns.begin(); itr != pInstance->intro_spawns.end(); ++itr)
+                    for (std::list<uint32_t>::iterator itr = pInstance->m_introSpawns.begin(); itr != pInstance->m_introSpawns.end(); ++itr)
                     {
                         if (counter == 3)
                         {
@@ -693,9 +724,9 @@ class VH_DefenseAI : public CreatureAIScript
                 }
 
                 // Defense triggers
-                if (!pInstance->defenseTriggers.empty() && counter < 3)
+                if (!pInstance->m_defenseTriggers.empty() && counter < 3)
                 {
-                    for (std::list<uint32_t>::iterator itr = pInstance->defenseTriggers.begin(); itr != pInstance->defenseTriggers.end(); ++itr)
+                    for (std::list<uint32_t>::iterator itr = pInstance->m_defenseTriggers.begin(); itr != pInstance->m_defenseTriggers.end(); ++itr)
                     {
                         if (Creature* pTarget = pInstance->GetInstance()->GetCreature(*itr))
                         {

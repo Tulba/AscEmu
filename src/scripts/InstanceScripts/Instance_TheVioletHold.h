@@ -5,7 +5,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 #pragma once
 
-const uint32 VH_DEFAULT_AREA    = 4415;
+const uint32_t VH_UPDATE_TIMER  = 1000;
 
 // Violet hold during whole encounters has total 18 portals summoned
 // one portal group is equal to 6 portals
@@ -21,6 +21,10 @@ enum DataIndex : uint8_t
     // First two bosses are random
     INDEX_GROUP1_BOSS,
     INDEX_GROUP2_BOSS,
+
+    // Wave data
+    DATA_WAVE_TYPE,
+    INDEX_WAVE_PROGRESS,
 
     // Final boss event
     INDEX_CYANIGOSA,
