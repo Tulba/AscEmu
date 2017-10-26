@@ -16,3 +16,6 @@ insert into `worldstate_templates` (`map`, `zone`, `field`, `value`) values
 
 -- Update repop location
 update worldmap_info set repopx = '5847.220215', repopy = '761.578979', repopz = '640.950745' where entry = 608;
+
+-- Make prisoners cells closed
+update gameobject_spawns set state = 1 where entry in (191556, 191566, 191722, 191565, 191564, 191563, 191562, 191606);
