@@ -7,6 +7,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Instance_TheVioletHold.h"
 
 class VH_DefenseAI;
+class IntroPortalAI;
 class TheVioletHoldScript : public InstanceScript
 {
     uint32_t m_VHencounterData[INDEX_MAX];
@@ -38,7 +39,7 @@ class TheVioletHoldScript : public InstanceScript
     uint32_t portalSummonTimer;
 
     // Let Defence system to use private instance data
-    friend VH_DefenseAI;
+    friend class VH_DefenseAI;
 
     public:
 
@@ -74,7 +75,7 @@ class TheVioletHoldScript : public InstanceScript
                         DoCrystalActivation();
                     }
 
-                    if (pData == State_InProgress)
+                    if (pData == State_PreProgress)
                     {
                         RemoveIntroNpcs(false);
                         // Close the gates
@@ -100,6 +101,11 @@ class TheVioletHoldScript : public InstanceScript
                         ResetIntro();
                         ResetCrystals(false);
                         SetInstanceData(0, INDEX_INSTANCE_PROGRESS, State_NotStarted);
+                    }
+
+                    if (pData == State_Finished)
+                    {
+
                     }
                 }break;
                 default:
@@ -194,12 +200,20 @@ class TheVioletHoldScript : public InstanceScript
                     pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLUS_MOB | UNIT_FLAG_UNKNOWN_16);
                 }break;
                 case CN_PORTAL_INTRO:
+                {
+                     m_introSpawns.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
+
+                }break;
                 case CN_INTRO_AZURE_BINDER_ARCANE:
                 case CN_INTRO_AZURE_INVADER_ARMS:
                 case CN_INTRO_AZURE_MAGE_SLAYER_MELEE:
                 case CN_INTRO_AZURE_SPELLBREAKER_ARCANE:
                 {
                     m_introSpawns.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
+                    if (CreatureAIScript* pScript = pCreature->GetScript())
+                    {
+                        pScript->RegisterAIUpdateEvent(1000);
+                    }
                 }break;
                 case CN_DEFENSE_SYSTEM_TRIGGER:
                 {
@@ -260,11 +274,24 @@ class TheVioletHoldScript : public InstanceScript
 
         void MainEvent()
         {
-
+            if (GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress && GetInstanceData(0, INDEX_WAVE_PROGRESS) == State_NotStarted)
+            {
+                // This timer will get reset on SetInstanceData event
+                if (portalSummonTimer == 0)
+                {
+                    DoRandomPortalSpawn();
+                    SetInstanceData(0, INDEX_WAVE_PROGRESS, State_InProgress);
+                }
+            }
         }
         /////////////////////////////////////////////////////////
         /// Helper functions
         ///
+
+        void DoRandomPortalSpawn()
+        {
+
+        }
 
         void DoCrystalActivation()
         {
@@ -367,6 +394,7 @@ class TheVioletHoldScript : public InstanceScript
             for (uint8_t i = 0; i < introPortalCount; i++)
             {
                 spawnCreature(CN_PORTAL_INTRO, introPortals[i].x, introPortals[i].y, introPortals[i].z, introPortals[i].o);
+                SetInstanceData(0, DATA_LAST_PORTAL_ID, i);
             }
         }
 
@@ -437,13 +465,13 @@ class SinclariAI : public CreatureAIScript
 
         void StartEvent()
         {
-            GetUnit()->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+            GetUnit()->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
             RegisterAIUpdateEvent(1000);
         }
 
         void AIUpdate()
         {
-            if (VH_instance && (VH_instance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_NotStarted || VH_instance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_Performed))
+            if (VH_instance && VH_instance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) != State_InProgress)
             {
                 switch(m_Step)
                 {
@@ -458,49 +486,79 @@ class SinclariAI : public CreatureAIScript
                     {
                         ModifyAIUpdateEvent(3000);
                         GetUnit()->EventAddEmote(EMOTE_ONESHOT_USESTANDING, 3000);
+                        VH_instance->SetInstanceData(0, INDEX_INSTANCE_PROGRESS, State_Performed);
                     }break;
+                    // Face to guards, and call guards
                     case 2:
                     {
-                        VH_instance->SetInstanceData(0, INDEX_INSTANCE_PROGRESS, State_Performed);
-                        ModifyAIUpdateEvent(6000);
-                    }break;
-                    // Face to guards
-                    case 3:
-                    {
-                        GetUnit()->SetOrientation(6.239587f);
-                    }break;
-                    // call them out
-                    case 4:
-                    {
-                        GetUnit()->Emote(EMOTE_ONESHOT_SHOUT);
+                        GetUnit()->SetFacing(SinclariPositions[0].o);
                         sendChatMessage(CHAT_MSG_MONSTER_YELL, 0, SINCLARI_YELL);
+                        GetUnit()->Emote(EMOTE_ONESHOT_SHOUT);
                         VH_instance->CallGuardsOut();
-                        // Call guards out of dungeon
                     }break;
                     // Move her outside
-                    case 5:
+                    case 3:
                     {
-                        ModifyAIUpdateEvent(4000);
+                        ModifyAIUpdateEvent(5000);
                         moveTo(SinclariPositions[1].x, SinclariPositions[1].y, SinclariPositions[1].z, false);
                     }break;
-                    // Face her to gates (shes outside of door)
-                    case 6:
+                    // Face her to gates and say goodbye
+                    case 4:
                     {
-                        GetUnit()->SetOrientation(6.239587f);
-                        ModifyAIUpdateEvent(1000);
-                    }break;
-                    // Goodbye everyone
-                    case 7:
-                    {
-                        ModifyAIUpdateEvent(6000);  // Start main e
+                        GetUnit()->SetOrientation(SinclariPositions[1].o);
+                        ModifyAIUpdateEvent(4000);
                         sendChatMessage(CHAT_MSG_MONSTER_SAY, 0, SINCLARI_SAY);
                     }break;
-                    // Start instance event
+                    // Emote mimic
+                    case 5:
+                    {
+                        GetUnit()->Emote(EMOTE_ONESHOT_TALK);
+                        ModifyAIUpdateEvent(1000);
+                    }break;
+                    // Close the gates
+                    case 6:
+                    {
+                        VH_instance->SetInstanceData(0, INDEX_INSTANCE_PROGRESS, State_PreProgress);
+                        ModifyAIUpdateEvent(1000);
+                    }break;
+                    // Move her further
+                    case 7:
+                    {
+                        ModifyAIUpdateEvent(3000);
+                        moveTo(SinclariPositions[2].x, SinclariPositions[2].y, SinclariPositions[2].z, false);
+                    }break;
                     case 8:
                     {
-                        RemoveAIUpdateEvent();
+                        GetUnit()->SetFacing(SinclariPositions[2].o);
+                        GetUnit()->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
                         VH_instance->SetInstanceData(0, INDEX_INSTANCE_PROGRESS, State_InProgress);
-                        moveTo(SinclariPositions[2].x, SinclariPositions[2].y, SinclariPositions[2].z, false);
+                        RemoveAIUpdateEvent();
+                    }break;
+                    default:
+                        break;
+                }
+
+                ++m_Step;
+            }
+
+            // Outro
+            if (VH_instance && VH_instance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_Finished)
+            {
+                switch(m_Step)
+                {
+                    case 10:
+                    {
+                        moveTo(SinclariPositions[3].x, SinclariPositions[3].y, SinclariPositions[3].z, false);
+                        ModifyAIUpdateEvent(4000);
+                    }break;
+                    case 11:
+                    {
+                        sendChatMessage(CHAT_MSG_MONSTER_SAY, 0, SINCLARI_SAY_VICTORY);
+                        ModifyAIUpdateEvent(10000);
+                    }break;
+                    case 12:
+                    {
+                        GetUnit()->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
                     }break;
                     default:
                         break;
@@ -580,32 +638,39 @@ class SinclariGossip : public Arcemu::Gossip::Script
 
 class IntroPortalAI : public CreatureAIScript
 {
-    InstanceScript* VH_instance;
-    public:
+    TheVioletHoldScript* VH_instance;
 
+    // Depends on location
+    uint32_t portalId;
+    public:
         static CreatureAIScript* Create(Creature* c) { return new IntroPortalAI(c); }
-        IntroPortalAI(Creature* pCreature) : CreatureAIScript(pCreature)
+        IntroPortalAI(Creature* pCreature) : CreatureAIScript(pCreature), portalId(3)
         {
-            VH_instance = pCreature->GetMapMgr()->GetScript();
+            VH_instance = static_cast< TheVioletHoldScript*>(pCreature->GetMapMgr()->GetScript());
+            if (VH_instance)
+            {
+                portalId = VH_instance->GetInstanceData(0, DATA_LAST_PORTAL_ID);
+            }
         }
 
         void OnDespawn()
         {
             // Make sure guid is removed from list
-            if (TheVioletHoldScript* pInstance = static_cast<TheVioletHoldScript*>(GetUnit()->GetMapMgr()->GetScript()))
+            if (VH_instance)
             {
-                pInstance->RemoveIntroNpcByGuid(GET_LOWGUID_PART(GetUnit()->GetLowGUID()));
+                VH_instance->RemoveIntroNpcByGuid(GET_LOWGUID_PART(GetUnit()->GetLowGUID()));
             }
         }
 
         void OnLoad()
         {
+            printf("Spawned portal id %i \n", portalId);
             setRooted(true);
             GetUnit()->m_canRegenerateHP = false;
             setCanEnterCombat(false);
             GetUnit()->Phase(PHASE_SET, 1);
             // Register AIUpdate event in 2 sec
-            RegisterAIUpdateEvent(5000);
+            RegisterAIUpdateEvent(2000);
         }
 
         void AIUpdate()
@@ -614,7 +679,7 @@ class IntroPortalAI : public CreatureAIScript
             if (VH_instance && !(VH_instance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress || VH_instance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_Performed))
             {
                 ModifyAIUpdateEvent(RandomUInt(1) ? 40000 : 60000);
-                spawnCreature(VHIntroMobs[RandomUInt(VHIntroMobCount - 1)], GetUnit()->GetPositionX(), GetUnit()->GetPositionY(), GetUnit()->GetPositionZ(), M_PI_FLOAT);
+                spawnCreature(VHIntroMobs[RandomUInt(VHIntroMobCount - 1)], GetUnit()->GetPositionX(), GetUnit()->GetPositionY(), GetUnit()->GetPositionZ(), GetUnit()->GetOrientation());
             }
        }
 };
@@ -624,36 +689,34 @@ class VHIntroNpcAI : public CreatureAIScript
     public:
 
         static CreatureAIScript* Create(Creature* c) { return new VHIntroNpcAI(c); }
-        VHIntroNpcAI(Creature* pCreature) : CreatureAIScript(pCreature), isMoveDone(false)
+        VHIntroNpcAI(Creature* pCreature) : CreatureAIScript(pCreature), isMoveSet(false)
+        {
+        }
+
+        void OnLoad()
         {
             RegisterAIUpdateEvent(1000);
         }
 
         void OnCombatStop(Unit* /*pEnemy*/) override
         {
-            _unit->GetAIInterface()->setAiState(AI_STATE_IDLE);
             stopMovement();
             moveTo(sealAttackLoc.x, sealAttackLoc.y, sealAttackLoc.z);
         }
 
         void AIUpdate()
         {
-            if (!GetUnit()->getcombatstatus()->IsInCombat())
+            if (!GetUnit()->getcombatstatus()->IsInCombat() && !isMoveSet)
             {
-                if (!isMoveDone && GetUnit()->GetPositionY() < sealAttackLoc.y)
-                {
-                    moveTo(sealAttackLoc.x, sealAttackLoc.y, sealAttackLoc.z);
-                }
-                else
-                {
-                    isMoveDone = true;
-                }
+                moveTo(sealAttackLoc.x, sealAttackLoc.y, sealAttackLoc.z);
+                isMoveSet = true;
+                RemoveAIUpdateEvent();
             }
         }
 
     protected:
 
-        bool isMoveDone;
+        bool isMoveSet;
 };
 
 class VH_DefenseAI : public CreatureAIScript
@@ -685,7 +748,8 @@ class VH_DefenseAI : public CreatureAIScript
                                 GetUnit()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_ARCANE_LIGHTNING_INSTAKILL), true);
                                 // Make sure they all dies
                                 pTarget->SetHealth(0);
-                                pTarget->Die(GetUnit(), 0, 0);
+                                pTarget->Die(pTarget, 0, 0);
+                                pTarget->Despawn(2000, 0);
                             }
                         }
                         else
@@ -764,10 +828,10 @@ void SetupTheVioletHold(ScriptMgr* mgr)
 
     // Intro event
     mgr->register_creature_script(CN_PORTAL_INTRO, &IntroPortalAI::Create);
-    mgr->register_creature_script(CN_INTRO_AZURE_BINDER_ARCANE, &VHIntroNpcAI::Create);
-    mgr->register_creature_script(CN_INTRO_AZURE_INVADER_ARMS, &VHIntroNpcAI::Create);
-    mgr->register_creature_script(CN_INTRO_AZURE_MAGE_SLAYER_MELEE, &VHIntroNpcAI::Create);
-    mgr->register_creature_script(CN_INTRO_AZURE_SPELLBREAKER_ARCANE, &VHIntroNpcAI::Create);
+//    mgr->register_creature_script(CN_INTRO_AZURE_BINDER_ARCANE, &VHIntroNpcAI::Create);
+//    mgr->register_creature_script(CN_INTRO_AZURE_INVADER_ARMS, &VHIntroNpcAI::Create);
+//    mgr->register_creature_script(CN_INTRO_AZURE_MAGE_SLAYER_MELEE, &VHIntroNpcAI::Create);
+//    mgr->register_creature_script(CN_INTRO_AZURE_SPELLBREAKER_ARCANE, &VHIntroNpcAI::Create);
     mgr->register_creature_script(CN_DEFENSE_SYSTEM, &VH_DefenseAI::Create);
 
     // Spells

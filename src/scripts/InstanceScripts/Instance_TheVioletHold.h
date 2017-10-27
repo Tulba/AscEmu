@@ -24,6 +24,7 @@ enum DataIndex : uint8_t
 
     // Wave data
     DATA_WAVE_TYPE,
+    DATA_LAST_PORTAL_ID,
     INDEX_WAVE_PROGRESS,
 
     // Final boss event
@@ -195,7 +196,7 @@ const char* SINCLARI_SAY = "I'm locking the door. Good luck, and thank you for d
 const char* SINCLARI_GO_OPTION1 = "Activate the cystals when we get in trouble, right.";
 const char* SINCLARI_GO_OPTION2 = "Get your people to safety, we'll keep the Blue Dragonblight's forces at bay.";
 const char* SINCLARI_GO_OPTION3 = "I'm not fighting, so send me in now!";
-
+const char* SINCLARI_SAY_VICTORY = "You did it! You held the Blue Dragonflight back and defeated their commander. Amazing work!";
 
 // Worldstate entries used in instance
 enum VHWorldStateIds
