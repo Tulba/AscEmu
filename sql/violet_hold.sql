@@ -22,3 +22,6 @@ update gameobject_spawns set state = 1 where entry in (191556, 191566, 191722, 1
 
 -- update outside trigger position
 update gameobject_spawns set orientation3=0.430511, orientation4 = 0.902586 where entry=193608;
+
+-- Add welcome message
+update worldmap_info set flags = flags | 2 where entry=608;
