@@ -19,3 +19,6 @@ update worldmap_info set repopx = '5847.220215', repopy = '761.578979', repopz =
 
 -- Make prisoners cells closed
 update gameobject_spawns set state = 1 where entry in (191556, 191566, 191722, 191565, 191564, 191563, 191562, 191606);
+
+-- update outside trigger position
+update gameobject_spawns set orientation3=0.430511, orientation4 = 0.902586 where entry=193608;
