@@ -7,7 +7,8 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Instance_TheVioletHold.h"
 
 class VH_DefenseAI;
-class IntroPortalAI;
+class TeleportationPortalAI;
+
 class TheVioletHoldScript : public InstanceScript
 {
     uint32_t m_VHencounterData[INDEX_MAX];
@@ -34,8 +35,9 @@ class TheVioletHoldScript : public InstanceScript
     VHPortalInfo m_activePortal;
     uint32_t portalGUID;
 
-    // Let Defence system to use private instance data
+    // Friend classes which will able to use private instance data
     friend class VH_DefenseAI;
+    friend class TeleportationPortalAI;
 
     public:
 
@@ -113,6 +115,18 @@ class TheVioletHoldScript : public InstanceScript
                             pSinclari->GetScript()->RegisterAIUpdateEvent(1000);
                         }
 
+                    }
+                }break;
+                case INDEX_PORTAL_PROGRESS:
+                {
+                    if (pData == State_Finished)
+                    {
+                        if (Creature* pPortal = GetInstance()->GetCreature(portalGUID))
+                        {
+                            pPortal->Despawn(1000, 0);
+                        }
+                        // Lets reset event
+                        SetInstanceData(0, INDEX_PORTAL_PROGRESS, State_NotStarted);
                     }
                 }break;
                 default:
@@ -226,6 +240,10 @@ class TheVioletHoldScript : public InstanceScript
                     m_defenseTriggers.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
                     pCreature->Phase(PHASE_SET, 1);
                 }break;
+                case CN_PORTAL:
+                {
+                    portalGUID = GET_LOWGUID_PART(pCreature->GetGUID());
+                }break;
                 default:
                     break;
             }
@@ -292,6 +310,33 @@ class TheVioletHoldScript : public InstanceScript
                     setData(pCreature->GetEntry(), Finished);
                     SaveInstanceData(pCreature->GetSQL_id());
                 }break;
+                // Main portal event related
+                case CN_AZURE_INVADER:
+                case CN_AZURE_SPELLBREAKER:
+                case CN_AZURE_BINDER:
+                case CN_AZURE_MAGE_SLAYER:
+                case CN_AZURE_CAPTAIN:
+                case CN_AZURE_SORCERER:
+                case CN_AZURE_RAIDER:
+                case CN_AZURE_STALKER:
+                {
+                    if (m_activePortal.type == VH_PORTAL_TYPE_SQUAD && GetInstanceData(0, INDEX_PORTAL_PROGRESS) == State_InProgress)
+                    {
+                        m_activePortal.DelSummonDataByGuid(pCreature->GetGUID());
+                        if (m_activePortal.summonsList.empty())
+                        {
+                            SetInstanceData(0, INDEX_PORTAL_PROGRESS, State_Finished);
+                        }
+                    }
+                }break;
+                case CN_PORTAL_GUARDIAN:
+                case CN_PORTAL_KEEPER:
+                {
+                    if (m_activePortal.type == VH_PORTAL_TYPE_GUARDIAN)
+                    {
+                        SetInstanceData(0, INDEX_PORTAL_PROGRESS, State_Finished);
+                    }
+                }break;
                 default:
                     break;
             }
@@ -335,21 +380,21 @@ class TheVioletHoldScript : public InstanceScript
             if (perviousPortal != 5 && perviousPortal != 11 && perviousPortal != 17)
             {
                 // Generate new portal id which doesn't match to pervious portal
-                do
+                while (newPortalId == perviousPortal)
                 {
                     newPortalId = RandomUInt(MaxPortalPositions - 1);
-                }while (newPortalId != perviousPortal);
+                }
                 newPortal.id = newPortalId;
 
                 // if portal id is between 0 and 4, its guardian/keeper type
-                if (newPortal.id >= 0 && 4 <= newPortal.id)
+                if (newPortal.id > 4)
                 {
-                    newPortal.guardianEntry = RandomUInt(1) ? CN_PORTAL_GUARDIAN : CN_PORTAL_KEEPER;
-                    newPortal.type = VH_PORTAL_TYPE_GUARDIAN;
+                    newPortal.type = VH_PORTAL_TYPE_SQUAD;
                 }
                 else
                 {
-                    newPortal.type = VH_PORTAL_TYPE_SQUAD;
+                    newPortal.guardianEntry = RandomUInt(1) ? CN_PORTAL_GUARDIAN : CN_PORTAL_KEEPER;
+                    newPortal.type = VH_PORTAL_TYPE_GUARDIAN;
                     // summon list data will published on spawn event
                 }
             }
@@ -358,11 +403,13 @@ class TheVioletHoldScript : public InstanceScript
             {
                 newPortal.type = VH_PORTAL_TYPE_BOSS;
                 // Generate random boss entry
-                do
+                while (newPortal.bossEntry != 0 || getData(newPortal.bossEntry) != Finished);
                 {
                     newPortal.bossEntry = randomVHBossArray[RandomUInt(maxVHBosses - 1)];
-                }while (newPortal.bossEntry != 0 && getData(newPortal.bossEntry) != Finished);
+                }
             }
+            printf("type: %u\n", newPortal.type);
+            printf("id: %u \n", newPortal.id);
         }
 
         // SpawnPortal
@@ -937,6 +984,61 @@ class VH_DefenseAI : public CreatureAIScript
         }
 };
 
+class TeleportationPortalAI : public CreatureAIScript
+{
+        bool isGuardianSpawned;
+
+    public:
+
+        static CreatureAIScript* Create(Creature* c) { return new TeleportationPortalAI(c); }
+        TeleportationPortalAI(Creature* pCreature) : CreatureAIScript(pCreature), isGuardianSpawned(false)
+        {
+            RegisterAIUpdateEvent(VH_TELEPORTATION_PORTAL_SPAWN_TIME);
+        }
+
+        void AIUpdate()
+        {
+            TheVioletHoldScript* pInstance = static_cast<TheVioletHoldScript*>(GetUnit()->GetMapMgr()->GetScript());
+            if (!pInstance)
+            {
+                printf("ERROR \n");
+                return;
+            }
+            switch (pInstance->m_activePortal.type)
+            {
+                case VH_PORTAL_TYPE_NONE:
+                    break;
+                case VH_PORTAL_TYPE_GUARDIAN:
+                {
+                    if (!isGuardianSpawned)
+                    {
+                        Creature* pGuardian = spawnCreature(pInstance->m_activePortal.guardianEntry, GetUnit()->GetPositionX(), GetUnit()->GetPositionY(), GetUnit()->GetPositionZ(), GetUnit()->GetOrientation());
+                        if (pGuardian)
+                        {
+                            isGuardianSpawned = true;
+                            pGuardian->SetChannelSpellTargetGUID(GetUnit()->GetGUID());
+                            pGuardian->SetChannelSpellId(SPELL_VH_PORTAL_CHANNEL);
+                        }
+                    }
+                }break;
+                case VH_PORTAL_TYPE_SQUAD:
+                {
+                    //TODO: This count needs to be corrected
+                    for(uint8 i = 0; i < 5; i++)
+                    {
+                        Creature* pSummon = spawnCreature(portalGuardians[RandomUInt(maxPortalGuardians - 1)], GetUnit()->GetPositionX(), GetUnit()->GetPositionY(), GetUnit()->GetPositionZ(), GetUnit()->GetOrientation());
+                        if (pSummon)
+                        {
+                            pInstance->m_activePortal.summonsList.push_back(GET_LOWGUID_PART(pSummon->GetLowGUID()));
+                        }
+                    }
+                    despawn(1000, 0);
+                }break;
+
+            }
+        }
+};
+
 // Spells
 bool TeleportPlayerInEffect(uint32 /*i*/, Spell* pSpell)
 {
@@ -969,6 +1071,9 @@ void SetupTheVioletHold(ScriptMgr* mgr)
     mgr->register_creature_script(CN_INTRO_AZURE_MAGE_SLAYER_MELEE, &VHIntroNpcAI::Create);
     mgr->register_creature_script(CN_INTRO_AZURE_SPELLBREAKER_ARCANE, &VHIntroNpcAI::Create);
     mgr->register_creature_script(CN_DEFENSE_SYSTEM, &VH_DefenseAI::Create);
+
+    // Main portal event
+    mgr->register_creature_script(CN_PORTAL, &TeleportationPortalAI::Create);
 
     // Spells
     mgr->register_script_effect(SPELL_VH_TELEPORT_PLAYER, &TeleportPlayerInEffect);
