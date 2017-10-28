@@ -26,9 +26,9 @@ class TheVioletHoldScript : public InstanceScript
     // Guid lists
     std::list<uint32_t> m_guardsGuids;      // Guards at entrance guids
     std::list<uint32_t> m_crystalGuids;     // Activation crystal guids
-    std::list<uint32_t> m_eventSpawns;      // Portal event spawns
     std::list<uint32_t> m_introSpawns;      // intro creatures guids
     std::list<uint32_t> m_defenseTriggers;  // Used for visual effect in defense npc AI
+    std::list<uint32_t> m_eventSpawns;      // Portal event spawns (it won't contain main portal guardians)
 
     // Portal summoning event
     uint32_t portalSummonTimer;
@@ -249,6 +249,18 @@ class TheVioletHoldScript : public InstanceScript
                 {
                     portalGUID = GET_LOWGUID_PART(pCreature->GetGUID());
                 }break;
+                // Main portal event related
+                case CN_AZURE_INVADER:
+                case CN_AZURE_SPELLBREAKER:
+                case CN_AZURE_BINDER:
+                case CN_AZURE_MAGE_SLAYER:
+                case CN_AZURE_CAPTAIN:
+                case CN_AZURE_SORCERER:
+                case CN_AZURE_RAIDER:
+                case CN_AZURE_STALKER:
+                {
+                    m_eventSpawns.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
+                }break;
                 default:
                     break;
             }
@@ -394,6 +406,23 @@ class TheVioletHoldScript : public InstanceScript
                 else
                 {
                     SetInstanceData(0, INDEX_PORTAL_PROGRESS, State_Finished);
+                }
+            }
+
+            // Erase non existing main event summons guids
+            if (!m_eventSpawns.empty())
+            {
+                for (std::list<uint32_t>::iterator itr = m_eventSpawns.begin(); itr != m_eventSpawns.end();)
+                {
+                    Creature* pSummon = GetInstance()->GetCreature(*itr);
+                    if (!pSummon || !pSummon->isAlive())
+                    {
+                        // Let players get their skinning loots
+                        pSummon->Despawn(3 * 60 * 1000, 0); // 3 mins
+                        itr = m_eventSpawns.erase(itr);
+                        continue;
+                    }
+                    ++itr;
                 }
             }
         }
