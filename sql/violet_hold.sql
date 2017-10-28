@@ -45,3 +45,6 @@ delete from npc_script_text where entry in (8797, 8798);
 insert into `npc_script_text` (`entry`, `text`, `creature_entry`, `id`, `type`, `language`, `probability`, `emote`, `duration`, `sound`, `broadcast_id`) values
 ('8797','I\'m locking the door. Good luck, and thank you for doing this.','30658','0','12','0','100','0','0','0','0'),
 ('8798','You did it! You held the Blue Dragonflight back and defeated their commander. Amazing work!','30658','0','12','0','100','0','0','0','0');
+
+-- Update Azure Mage Slayer faction, perviously was 35 (friendly)
+update creature_properties set faction=1720 where entry in (30664, 31497);
