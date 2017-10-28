@@ -22,19 +22,17 @@ class TheVioletHoldScript : public InstanceScript
     // Low guids of creatures
     uint32_t m_sinclariGUID;
 
-    // Used by gates seal event
-    uint32_t sealHP;
-    uint32_t portalCount;
-
     // Guid lists
     std::list<uint32_t> m_guardsGuids;      // Guards at entrance guids
     std::list<uint32_t> m_crystalGuids;     // Activation crystal guids
     std::list<uint32_t> m_eventSpawns;      // Portal event spawns
-    std::list<uint32_t> m_introSpawns;       // intro creatures guids
-    std::list<uint32_t> m_defenseTriggers;    // Used for visual effect in defense npc AI
+    std::list<uint32_t> m_introSpawns;      // intro creatures guids
+    std::list<uint32_t> m_defenseTriggers;  // Used for visual effect in defense npc AI
 
     // Portal summoning event
     uint32_t portalSummonTimer;
+    VHPortalInfo m_activePortal;
+    uint32_t portalGUID;
 
     // Let Defence system to use private instance data
     friend class VH_DefenseAI;
@@ -48,8 +46,6 @@ class TheVioletHoldScript : public InstanceScript
             m_isDefAchievFailed(false),
             mainGatesGUID(0),
             m_sinclariGUID(0),
-            sealHP(100),
-            portalCount(1),
             portalSummonTimer(0)
         {
             //TODO: this should be redone by checking actual saved data for heroic mode
@@ -97,7 +93,7 @@ class TheVioletHoldScript : public InstanceScript
 
                     if (pData == State_InProgress)
                     {
-                        UpdateWorldStates();
+                        portalSummonTimer = VH_INITIAL_PORTAL_TIMER;
                     }
 
                     if (pData == State_Failed)
@@ -109,6 +105,12 @@ class TheVioletHoldScript : public InstanceScript
 
                     if (pData == State_Finished)
                     {
+                        // Start her outro event
+                        Creature* pSinclari = GetInstance()->GetCreature(m_sinclariGUID);
+                        if (pSinclari && pSinclari->GetScript())
+                        {
+                            pSinclari->GetScript()->RegisterAIUpdateEvent(1000);
+                        }
 
                     }
                 }break;
@@ -308,16 +310,55 @@ class TheVioletHoldScript : public InstanceScript
             }
         }
 
-        /////////////////////////////////////////////////////////
-        /// Main event
-        ///
-
-        void MainEvent()
+        // Generate very basic portal info
+        void GenerateRandomPortal(VHPortalInfo & newPortal)
         {
+            uint8_t currentPortalCount = GetInstanceData(0, DATA_PORTAL_COUNT);
+            uint8_t perviousPortal = GetInstanceData(0, DATA_PERVIOUS_PORTAL_ID);
+            uint8_t newPortalId = MaxPortalPositions + 1;
+
+            if (perviousPortal != 5 && perviousPortal != 11 && perviousPortal != 17)
+            {
+                // Generate new portal id which doesn't match to pervious portal
+                do
+                {
+                    newPortalId = RandomUInt(MaxPortalPositions);
+                }while (newPortalId != perviousPortal);
+                newPortal.id = newPortalId;
+
+                // if portal id is between 0 and 4, its guardian/keeper type
+                if (newPortal.id >= 0 && 4 <= newPortal.id)
+                {
+                    newPortal.guardianEntry = RandomUInt(1) ? CN_PORTAL_GUARDIAN : CN_PORTAL_KEEPER;
+                    newPortal.type = VH_PORTAL_TYPE_GUARDIAN;
+                }
+                else
+                {
+                    newPortal.type = VH_PORTAL_TYPE_SQUAD;
+                    // summon list data will published on spawn event
+                }
+            }
+            // boss portal
+            else
+            {
+                newPortal.type = VH_PORTAL_TYPE_BOSS;
+                // Generate random boss entry
+                do
+                {
+                    newPortal.bossEntry = randomVHBossArray[RandomUint(maxVHBosses - 1)];
+                }while (newPortal.bossEntry != 0 && GetData(newPortal.bossEntry) != Finished);
+
+            }
         }
 
-        void DoRandomPortalSpawn()
+        // SpawnPortal
+        void SpawnPortal()
         {
+            if (GetInstanceData(0, DATA_PORTAL_COUNT) > 18)
+                return;
+
+            GenerateRandomPortal(m_activePortal);
+            spawnCreature(CN_PORTAL, PortalPositions[m_activePortal.id].x, PortalPositions[m_activePortal.id].y, PortalPositions[m_activePortal.id].o, PortalPositions[m_activePortal.id].z);
 
         }
         /////////////////////////////////////////////////////////
@@ -400,8 +441,8 @@ class TheVioletHoldScript : public InstanceScript
         void UpdateWorldStates()
         {
             UpdateInstanceWorldState(WORLD_STATE_VH_SHOW, GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress ? 1 : 0);
-            UpdateInstanceWorldState(WORLD_STATE_VH_PRISON_STATE, sealHP);
-            UpdateInstanceWorldState(WORLD_STATE_VH_WAVE_COUNT, portalCount);
+            UpdateInstanceWorldState(WORLD_STATE_VH_PRISON_STATE, GetInstanceData(0, DATA_SEAL_HEALTH));
+            UpdateInstanceWorldState(WORLD_STATE_VH_WAVE_COUNT, GetInstanceData(0, DATA_PORTAL_COUNT));
         }
 
         void UpdateInstanceWorldState(uint32_t field, uint32_t value)

@@ -23,14 +23,17 @@ enum DataIndex : uint8_t
     DATA_PERVIOUS_PORTAL_ID,        // This INDEX value will contain perviously used portal id
     DATA_PORTAL_COUNT,              // This INDEX value will increased every time when portal is summoned
     DATA_SEAL_HEALTH,               // This INDEX value will contain health percent of "doors"
+    INDEX_PORTAL_PROGRESS,          // This index declares portal progress state
 
     INDEX_MAX
 };
 
 enum CreatureEntry : uint32_t
 {
-    //Main event
+    // Portal event
     CN_PORTAL_GUARDIAN                      = 30660,
+    CN_PORTAL_KEEPER                        = 30695,
+
     CN_DEFENSE_SYSTEM                       = 30837,
     CN_DEFENSE_SYSTEM_TRIGGER               = 30857,
 
@@ -55,7 +58,7 @@ enum CreatureEntry : uint32_t
     CN_AZURE_BINDER                         = 30663,
     CN_AZURE_MAGE_SLAYER                    = 30664,
     CN_AZURE_CAPTAIN                        = 30666,
-    CN_AZURE_SORCEROR                       = 30667,
+    CN_AZURE_SORCERER                       = 30667,
     CN_AZURE_RAIDER                         = 30668,
     CN_AZURE_STALKER                        = 32191,
 
@@ -81,9 +84,14 @@ enum CreatureEntry : uint32_t
 // General dungeon timers
 enum VHTimers : uint32_t
 {
+    // Timers in milliseconds
     VH_UPDATE_TIMER                 = 1000,
     VH_TIMER_SPAWN_INTRO_MOB_MIN    = 15000,
     VH_TIMER_SPAWN_INTRO_MOB_MAX    = 20000,
+
+    // Every timer below contains strict values in seconds (not milliseconds)
+    VH_INITIAL_PORTAL_TIME          = 5,    // only used for first portal
+    VH_NEXT_PORTAL_SPAWN_TIME       = 10
 };
 
 // Our custom state used by instance script
@@ -160,9 +168,10 @@ enum VH_Spells
 
 enum VH_PORTAL_TYPE : uint8_t
 {
-    VH_PORTAL_TYPE_GUARDIAN     = 0,
-    VH_PORTAL_TYPE_ELITE        = 1,
-    VH_PORTAL_TYPE_BOSS         = 2
+    VH_PORTAL_TYPE_NONE         = 0,
+    VH_PORTAL_TYPE_GUARDIAN,
+    VH_PORTAL_TYPE_SQUAD,
+    VH_PORTAL_TYPE_BOSS,
 };
 
 // Location used to move guards and liutenant
@@ -243,7 +252,25 @@ const Movement::Location PortalPositions[MaxPortalPositions] =
 struct VHPortalInfo
 {
     uint8_t id;                                     // id should be equal to PortalPositions array index
+    uint32_t portalLowGuid;                         // contains portal guid (for spell chanelling/despawning events)
     VH_PORTAL_TYPE type;                            // see VH_PORTAL_TYPE enum
-    uint32_t guardianEntry;                         // contains gurdian or elite entry, only one id will taken
-    std::list<uint32_t> spawnList;                  // contains summoned creatures entries
+    uint32_t guardianEntry;                         // contains gurdian/keeper
+    uint32_t bossEntry;                             // only used for VH_PORTAL_TYPE_BOSS
+    std::list<uint32_t> summonsList;                // contains summon lists - used for squads
+    VHPortalInfo() : id(0), type(VH_PORTAL_TYPE_NONE), guardianEntry(0), bossEntry(0)
+    {
+    }
+};
+
+const uint8 maxPortalGuardians = 8;
+const uint32_t portalGuardians[maxPortalGuardians] =
+{
+    CN_AZURE_INVADER,
+    CN_AZURE_SPELLBREAKER,
+    CN_AZURE_BINDER,
+    CN_AZURE_MAGE_SLAYER,
+    CN_AZURE_CAPTAIN,
+    CN_AZURE_SORCEROR,
+    CN_AZURE_RAIDER,
+    CN_AZURE_STALKER
 };
