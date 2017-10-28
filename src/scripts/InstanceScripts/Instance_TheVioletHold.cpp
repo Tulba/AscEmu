@@ -12,8 +12,6 @@ class TheVioletHoldScript : public InstanceScript
 {
     uint32_t m_VHencounterData[INDEX_MAX];
 
-    bool introStarted;
-
     // Achievements
     bool m_isZuramatAchievFailed;
     bool m_isDefAchievFailed;
@@ -46,7 +44,6 @@ class TheVioletHoldScript : public InstanceScript
         static InstanceScript* Create(MapMgr* pMapMgr) { return new TheVioletHoldScript(pMapMgr); }
         TheVioletHoldScript(MapMgr* pMapMgr) :
             InstanceScript(pMapMgr),
-            introStarted(false),
             m_isZuramatAchievFailed(false),
             m_isDefAchievFailed(false),
             mainGatesGUID(0),
@@ -57,6 +54,8 @@ class TheVioletHoldScript : public InstanceScript
         {
             //TODO: this should be redone by checking actual saved data for heroic mode
             memset(m_VHencounterData, State_NotStarted, sizeof(m_VHencounterData));
+            pMapMgr->pInstance = sInstanceMgr.GetInstanceByIds(MAP_VIOLET_HOLD, pMapMgr->GetInstanceID());
+            generateBossDataState();
         }
 
         void SetInstanceData(uint32_t /*pType*/, uint32_t pIndex, uint32_t pData)
@@ -99,6 +98,7 @@ class TheVioletHoldScript : public InstanceScript
                     if (pData == State_InProgress)
                     {
                         UpdateWorldStates();
+                        SetInstanceData(0, DATA_LAST_PORTAL_ID, 0);
                     }
 
                     if (pData == State_Failed)
@@ -137,10 +137,9 @@ class TheVioletHoldScript : public InstanceScript
             }
 
             // Spawn intro
-            if (GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_NotStarted && !introStarted)
+            if (GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_NotStarted)
             {
                 ResetIntro();
-                introStarted = true;
             }
 
             RegisterUpdateEvent(VH_UPDATE_TIMER);
@@ -196,6 +195,8 @@ class TheVioletHoldScript : public InstanceScript
                     m_guardsGuids.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
                     pCreature->setByteFlag(UNIT_FIELD_BYTES_2, 0, SHEATH_STATE_MELEE);
                     pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLUS_MOB | UNIT_FLAG_UNKNOWN_16);
+                    pCreature->setMoveDisableGravity(true);
+                    pCreature->GetAIInterface()->setSplineRun();
                 }break;
                 case CN_LIEUTNANT_SINCLARI:
                 {
@@ -228,6 +229,23 @@ class TheVioletHoldScript : public InstanceScript
             }
         }
 
+        void SaveInstanceData(uint32_t spawnId)
+        {
+            if (GetInstance()->iInstanceMode != MODE_HEROIC)
+                return;
+
+            if (GetInstance()->pInstance->m_killedNpcs.find(spawnId) == GetInstance()->pInstance->m_killedNpcs.end())
+            {
+                GetSavedInstance()->m_killedNpcs.insert(spawnId);
+                GetSavedInstance()->SaveToDB();
+            }
+        }
+
+        Instance* GetSavedInstance()
+        {
+            return GetInstance()->pInstance;
+        }
+
         void OnCreatureDeath(Creature* pCreature, Unit* /*pKiller*/)
         {
             switch (pCreature->GetEntry())
@@ -257,10 +275,20 @@ class TheVioletHoldScript : public InstanceScript
                     {
                         UpdateAchievCriteriaForPlayers(ACHIEV_CRIT_DEFENSELES, 1);
                     }
+                    setData(pCreature->GetEntry(), Finished);
+                    SaveInstanceData(pCreature->GetSQL_id());
                 }break;
                 case CN_VIOLET_HOLD_GUARD:
                 {
                     pCreature->Despawn(1000, 1000);
+                }break;
+                case CN_MORAGG:
+                case CN_ICHORON:
+                case CN_XEVOZZ:
+                case CN_LAVANTHOR:
+                {
+                    setData(pCreature->GetEntry(), Finished);
+                    SaveInstanceData(pCreature->GetSQL_id());
                 }break;
                 default:
                     break;
@@ -400,13 +428,21 @@ class TheVioletHoldScript : public InstanceScript
             // Spawn guards
             for (uint8_t i = 0; i < guardsCount; i++)
             {
-                spawnCreature(CN_VIOLET_HOLD_GUARD, guardsSpawnLoc[i].x, guardsSpawnLoc[i].y, guardsSpawnLoc[i].z, guardsSpawnLoc[i].o);
+                Creature* pSummon = spawnCreature(CN_VIOLET_HOLD_GUARD, guardsSpawnLoc[i].x, guardsSpawnLoc[i].y, guardsSpawnLoc[i].z, guardsSpawnLoc[i].o);
+                if (!pSummon)
+                {
+                    LOG_ERROR("Violet Hold: error occured while spawning creature entry %u", CN_VIOLET_HOLD_GUARD);
+                }
             }
 
             // Spawn portals
             for (uint8_t i = 0; i < introPortalCount; i++)
             {
-                spawnCreature(CN_PORTAL_INTRO, introPortals[i].x, introPortals[i].y, introPortals[i].z, introPortals[i].o);
+                Creature* pSummon = spawnCreature(CN_PORTAL_INTRO, introPortals[i].x, introPortals[i].y, introPortals[i].z, introPortals[i].o);
+                if (!pSummon)
+                {
+                    LOG_ERROR("Violet Hold: error occured while spawning creature entry %u", CN_PORTAL_INTRO);
+                }
                 SetInstanceData(0, DATA_LAST_PORTAL_ID, i);
             }
         }
@@ -476,7 +512,7 @@ class TheVioletHoldScript : public InstanceScript
                         pGuard->Despawn(1000, 1000);
                     }
                     // hack fix to set their original facing
-                    if (!pGuard->getcombatstatus()->IsInCombat())
+                    if (!pGuard->getcombatstatus()->IsInCombat() && pGuard->GetAIInterface()->MoveDone())
                     {
                         if (pGuard->GetOrientation() != pGuard->GetSpawnO())
                             pGuard->SetFacing(pGuard->GetSpawnO());
@@ -720,10 +756,10 @@ class IntroPortalAI : public CreatureAIScript
 
         void AIUpdate()
         {
-            // Summon adds every 15 or 25 seconds
+            // Summon adds every 15 or 20 seconds
             if (VH_instance && !(VH_instance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress || VH_instance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_Performed))
             {
-                ModifyAIUpdateEvent(RandomUInt(1) ? 15000 : 25000);
+                ModifyAIUpdateEvent(RandomUInt(1) ? 15000 : 20000);
                 spawnCreature(VHIntroMobs[RandomUInt(VHIntroMobCount - 1)], GetUnit()->GetPositionX(), GetUnit()->GetPositionY(), GetUnit()->GetPositionZ(), GetUnit()->GetOrientation());
             }
        }
@@ -736,7 +772,7 @@ class VHIntroNpcAI : public CreatureAIScript
         static CreatureAIScript* Create(Creature* c) { return new VHIntroNpcAI(c); }
         VHIntroNpcAI(Creature* pCreature) : CreatureAIScript(pCreature), isMoveSet(false)
         {
-            RegisterAIUpdateEvent(1000);
+            RegisterAIUpdateEvent(2000);
             _unit->GetAIInterface()->setCurrentAgent(AGENT_NULL);
             _unit->GetAIInterface()->setAiState(AI_STATE_IDLE);
             _unit->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
@@ -747,6 +783,7 @@ class VHIntroNpcAI : public CreatureAIScript
             _unit->GetAIInterface()->setCurrentAgent(AGENT_NULL);
             _unit->GetAIInterface()->setAiState(AI_STATE_IDLE);
             stopMovement();
+
             _unit->GetAIInterface()->setSplineRun();
             moveTo(sealAttackLoc.x, sealAttackLoc.y, sealAttackLoc.z);
         }
@@ -755,6 +792,7 @@ class VHIntroNpcAI : public CreatureAIScript
         {
             if (!GetUnit()->getcombatstatus()->IsInCombat() && !isMoveSet)
             {
+                _unit->GetAIInterface()->setSplineRun();
                 moveTo(sealAttackLoc.x, sealAttackLoc.y, sealAttackLoc.z);
                 isMoveSet = true;
             }
@@ -866,10 +904,12 @@ bool TeleportPlayerInEffect(uint32 /*i*/, Spell* pSpell)
         return false;
     }
 
-    Player* pTarget = pSpell->GetPlayerTarget();
+    if (Player* pTarget = pSpell->GetPlayerTarget())
+    {
+        return pTarget->CastSpell(pTarget, SPELL_VH_TELEPORT_PLAYER_EFFECT, true) ==  SPELL_CANCAST_OK ? true : false;
+    }
 
-    pTarget->CastSpell(pTarget, SPELL_VH_TELEPORT_PLAYER_EFFECT, true);
-    return true;
+    return false;
 }
 
 void SetupTheVioletHold(ScriptMgr* mgr)
