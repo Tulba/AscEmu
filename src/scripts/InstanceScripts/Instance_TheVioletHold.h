@@ -87,7 +87,8 @@ enum VHTimers : uint32_t
     // Timers in milliseconds
     VH_UPDATE_TIMER                 = 1000,
     VH_TIMER_SPAWN_INTRO_MOB_MIN    = 15000,
-    VH_TELEPORTATION_PORTAL_SPAWN_TIME  = 15000,
+    VH_TELE_PORTAL_SPAWN_TIME       = 15000,
+    VH_TELE_PORTAL_BOSS_SPAWN_TIME  = 2000,
     VH_TIMER_SPAWN_INTRO_MOB_MAX    = 20000,
 
     // Every timer below contains strict values in seconds (not milliseconds)
@@ -249,6 +250,8 @@ const Movement::Location PortalPositions[MaxPortalPositions] =
     { 1926.516f, 763.6616f, 52.35725f, 2.251475f }, // 6, right side, near Moragg boss
     { 1922.464f, 847.0699f, 48.50161f, 3.961897f }  // 7, left side, near Zuramat boss
 };
+
+const Movement::Location BossPortalLoc = { 1890.73f, 803.309f, 38.4001f, 2.4139f };  // center
 
 struct VHPortalInfo
 {

@@ -480,15 +480,34 @@ class TheVioletHoldScript : public InstanceScript
         // SpawnPortal
         void SpawnPortal()
         {
-            if (GetInstanceData(0, DATA_PORTAL_COUNT) > 18)
+            uint8_t portalCount = GetInstanceData(0, DATA_PORTAL_COUNT);
+            if (portalCount + 1 >= 18)
                 return;
 
+            ++portalCount;
+
             GenerateRandomPortal(m_activePortal);
-            if (!spawnCreature(CN_PORTAL, PortalPositions[m_activePortal.id].x, PortalPositions[m_activePortal.id].y, PortalPositions[m_activePortal.id].z, PortalPositions[m_activePortal.id].o))
+            float x, y, z, o;
+            if (m_activePortal.type != VH_PORTAL_TYPE_BOSS)
+            {
+                x = PortalPositions[m_activePortal.id].x;
+                y = PortalPositions[m_activePortal.id].y;
+                z = PortalPositions[m_activePortal.id].z;
+                o = PortalPositions[m_activePortal.id].o;
+            }
+            else
+            {
+                x = BossPortalLoc.x;
+                y = BossPortalLoc.y;
+                z = BossPortalLoc.z;
+                o = BossPortalLoc.o;
+            }
+
+            if (!spawnCreature(CN_PORTAL, x, y, z, o))
             {
                 LOG_ERROR("Violet Hold: error spawning main event portal");
             }
-            SetInstanceData(0, DATA_PORTAL_COUNT, GetInstanceData(0, DATA_PORTAL_COUNT) + 1);
+            SetInstanceData(0, DATA_PORTAL_COUNT, portalCount);
             SetInstanceData(0, DATA_PERVIOUS_PORTAL_ID, m_activePortal.id);
             UpdateWorldStates();
         }
@@ -918,12 +937,12 @@ class IntroPortalAI : public CreatureAIScript
        }
 };
 
-class VHIntroNpcAI : public CreatureAIScript
+class VHAttackerAI : public CreatureAIScript
 {
     public:
 
-        static CreatureAIScript* Create(Creature* c) { return new VHIntroNpcAI(c); }
-        VHIntroNpcAI(Creature* pCreature) : CreatureAIScript(pCreature), isMoveSet(false)
+        static CreatureAIScript* Create(Creature* c) { return new VHAttackerAI(c); }
+        VHAttackerAI(Creature* pCreature) : CreatureAIScript(pCreature), isMoveSet(false)
         {
             RegisterAIUpdateEvent(2000);
             _unit->GetAIInterface()->setCurrentAgent(AGENT_NULL);
@@ -984,8 +1003,7 @@ class VH_DefenseAI : public CreatureAIScript
                             {
                                 GetUnit()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_ARCANE_LIGHTNING_INSTAKILL), true);
                                 // Make sure they all dies
-                                pTarget->SetHealth(0);
-                                pTarget->Die(pTarget, 0, 0);
+                                pTarget->Die(pTarget, pTarget->GetHealth(), 0);
                                 pTarget->Despawn(1000, 0);
                             }
                         }
@@ -997,8 +1015,6 @@ class VH_DefenseAI : public CreatureAIScript
                                 if (pTarget->GetEntry() == CN_PORTAL_INTRO)
                                 {
                                     pTarget->Despawn(1000, 0);
-                                    itr = pInstance->m_introSpawns.erase(itr);
-                                    continue;
                                 }
                                 GetUnit()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_LIGHTNING_INTRO), true);
                             }
@@ -1017,7 +1033,7 @@ class VH_DefenseAI : public CreatureAIScript
                             {
                                 GetUnit()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_ARCANE_LIGHTNING_INSTAKILL), true);
                                 // Make sure they all dies
-                                pTarget->SetHealth(0);
+                                pTarget->Die(pTarget, pTarget->GetHealth(), 0);
                             }
                         }
                         else
@@ -1049,18 +1065,24 @@ class VH_DefenseAI : public CreatureAIScript
 class TeleportationPortalAI : public CreatureAIScript
 {
         bool isGuardianSpawned;
-
+        TheVioletHoldScript* pInstance;
     public:
 
         static CreatureAIScript* Create(Creature* c) { return new TeleportationPortalAI(c); }
         TeleportationPortalAI(Creature* pCreature) : CreatureAIScript(pCreature), isGuardianSpawned(false)
         {
-            RegisterAIUpdateEvent(VH_TELEPORTATION_PORTAL_SPAWN_TIME);
+            pInstance = static_cast<TheVioletHoldScript*>(GetUnit()->GetMapMgr()->GetScript());
+            if (pInstance)
+            {
+                if (pInstance->m_activePortal.type != VH_PORTAL_TYPE_BOSS)
+                    RegisterAIUpdateEvent(VH_TELE_PORTAL_SPAWN_TIME);
+                else
+                    RegisterAIUpdateEvent(VH_TELE_PORTAL_BOSS_SPAWN_TIME);
+            }
         }
 
         void AIUpdate()
         {
-            TheVioletHoldScript* pInstance = static_cast<TheVioletHoldScript*>(GetUnit()->GetMapMgr()->GetScript());
             if (!pInstance)
             {
                 printf("ERROR \n");
@@ -1092,7 +1114,9 @@ class TeleportationPortalAI : public CreatureAIScript
                             Creature* pSummon = spawnCreature(portalGuardians[RandomUInt(maxPortalGuardians - 1)], GetUnit()->GetPositionX() + RandomFloat(3), GetUnit()->GetPositionY() + RandomFloat(3), landHeight, GetUnit()->GetOrientation());
                             if (pSummon)
                             {
-                                pInstance->m_activePortal.summonsList.push_back(GET_LOWGUID_PART(pSummon->GetGUID()));
+                                // In case if OnLoad event will fail, insert guid anyway
+                                //TODO: replace this with cleaner solution
+                                pInstance->m_eventSpawns.push_back(GET_LOWGUID_PART(pSummon->GetGUID()));
                             }
                         }
                     }
@@ -1106,7 +1130,9 @@ class TeleportationPortalAI : public CreatureAIScript
                         Creature* pSummon = spawnCreature(portalGuardians[RandomUInt(maxPortalGuardians - 1)], GetUnit()->GetPositionX() + RandomFloat(3), GetUnit()->GetPositionY() + RandomFloat(3), GetUnit()->GetPositionZ(), GetUnit()->GetOrientation());
                         if (pSummon)
                         {
+                            //TODO: replace this with cleaner solution
                             pInstance->m_activePortal.summonsList.push_back(GET_LOWGUID_PART(pSummon->GetGUID()));
+                            pInstance->m_eventSpawns.push_back(GET_LOWGUID_PART(pSummon->GetGUID()));
                         }
                     }
                     despawn(2000, 0);
@@ -1143,14 +1169,22 @@ void SetupTheVioletHold(ScriptMgr* mgr)
 
     // Intro event
     mgr->register_creature_script(CN_PORTAL_INTRO, &IntroPortalAI::Create);
-    mgr->register_creature_script(CN_INTRO_AZURE_BINDER_ARCANE, &VHIntroNpcAI::Create);
-    mgr->register_creature_script(CN_INTRO_AZURE_INVADER_ARMS, &VHIntroNpcAI::Create);
-    mgr->register_creature_script(CN_INTRO_AZURE_MAGE_SLAYER_MELEE, &VHIntroNpcAI::Create);
-    mgr->register_creature_script(CN_INTRO_AZURE_SPELLBREAKER_ARCANE, &VHIntroNpcAI::Create);
+    mgr->register_creature_script(CN_INTRO_AZURE_BINDER_ARCANE, &VHAttackerAI::Create);
+    mgr->register_creature_script(CN_INTRO_AZURE_INVADER_ARMS, &VHAttackerAI::Create);
+    mgr->register_creature_script(CN_INTRO_AZURE_MAGE_SLAYER_MELEE, &VHAttackerAI::Create);
+    mgr->register_creature_script(CN_INTRO_AZURE_SPELLBREAKER_ARCANE, &VHAttackerAI::Create);
     mgr->register_creature_script(CN_DEFENSE_SYSTEM, &VH_DefenseAI::Create);
 
     // Main portal event
     mgr->register_creature_script(CN_PORTAL, &TeleportationPortalAI::Create);
+    mgr->register_creature_script(CN_AZURE_INVADER, &VHAttackerAI::Create);
+    mgr->register_creature_script(CN_AZURE_SPELLBREAKER, &VHAttackerAI::Create);
+    mgr->register_creature_script(CN_AZURE_BINDER, &VHAttackerAI::Create);
+    mgr->register_creature_script(CN_AZURE_MAGE_SLAYER, &VHAttackerAI::Create);
+    mgr->register_creature_script(CN_AZURE_CAPTAIN, &VHAttackerAI::Create);
+    mgr->register_creature_script(CN_AZURE_SORCERER, &VHAttackerAI::Create);
+    mgr->register_creature_script(CN_AZURE_RAIDER, &VHAttackerAI::Create);
+    mgr->register_creature_script(CN_AZURE_STALKER, &VHAttackerAI::Create);
 
     // Spells
     mgr->register_script_effect(SPELL_VH_TELEPORT_PLAYER, &TeleportPlayerInEffect);
