@@ -66,6 +66,8 @@ class TheVioletHoldScript : public InstanceScript
                 return;
             }
 
+            m_VHencounterData[pIndex] = pData;
+
             switch (pIndex)
             {
                 case INDEX_INSTANCE_PROGRESS:
@@ -92,8 +94,11 @@ class TheVioletHoldScript : public InstanceScript
                                 pGO->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NONSELECTABLE);
                             }
                         }
+                    }
 
-                        FillInitialWorldStates();
+                    if (pData == State_InProgress)
+                    {
+                        UpdateWorldStates();
                     }
 
                     if (pData == State_Failed)
@@ -111,7 +116,6 @@ class TheVioletHoldScript : public InstanceScript
                 default:
                     break;
             }
-            m_VHencounterData[pIndex] = pData;
         }
 
         uint32_t GetInstanceData(uint32_t /*pType*/, uint32_t pIndex)
@@ -263,10 +267,18 @@ class TheVioletHoldScript : public InstanceScript
             }
         }
 
+        void OnPlayerEnter(Player* plr)
+        {
+            UpdateWorldStates();
+        }
+
         void UpdateEvent()
         {
-            RemoveIntroNpcs(true);
-            UpdateGuards();
+            if (GetInstanceData(0, INDEX_INSTANCE_PROGRESS) != State_InProgress || GetInstanceData(0, INDEX_INSTANCE_PROGRESS) != State_Finished)
+            {
+                RemoveIntroNpcs(true);
+                UpdateGuards();
+            }
         }
 
         /////////////////////////////////////////////////////////
@@ -364,12 +376,12 @@ class TheVioletHoldScript : public InstanceScript
 
         void FillInitialWorldStates()
         {
-            UpdateInstanceWorldState(WORLD_STATE_VH_SHOW, 1);
             UpdateWorldStates();
         }
 
         void UpdateWorldStates()
         {
+            UpdateInstanceWorldState(WORLD_STATE_VH_SHOW, GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress ? 1 : 0);
             UpdateInstanceWorldState(WORLD_STATE_VH_PRISON_STATE, sealHP);
             UpdateInstanceWorldState(WORLD_STATE_VH_WAVE_COUNT, portalCount);
         }
@@ -450,13 +462,12 @@ class TheVioletHoldScript : public InstanceScript
             }
         }
 
-        // hack fix
         void UpdateGuards()
         {
             if (m_guardsGuids.empty())
                 return;
 
-            for (std::list<uint32_t>::iterator itr = m_guardsGuids.begin(); itr != m_guardsGuids.end();)
+            for (std::list<uint32_t>::iterator itr = m_guardsGuids.begin(); itr != m_guardsGuids.end(); ++itr)
             {
                 if (Creature* pGuard = GetInstance()->GetCreature(*itr))
                 {
@@ -464,12 +475,12 @@ class TheVioletHoldScript : public InstanceScript
                     {
                         pGuard->Despawn(1000, 1000);
                     }
+                    // hack fix to set their original facing
                     if (!pGuard->getcombatstatus()->IsInCombat())
                     {
                         if (pGuard->GetOrientation() != pGuard->GetSpawnO())
                             pGuard->SetFacing(pGuard->GetSpawnO());
                     }
-                    ++itr;
                 }
             }
         }
@@ -620,8 +631,8 @@ class SinclariGossip : public Arcemu::Gossip::Script
                     menu.setTextID(13853);
                     menu.AddItem(GOSSIP_ICON_CHAT, SINCLARI_GO_OPTION1, 0);
                 }
-                // else show option to port player to dungeon
-                else
+                // Show option to port player to dungeon
+                else if (pInstance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress)
                 {
                     menu.setTextID(14271);
                     menu.AddItem(GOSSIP_ICON_CHAT, SINCLARI_GO_OPTION3, 1);
@@ -709,10 +720,10 @@ class IntroPortalAI : public CreatureAIScript
 
         void AIUpdate()
         {
-            // Summon adds every 20 or 30 seconds
+            // Summon adds every 15 or 25 seconds
             if (VH_instance && !(VH_instance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress || VH_instance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_Performed))
             {
-                ModifyAIUpdateEvent(RandomUInt(1) ? 20000 : 30000);
+                ModifyAIUpdateEvent(RandomUInt(1) ? 15000 : 25000);
                 spawnCreature(VHIntroMobs[RandomUInt(VHIntroMobCount - 1)], GetUnit()->GetPositionX(), GetUnit()->GetPositionY(), GetUnit()->GetPositionZ(), GetUnit()->GetOrientation());
             }
        }
@@ -816,8 +827,8 @@ class VH_DefenseAI : public CreatureAIScript
                                 GetUnit()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_ARCANE_LIGHTNING_INSTAKILL), true);
                                 // Make sure they all dies
                                 pTarget->SetHealth(0);
-                                pTarget->Die(GetUnit(), 0, 0);
-                                // Make them look good visually
+
+                                // Make guards look good visually
                                 pInstance->UpdateGuards();
                             }
                         }
@@ -848,7 +859,7 @@ class VH_DefenseAI : public CreatureAIScript
 };
 
 // Spells
-bool TeleporPlayerInEffect(uint32 /*i*/, Spell* pSpell)
+bool TeleportPlayerInEffect(uint32 /*i*/, Spell* pSpell)
 {
     if (pSpell->u_caster == nullptr || !pSpell->u_caster->IsCreature() || !pSpell->GetPlayerTarget())
     {
@@ -879,5 +890,5 @@ void SetupTheVioletHold(ScriptMgr* mgr)
     mgr->register_creature_script(CN_DEFENSE_SYSTEM, &VH_DefenseAI::Create);
 
     // Spells
-    mgr->register_script_effect(SPELL_VH_TELEPORT_PLAYER, &TeleporPlayerInEffect);
+    mgr->register_script_effect(SPELL_VH_TELEPORT_PLAYER, &TeleportPlayerInEffect);
 }
