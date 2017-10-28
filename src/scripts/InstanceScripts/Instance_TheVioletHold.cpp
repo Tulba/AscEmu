@@ -93,7 +93,8 @@ class TheVioletHoldScript : public InstanceScript
 
                     if (pData == State_InProgress)
                     {
-                        portalSummonTimer = VH_INITIAL_PORTAL_TIMER;
+                        SetInstanceData(0, DATA_SEAL_HEALTH, 100);
+                        portalSummonTimer = VH_INITIAL_PORTAL_TIME;
                     }
 
                     if (pData == State_Failed)
@@ -308,21 +309,35 @@ class TheVioletHoldScript : public InstanceScript
                 RemoveIntroNpcs(true);
                 UpdateGuards();
             }
+
+            if (GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress)
+            {
+                if (GetInstanceData(0, INDEX_PORTAL_PROGRESS) == State_NotStarted)
+                {
+                    if (portalSummonTimer == 0)
+                    {
+                        portalSummonTimer = VH_NEXT_PORTAL_SPAWN_TIME;
+                        SpawnPortal();
+                        SetInstanceData(0, INDEX_PORTAL_PROGRESS, State_InProgress);
+                    }
+                    else
+                        --portalSummonTimer;
+                }
+            }
         }
 
         // Generate very basic portal info
         void GenerateRandomPortal(VHPortalInfo & newPortal)
         {
             uint8_t currentPortalCount = GetInstanceData(0, DATA_PORTAL_COUNT);
-            uint8_t perviousPortal = GetInstanceData(0, DATA_PERVIOUS_PORTAL_ID);
-            uint8_t newPortalId = MaxPortalPositions + 1;
-
+            uint8_t perviousPortal = currentPortalCount != 0 ? GetInstanceData(0, DATA_PERVIOUS_PORTAL_ID) : RandomUInt(MaxPortalPositions - 1);
+            uint8_t newPortalId = RandomUInt(MaxPortalPositions - 1);
             if (perviousPortal != 5 && perviousPortal != 11 && perviousPortal != 17)
             {
                 // Generate new portal id which doesn't match to pervious portal
                 do
                 {
-                    newPortalId = RandomUInt(MaxPortalPositions);
+                    newPortalId = RandomUInt(MaxPortalPositions - 1);
                 }while (newPortalId != perviousPortal);
                 newPortal.id = newPortalId;
 
@@ -345,9 +360,8 @@ class TheVioletHoldScript : public InstanceScript
                 // Generate random boss entry
                 do
                 {
-                    newPortal.bossEntry = randomVHBossArray[RandomUint(maxVHBosses - 1)];
-                }while (newPortal.bossEntry != 0 && GetData(newPortal.bossEntry) != Finished);
-
+                    newPortal.bossEntry = randomVHBossArray[RandomUInt(maxVHBosses - 1)];
+                }while (newPortal.bossEntry != 0 && getData(newPortal.bossEntry) != Finished);
             }
         }
 
@@ -358,8 +372,13 @@ class TheVioletHoldScript : public InstanceScript
                 return;
 
             GenerateRandomPortal(m_activePortal);
-            spawnCreature(CN_PORTAL, PortalPositions[m_activePortal.id].x, PortalPositions[m_activePortal.id].y, PortalPositions[m_activePortal.id].o, PortalPositions[m_activePortal.id].z);
-
+            if (!spawnCreature(CN_PORTAL, PortalPositions[m_activePortal.id].x, PortalPositions[m_activePortal.id].y, PortalPositions[m_activePortal.id].z, PortalPositions[m_activePortal.id].o))
+            {
+                LOG_ERROR("Violet Hold: error spawning main event portal");
+            }
+            SetInstanceData(0, DATA_PORTAL_COUNT, GetInstanceData(0, DATA_PORTAL_COUNT) + 1);
+            SetInstanceData(0, DATA_PERVIOUS_PORTAL_ID, m_activePortal.id);
+            UpdateWorldStates();
         }
         /////////////////////////////////////////////////////////
         /// Helper functions
@@ -431,11 +450,6 @@ class TheVioletHoldScript : public InstanceScript
                     }
                 }
             }
-        }
-
-        void FillInitialWorldStates()
-        {
-            UpdateWorldStates();
         }
 
         void UpdateWorldStates()

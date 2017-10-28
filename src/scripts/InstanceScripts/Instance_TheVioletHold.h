@@ -19,7 +19,6 @@ enum DataIndex : uint8_t
     INDEX_CYANIGOSA,                // Last boss index
 
     // Portal data
-    DATA_CURRENTLY_USED_PORTAL_ID,  // This INDEX value will contain randomly generated portal id
     DATA_PERVIOUS_PORTAL_ID,        // This INDEX value will contain perviously used portal id
     DATA_PORTAL_COUNT,              // This INDEX value will increased every time when portal is summoned
     DATA_SEAL_HEALTH,               // This INDEX value will contain health percent of "doors"
@@ -90,7 +89,7 @@ enum VHTimers : uint32_t
     VH_TIMER_SPAWN_INTRO_MOB_MAX    = 20000,
 
     // Every timer below contains strict values in seconds (not milliseconds)
-    VH_INITIAL_PORTAL_TIME          = 5,    // only used for first portal
+    VH_INITIAL_PORTAL_TIME          = 2,    // only used for first portal
     VH_NEXT_PORTAL_SPAWN_TIME       = 10
 };
 
@@ -252,13 +251,27 @@ const Movement::Location PortalPositions[MaxPortalPositions] =
 struct VHPortalInfo
 {
     uint8_t id;                                     // id should be equal to PortalPositions array index
-    uint32_t portalLowGuid;                         // contains portal guid (for spell chanelling/despawning events)
     VH_PORTAL_TYPE type;                            // see VH_PORTAL_TYPE enum
     uint32_t guardianEntry;                         // contains gurdian/keeper
     uint32_t bossEntry;                             // only used for VH_PORTAL_TYPE_BOSS
     std::list<uint32_t> summonsList;                // contains summon lists - used for squads
     VHPortalInfo() : id(0), type(VH_PORTAL_TYPE_NONE), guardianEntry(0), bossEntry(0)
     {
+    }
+
+    void DelSummonDataByGuid(uint32_t guid)
+    {
+        if (summonsList.empty())
+            return;
+
+        for (std::list<uint32>::iterator itr = summonsList.begin(); itr != summonsList.end(); ++itr)
+        {
+            if ((*itr) == guid)
+            {
+                summonsList.erase(itr);
+                break;
+            }
+        }
     }
 };
 
@@ -270,7 +283,7 @@ const uint32_t portalGuardians[maxPortalGuardians] =
     CN_AZURE_BINDER,
     CN_AZURE_MAGE_SLAYER,
     CN_AZURE_CAPTAIN,
-    CN_AZURE_SORCEROR,
+    CN_AZURE_SORCERER,
     CN_AZURE_RAIDER,
     CN_AZURE_STALKER
 };
