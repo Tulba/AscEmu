@@ -98,7 +98,6 @@ class TheVioletHoldScript : public InstanceScript
                     if (pData == State_InProgress)
                     {
                         UpdateWorldStates();
-                        SetInstanceData(0, DATA_LAST_PORTAL_ID, 0);
                     }
 
                     if (pData == State_Failed)
@@ -315,15 +314,6 @@ class TheVioletHoldScript : public InstanceScript
 
         void MainEvent()
         {
-            if (GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress && GetInstanceData(0, INDEX_WAVE_PROGRESS) == State_NotStarted)
-            {
-                // This timer will get reset on SetInstanceData event
-                if (portalSummonTimer == 0)
-                {
-                    DoRandomPortalSpawn();
-                    SetInstanceData(0, INDEX_WAVE_PROGRESS, State_InProgress);
-                }
-            }
         }
 
         void DoRandomPortalSpawn()
@@ -443,7 +433,6 @@ class TheVioletHoldScript : public InstanceScript
                 {
                     LOG_ERROR("Violet Hold: error occured while spawning creature entry %u", CN_PORTAL_INTRO);
                 }
-                SetInstanceData(0, DATA_LAST_PORTAL_ID, i);
             }
         }
 
@@ -716,17 +705,14 @@ class SinclariGossip : public Arcemu::Gossip::Script
 class IntroPortalAI : public CreatureAIScript
 {
     TheVioletHoldScript* VH_instance;
-
-    // Depends on location
-    uint32_t portalId;
     public:
+
         static CreatureAIScript* Create(Creature* c) { return new IntroPortalAI(c); }
-        IntroPortalAI(Creature* pCreature) : CreatureAIScript(pCreature), portalId(3)
+        IntroPortalAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             VH_instance = static_cast< TheVioletHoldScript*>(pCreature->GetMapMgr()->GetScript());
             if (VH_instance)
             {
-                portalId = VH_instance->GetInstanceData(0, DATA_LAST_PORTAL_ID);
             }
         }
 

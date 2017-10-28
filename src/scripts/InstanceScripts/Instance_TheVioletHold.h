@@ -6,27 +6,23 @@ This file is released under the MIT license. See README-MIT for more information
 #pragma once
 
 // Violet hold during whole encounters has total 18 portals summoned
-// one portal group is equal to 6 portals
+// one portal group is equal to 6 portals, every 6th portal unlocks boss
 enum DataIndex : uint8_t
 {
-    // This index is used to identify for event progress
-    // This index should be set to "in progress" only after Sinclari's escort event
     INDEX_INSTANCE_PROGRESS = 0,
 
-    // This index identifies portal count
-    INDEX_PORTAL_COUNT,
-
     // First two bosses are random
-    INDEX_GROUP1_BOSS,
-    INDEX_GROUP2_BOSS,
+    DATA_GROUP1_BOSS_ENTRY,         // This INDEX value will contain first boss entry
+    INDEX_GROUP1_BOSS_PROGRESS,     // First group boss progress data
+    DATA_GROUP2_BOSS_ENTRY,         // This INDEX value will contain second boss entry
+    INDEX_GROUP2_BOSS_PROGRESS,     // Second group boss progress data
+    INDEX_CYANIGOSA,                // Last boss index
 
-    // Wave data
-    DATA_WAVE_TYPE,
-    DATA_LAST_PORTAL_ID,
-    INDEX_WAVE_PROGRESS,
-
-    // Final boss event
-    INDEX_CYANIGOSA,
+    // Portal data
+    DATA_CURRENTLY_USED_PORTAL_ID,  // This INDEX value will contain randomly generated portal id
+    DATA_PERVIOUS_PORTAL_ID,        // This INDEX value will contain perviously used portal id
+    DATA_PORTAL_COUNT,              // This INDEX value will increased every time when portal is summoned
+    DATA_SEAL_HEALTH,               // This INDEX value will contain health percent of "doors"
 
     INDEX_MAX
 };
@@ -126,18 +122,6 @@ enum VH_GameObjects : uint32_t
     GO_MORAGG_DOOR              = 191606
 };
 
-// Violet hold portal locations
-const uint8_t VHPortalLocCount = 6;
-const Movement::Location VHPortalLocations[] =
-{
-    { 1877.51f, 850.104f, 44.6599f, 4.7822f  },
-    { 1918.37f, 853.437f, 47.1624f, 4.12294f },
-    { 1936.07f, 803.198f, 53.3749f, 3.12414f },
-    { 1927.61f, 758.436f, 51.4533f, 2.20891f },
-    { 1890.64f, 753.471f, 48.7224f, 1.71042f },
-    { 1908.31f, 809.657f, 38.7037f, 3.08701f }
-};
-
 enum VH_Texts : uint32_t
 {
     // Sinclari's gossips
@@ -172,6 +156,13 @@ enum VH_Spells
 
     SPELL_VH_TELEPORT_PLAYER            = 62138,
     SPELL_VH_TELEPORT_PLAYER_EFFECT     = 62139
+};
+
+enum VH_PORTAL_TYPE : uint8_t
+{
+    VH_PORTAL_TYPE_GUARDIAN     = 0,
+    VH_PORTAL_TYPE_ELITE        = 1,
+    VH_PORTAL_TYPE_BOSS         = 2
 };
 
 // Location used to move guards and liutenant
@@ -228,13 +219,31 @@ const Movement::Location sealAttackLoc = { 1843.567017f, 804.288208f, 44.139091f
 const Movement::Location SinclariPositions[] =
 {
     { 1829.142f, 798.219f,  44.36212f, 0.122173f }, // 0 - Crystal
-    { 1820.12f,  803.916f,  44.36466f, 0.0f      }, // 1 - Outside
-    { 1816.185f, 804.0629f, 44.44799f, 3.176499f }, // 2 - Second Spawn Point
-    { 1827.886f, 804.0555f, 44.36467f, 0.0f      }  // 3 - Outro
+    { 1820.12f,  803.916f,  44.36466f, 0.0f      }, // 1 - Outside (before closing doors)
+    { 1816.185f, 804.0629f, 44.44799f, 3.176499f }, // 2 - Second Spawn Point (after closing doors)
+    { 1827.886f, 804.0555f, 44.36467f, 0.0f      }  // 3 - Outro (instance finish event)
 };
 
-const Movement::LocationWithFlag AttackerWP[] =
+const uint32_t MaxPortalPositions = 8;
+const Movement::Location PortalPositions[MaxPortalPositions] =
 {
-    { { 1858.077f, 804.8599f, 44.00872f, 0 }, Movement::WP_MOVE_TYPE_RUN }, // Run to middle of entrance platform
-    { { 1836.152f, 804.7064f, 44.2534f, 0 }, Movement::WP_MOVE_TYPE_RUN } // Run to door to attack it
+    // Portal with guardians
+    { 1877.523f, 850.1788f, 45.36822f, 4.34587f   }, // 0, left side, near Erekem boss
+    { 1890.679f, 753.4202f, 48.771f,   1.675516f  }, // 1, right side, near Moragg boss
+    { 1936.09f,  803.1875f, 54.09715f, 3.054326f  }, // 2, top edge
+    { 1858.243f, 770.2379f, 40.42146f, 0.9075712f }, // 3, right side, near Lavanthor boss
+    { 1907.288f, 831.1111f, 40.22015f, 3.560472f  }, // 4, left side, near Xevozz boss
+
+    // Portal with elites
+    { 1911.281f, 800.9722f, 39.91673f, 3.01942f  }, // 5, right side, near Ichonor boss
+    { 1926.516f, 763.6616f, 52.35725f, 2.251475f }, // 6, right side, near Moragg boss
+    { 1922.464f, 847.0699f, 48.50161f, 3.961897f }  // 7, left side, near Zuramat boss
+};
+
+struct VHPortalInfo
+{
+    uint8_t id;                                     // id should be equal to PortalPositions array index
+    VH_PORTAL_TYPE type;                            // see VH_PORTAL_TYPE enum
+    uint32_t guardianEntry;                         // contains gurdian or elite entry, only one id will taken
+    std::list<uint32_t> spawnList;                  // contains summoned creatures entries
 };
