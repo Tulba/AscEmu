@@ -109,13 +109,19 @@ class TheVioletHoldScript : public InstanceScript
 
                     if (pData == State_Finished)
                     {
+                        // Open gates
+                        GameObject* pGates = GetInstance()->GetGameObject(mainGatesGUID);
+                        if (pGates && pGates->GetState() == GO_STATE_CLOSED)
+                        {
+                            pGates->SetState(GO_STATE_OPEN);
+                        }
+
                         // Start her outro event
                         Creature* pSinclari = GetInstance()->GetCreature(m_sinclariGUID);
                         if (pSinclari && pSinclari->GetScript())
                         {
                             pSinclari->GetScript()->RegisterAIUpdateEvent(1000);
                         }
-
                     }
                 }break;
                 case INDEX_PORTAL_PROGRESS:
@@ -173,6 +179,10 @@ class TheVioletHoldScript : public InstanceScript
                 case GO_PRISON_SEAL:
                 {
                     mainGatesGUID = pGo->GetLowGUID();
+                    if (GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress && pGo->GetState() == GO_STATE_OPEN)
+                    {
+                        pGo->SetState(GO_STATE_CLOSED);
+                    }
                 }break;
                 case GO_ACTIVATION_CRYSTAL:
                 {
@@ -1008,9 +1018,6 @@ class VH_DefenseAI : public CreatureAIScript
                                 GetUnit()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_ARCANE_LIGHTNING_INSTAKILL), true);
                                 // Make sure they all dies
                                 pTarget->SetHealth(0);
-
-                                // Make guards look good visually
-                                pInstance->UpdateGuards();
                             }
                         }
                         else
