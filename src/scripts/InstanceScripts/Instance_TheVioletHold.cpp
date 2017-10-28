@@ -48,7 +48,8 @@ class TheVioletHoldScript : public InstanceScript
             m_isDefAchievFailed(false),
             mainGatesGUID(0),
             m_sinclariGUID(0),
-            portalSummonTimer(0)
+            portalSummonTimer(0),
+            portalGUID(0)
         {
             //TODO: this should be redone by checking actual saved data for heroic mode
             memset(m_VHencounterData, State_NotStarted, sizeof(m_VHencounterData));
@@ -125,8 +126,12 @@ class TheVioletHoldScript : public InstanceScript
                         {
                             pPortal->Despawn(1000, 0);
                         }
+                        portalGUID = 0;
+
                         // Lets reset event
                         SetInstanceData(0, INDEX_PORTAL_PROGRESS, State_NotStarted);
+                        SetInstanceData(0, DATA_ARE_SUMMONS_MADE, 0);
+                        m_activePortal.ResetData();
                     }
                 }break;
                 default:
@@ -243,6 +248,14 @@ class TheVioletHoldScript : public InstanceScript
                 case CN_PORTAL:
                 {
                     portalGUID = GET_LOWGUID_PART(pCreature->GetGUID());
+                }break;
+                case CN_PORTAL_GUARDIAN:
+                {
+                    pCreature->SendChatMessage(CHAT_MSG_RAID_BOSS_EMOTE, LANG_UNIVERSAL, GUARDIAN_ANNOUNCE);
+                }break;
+                case CN_PORTAL_KEEPER:
+                {
+                    pCreature->SendChatMessage(CHAT_MSG_RAID_BOSS_EMOTE, LANG_UNIVERSAL, KEEPER_ANNOUNCE);
                 }break;
                 default:
                     break;
@@ -369,6 +382,28 @@ class TheVioletHoldScript : public InstanceScript
                         --portalSummonTimer;
                 }
             }
+
+            // Erase non existing summons from lists
+            if (GetInstanceData(0, INDEX_PORTAL_PROGRESS) == State_InProgress && GetInstanceData(0, DATA_ARE_SUMMONS_MADE) == 1 && m_activePortal.type == VH_PORTAL_TYPE_SQUAD)
+            {
+                if (!m_activePortal.summonsList.empty())
+                {
+                    for (std::list<uint32>::iterator itr = m_activePortal.summonsList.begin(); itr != m_activePortal.summonsList.end();)
+                    {
+                        Creature* pCreature = GetInstance()->GetCreature(*itr);
+                        if (pCreature && !pCreature->isAlive())
+                        {
+                            itr = m_activePortal.summonsList.erase(itr);
+                            continue;
+                        }
+                        ++itr;
+                    }
+                }
+                else
+                {
+                    SetInstanceData(0, INDEX_PORTAL_PROGRESS, State_Finished);
+                }
+            }
         }
 
         // Generate very basic portal info
@@ -377,7 +412,8 @@ class TheVioletHoldScript : public InstanceScript
             uint8_t currentPortalCount = GetInstanceData(0, DATA_PORTAL_COUNT);
             uint8_t perviousPortal = currentPortalCount != 0 ? GetInstanceData(0, DATA_PERVIOUS_PORTAL_ID) : RandomUInt(MaxPortalPositions - 1);
             uint8_t newPortalId = RandomUInt(MaxPortalPositions - 1);
-            if (perviousPortal != 5 && perviousPortal != 11 && perviousPortal != 17)
+
+            if ((currentPortalCount + 1) != 6 && (currentPortalCount + 1) != 12 && (currentPortalCount + 1) != 18)
             {
                 // Generate new portal id which doesn't match to pervious portal
                 while (newPortalId == perviousPortal)
@@ -403,13 +439,11 @@ class TheVioletHoldScript : public InstanceScript
             {
                 newPortal.type = VH_PORTAL_TYPE_BOSS;
                 // Generate random boss entry
-                while (newPortal.bossEntry != 0 || getData(newPortal.bossEntry) != Finished);
+                while (newPortal.bossEntry == 0 || getData(newPortal.bossEntry) == Finished)
                 {
                     newPortal.bossEntry = randomVHBossArray[RandomUInt(maxVHBosses - 1)];
                 }
             }
-            printf("type: %u\n", newPortal.type);
-            printf("id: %u \n", newPortal.id);
         }
 
         // SpawnPortal
@@ -1010,32 +1044,46 @@ class TeleportationPortalAI : public CreatureAIScript
                     break;
                 case VH_PORTAL_TYPE_GUARDIAN:
                 {
+                    float landHeight = GetUnit()->GetMapMgr()->GetLandHeight(GetUnit()->GetPositionX(), GetUnit()->GetPositionY(), GetUnit()->GetPositionZ());
                     if (!isGuardianSpawned)
                     {
-                        Creature* pGuardian = spawnCreature(pInstance->m_activePortal.guardianEntry, GetUnit()->GetPositionX(), GetUnit()->GetPositionY(), GetUnit()->GetPositionZ(), GetUnit()->GetOrientation());
+                        Creature* pGuardian = spawnCreature(pInstance->m_activePortal.guardianEntry, GetUnit()->GetPositionX() + RandomFloat(3), GetUnit()->GetPositionY() + RandomFloat(3), landHeight, GetUnit()->GetOrientation());
                         if (pGuardian)
                         {
                             isGuardianSpawned = true;
-                            pGuardian->SetChannelSpellTargetGUID(GetUnit()->GetGUID());
-                            pGuardian->SetChannelSpellId(SPELL_VH_PORTAL_CHANNEL);
+                            GetUnit()->SetChannelSpellId(SPELL_VH_PORTAL_CHANNEL);
+                            GetUnit()->SetChannelSpellTargetGUID(pGuardian->GetGUID());
+                        }
+                    }
+                    else
+                    {
+                        // Spawn 3 random portal guardians
+                        for(uint8 i = 0; i < 3; i++)
+                        {
+                            Creature* pSummon = spawnCreature(portalGuardians[RandomUInt(maxPortalGuardians - 1)], GetUnit()->GetPositionX() + RandomFloat(3), GetUnit()->GetPositionY() + RandomFloat(3), landHeight, GetUnit()->GetOrientation());
+                            if (pSummon)
+                            {
+                                pInstance->m_activePortal.summonsList.push_back(GET_LOWGUID_PART(pSummon->GetGUID()));
+                            }
                         }
                     }
                 }break;
                 case VH_PORTAL_TYPE_SQUAD:
                 {
+                    GetUnit()->SendChatMessage(CHAT_MSG_RAID_BOSS_EMOTE, LANG_UNIVERSAL, SQUAD_ANNOUNCE);
                     //TODO: This count needs to be corrected
                     for(uint8 i = 0; i < 5; i++)
                     {
-                        Creature* pSummon = spawnCreature(portalGuardians[RandomUInt(maxPortalGuardians - 1)], GetUnit()->GetPositionX(), GetUnit()->GetPositionY(), GetUnit()->GetPositionZ(), GetUnit()->GetOrientation());
+                        Creature* pSummon = spawnCreature(portalGuardians[RandomUInt(maxPortalGuardians - 1)], GetUnit()->GetPositionX() + RandomFloat(3), GetUnit()->GetPositionY() + RandomFloat(3), GetUnit()->GetPositionZ(), GetUnit()->GetOrientation());
                         if (pSummon)
                         {
-                            pInstance->m_activePortal.summonsList.push_back(GET_LOWGUID_PART(pSummon->GetLowGUID()));
+                            pInstance->m_activePortal.summonsList.push_back(GET_LOWGUID_PART(pSummon->GetGUID()));
                         }
                     }
-                    despawn(1000, 0);
+                    despawn(2000, 0);
                 }break;
-
             }
+            pInstance->SetInstanceData(0, DATA_ARE_SUMMONS_MADE, 1);
         }
 };
 

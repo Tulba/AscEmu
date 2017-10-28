@@ -23,6 +23,7 @@ enum DataIndex : uint8_t
     DATA_PORTAL_COUNT,              // This INDEX value will increased every time when portal is summoned
     DATA_SEAL_HEALTH,               // This INDEX value will contain health percent of "doors"
     INDEX_PORTAL_PROGRESS,          // This index declares portal progress state
+    DATA_ARE_SUMMONS_MADE,          // This index identifies if portal summoned adds successfuly (0 - false, 1 - true)
 
     INDEX_MAX
 };
@@ -256,8 +257,9 @@ struct VHPortalInfo
     uint32_t guardianEntry;                         // contains gurdian/keeper
     uint32_t bossEntry;                             // only used for VH_PORTAL_TYPE_BOSS
     std::list<uint32_t> summonsList;                // contains summon lists - used for squads
-    VHPortalInfo() : id(0), type(VH_PORTAL_TYPE_NONE), guardianEntry(0), bossEntry(0)
+    VHPortalInfo()
     {
+        ResetData();
     }
 
     void DelSummonDataByGuid(uint32_t guid)
@@ -274,6 +276,14 @@ struct VHPortalInfo
             }
         }
     }
+
+    void ResetData()
+    {
+        id = 0;
+        type = VH_PORTAL_TYPE_NONE;
+        guardianEntry = 0;
+        bossEntry = 0;
+    }
 };
 
 const uint8 maxPortalGuardians = 8;
@@ -288,3 +298,7 @@ const uint32_t portalGuardians[maxPortalGuardians] =
     CN_AZURE_RAIDER,
     CN_AZURE_STALKER
 };
+
+const char* GUARDIAN_ANNOUNCE   = "A Portal Gurdian defends the new portal!";
+const char* KEEPER_ANNOUNCE     = "A Portal Keeper emerges from the portal!";
+const char* SQUAD_ANNOUNCE      = "An elite Blue Dragonflight squad appears from the portal!";
