@@ -249,14 +249,6 @@ class TheVioletHoldScript : public InstanceScript
                 {
                     portalGUID = GET_LOWGUID_PART(pCreature->GetGUID());
                 }break;
-                case CN_PORTAL_GUARDIAN:
-                {
-                    pCreature->SendChatMessage(CHAT_MSG_RAID_BOSS_EMOTE, LANG_UNIVERSAL, GUARDIAN_ANNOUNCE);
-                }break;
-                case CN_PORTAL_KEEPER:
-                {
-                    pCreature->SendChatMessage(CHAT_MSG_RAID_BOSS_EMOTE, LANG_UNIVERSAL, KEEPER_ANNOUNCE);
-                }break;
                 default:
                     break;
             }
@@ -1047,6 +1039,7 @@ class TeleportationPortalAI : public CreatureAIScript
                     float landHeight = GetUnit()->GetMapMgr()->GetLandHeight(GetUnit()->GetPositionX(), GetUnit()->GetPositionY(), GetUnit()->GetPositionZ());
                     if (!isGuardianSpawned)
                     {
+                        GetUnit()->SendChatMessage(CHAT_MSG_RAID_BOSS_EMOTE, LANG_UNIVERSAL, pInstance->m_activePortal.guardianEntry == CN_PORTAL_GUARDIAN ? GUARDIAN_ANNOUNCE : KEEPER_ANNOUNCE);
                         Creature* pGuardian = spawnCreature(pInstance->m_activePortal.guardianEntry, GetUnit()->GetPositionX() + RandomFloat(3), GetUnit()->GetPositionY() + RandomFloat(3), landHeight, GetUnit()->GetOrientation());
                         if (pGuardian)
                         {
