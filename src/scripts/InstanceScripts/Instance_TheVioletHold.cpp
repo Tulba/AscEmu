@@ -569,7 +569,7 @@ class SinclariAI : public CreatureAIScript
                     case 3:
                     {
                         ModifyAIUpdateEvent(3000);
-                        sendChatMessage(CHAT_MSG_MONSTER_YELL, 0, SINCLARI_YELL);
+                        sendDBChatMessage(YELL_SINCLARI_LEAVING);
                         GetUnit()->EventAddEmote(EMOTE_ONESHOT_SHOUT, 2000);
                         VH_instance->CallGuardsOut();
                     }break;
@@ -584,7 +584,7 @@ class SinclariAI : public CreatureAIScript
                     {
                         GetUnit()->SetOrientation(SinclariPositions[1].o);
                         ModifyAIUpdateEvent(3500);
-                        sendChatMessage(CHAT_MSG_MONSTER_SAY, 0, SINCLARI_SAY);
+                        sendDBChatMessage(SAY_SINCLARI_CLOSING_GATES);
                     }break;
                     // Emote mimic
                     case 6:
@@ -630,7 +630,7 @@ class SinclariAI : public CreatureAIScript
                     }break;
                     case 11:
                     {
-                        sendChatMessage(CHAT_MSG_MONSTER_SAY, 0, SINCLARI_SAY_VICTORY);
+                        sendDBChatMessage(SAY_SINCLARI_INSTANCE_DONE);
                         ModifyAIUpdateEvent(10000);
                     }break;
                     case 12:
@@ -665,13 +665,13 @@ class SinclariGossip : public Arcemu::Gossip::Script
                 if (pInstance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_NotStarted)
                 {
                     menu.setTextID(13853);
-                    menu.AddItem(GOSSIP_ICON_CHAT, SINCLARI_GO_OPTION1, 0);
+                    menu.AddItem(GOSSIP_ICON_CHAT, pPlayer->GetSession()->LocalizedGossipOption(GOSSIP_SINCLARI_ACTIVATE), 0);
                 }
                 // Show option to port player to dungeon
                 else if (pInstance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress)
                 {
                     menu.setTextID(14271);
-                    menu.AddItem(GOSSIP_ICON_CHAT, SINCLARI_GO_OPTION3, 1);
+                    menu.AddItem(GOSSIP_ICON_CHAT, pPlayer->GetSession()->LocalizedGossipOption(GOSSIP_SINCLARI_SEND_ME_IN), 1);
                 }
                 menu.Send(pPlayer);
             }
@@ -685,7 +685,7 @@ class SinclariGossip : public Arcemu::Gossip::Script
                 case 0:
                 {
                     Arcemu::Gossip::Menu menu(pObject->GetGUID(), 13854);
-                    menu.AddItem(GOSSIP_ICON_CHAT, SINCLARI_GO_OPTION2, 2);
+                    menu.AddItem(GOSSIP_ICON_CHAT, pPlayer->GetSession()->LocalizedGossipOption(GOSSIP_SINCLARI_GET_SAFETY), 2);
                     menu.Send(pPlayer);
                 }break;
                 // Teleport player in
@@ -759,7 +759,7 @@ class IntroPortalAI : public CreatureAIScript
             // Summon adds every 15 or 20 seconds
             if (VH_instance && !(VH_instance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress || VH_instance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_Performed))
             {
-                ModifyAIUpdateEvent(RandomUInt(1) ? 15000 : 20000);
+                ModifyAIUpdateEvent(RandomUInt(1) ? VH_TIMER_SPAWN_INTRO_MOB_MIN : VH_TIMER_SPAWN_INTRO_MOB_MAX);
                 spawnCreature(VHIntroMobs[RandomUInt(VHIntroMobCount - 1)], GetUnit()->GetPositionX(), GetUnit()->GetPositionY(), GetUnit()->GetPositionZ(), GetUnit()->GetOrientation());
             }
        }
