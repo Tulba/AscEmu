@@ -116,6 +116,27 @@ class TheVioletHoldScript : public InstanceScript
                     {
                         ResetIntro();
                         ResetCrystals(false);
+                        // Despawn event spawns
+                        if (!m_eventSpawns.empty())
+                        {
+                            for (std::list<uint32_t>::iterator itr = m_eventSpawns.begin(); itr != m_eventSpawns.end(); itr = m_eventSpawns.erase(itr))
+                            {
+                                if (Creature* pSummon = GetInstance()->GetCreature(*itr))
+                                {
+                                    pSummon->Despawn(1000, 0);
+                                }
+                            }
+                        }
+
+                        // Despawn last portal guardian
+                        if (portalGuardianGUID != 0)
+                        {
+                            if (Creature* pGuardian = GetInstance()->GetCreature(portalGuardianGUID))
+                            {
+                                pGuardian->Despawn(1000, 0);
+                            }
+                        }
+
                         SetInstanceData(0, INDEX_INSTANCE_PROGRESS, State_NotStarted);
                     }
 
@@ -183,6 +204,10 @@ class TheVioletHoldScript : public InstanceScript
                             emote5pct = true;
                         }
 
+                        if (pData == 0)
+                        {
+                            SetInstanceData(0, INDEX_INSTANCE_PROGRESS, State_Failed);
+                        }
                         UpdateWorldStates();
                     }
                 }break;
@@ -535,6 +560,14 @@ class TheVioletHoldScript : public InstanceScript
                 {
                     newPortal.bossEntry = randomVHBossArray[RandomUInt(maxVHBosses - 1)];
                 }
+
+                // First boss
+                if ((currentPortalCount + 1) == 6)
+                    SetInstanceData(0, DATA_GROUP1_BOSS_ENTRY, newPortal.bossEntry);
+
+                // Second boss
+                if ((currentPortalCount + 1) == 12)
+                    SetInstanceData(0, DATA_GROUP2_BOSS_ENTRY, newPortal.bossEntry);
             }
         }
 

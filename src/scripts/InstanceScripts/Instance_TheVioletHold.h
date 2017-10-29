@@ -12,6 +12,7 @@ enum DataIndex : uint8_t
     INDEX_INSTANCE_PROGRESS = 0,
 
     // First two bosses are random
+    // There is total 3 bosses, if players wipes on first two bosses, ghost will replace boss
     DATA_GROUP1_BOSS_ENTRY,         // This INDEX value will contain first boss entry
     INDEX_GROUP1_BOSS_PROGRESS,     // First group boss progress data
     DATA_GROUP2_BOSS_ENTRY,         // This INDEX value will contain second boss entry
