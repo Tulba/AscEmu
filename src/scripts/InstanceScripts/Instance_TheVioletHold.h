@@ -11,20 +11,26 @@ enum DataIndex : uint8_t
 {
     INDEX_INSTANCE_PROGRESS = 0,
 
+    // MAIN EVENT DATA
     // First two bosses are random
     // There is total 3 bosses, if players wipes on first two bosses, ghost will replace boss
     DATA_GROUP1_BOSS_ENTRY,         // This INDEX value will contain first boss entry
-    INDEX_GROUP1_BOSS_PROGRESS,     // First group boss progress data
     DATA_GROUP2_BOSS_ENTRY,         // This INDEX value will contain second boss entry
-    INDEX_GROUP2_BOSS_PROGRESS,     // Second group boss progress data
-    INDEX_CYANIGOSA,                // Last boss index
 
     // Portal data
     DATA_PERVIOUS_PORTAL_ID,        // This INDEX value will contain perviously used portal id
     DATA_PORTAL_COUNT,              // This INDEX value will increased every time when portal is summoned
     DATA_SEAL_HEALTH,               // This INDEX value will contain health percent of "doors"
-    INDEX_PORTAL_PROGRESS,          // This index declares portal progress state
-    DATA_ARE_SUMMONS_MADE,          // This index identifies if portal summoned adds successfuly (0 - false, 1 - true)
+    INDEX_PORTAL_PROGRESS,          // This INDEX declares portal progress state
+    DATA_ARE_SUMMONS_MADE,          // This INDEX identifies if portal summoned adds successfuly (0 - false, 1 - true)
+
+    // BOSS DATA
+    INDEX_MAROGG,
+    INDEX_ICHONOR,
+    INDEX_ZURAMAT,
+    INDEX_EREKEM,
+    INDEX_LAVANTHOR,
+    INDEX_XEVOZZ,
 
     INDEX_MAX
 };
@@ -36,6 +42,7 @@ enum CreatureEntry : uint32_t
     CN_PORTAL_KEEPER                        = 30695,
     CN_PORTAL                               = 30679,
     CN_DOOR_SEAL                            = 30896,
+    CN_AZURE_SABOTEUR                      = 31079,
 
     // Defense AI
     CN_DEFENSE_SYSTEM                       = 30837,
@@ -75,7 +82,16 @@ enum CreatureEntry : uint32_t
     CN_ICHORON                              = 29313,
     CN_XEVOZZ                               = 29266,
     CN_LAVANTHOR                            = 29312,
-    CN_CYANIGOSA                            = 31134
+    CN_CYANIGOSA                            = 31134,
+
+    // Ghostly replacements
+    CN_ARAKKOA                              = 32226,
+    CM_ARAKKOA_GUARD                        = 32228,
+    CN_VOID_LORD                            = 32230,
+    CN_ETHERAL                              = 32231,
+    CN_SWIRLING                             = 32234,
+    CN_WATCHER                              = 32235,
+    CN_LAVA_HOUND                           = 32237
 };
 
 // General dungeon timers
@@ -143,14 +159,14 @@ enum VH_Texts : uint32_t
 };
 
 // Worldstate entries used in instance
-enum VH_WorldStateIds
+enum VH_WorldStateIds : uint32_t
 {
     WORLD_STATE_VH_SHOW             = 3816,
     WORLD_STATE_VH_PRISON_STATE     = 3815,
     WORLD_STATE_VH_WAVE_COUNT       = 3810,
 };
 
-enum VH_Spells
+enum VH_Spells : uint32_t
 {
     SPELL_VH_PORTAL_PERIODIC            = 58008,
     SPELL_VH_PORTAL_CHANNEL             = 58012,
@@ -361,3 +377,22 @@ const char* SQUAD_ANNOUNCE      = "An elite Blue Dragonflight squad appears from
 const char* SEAL_PCT_75     = "Adventurers, the door is beinning to weaken!";
 const char* SEAL_PCT_50     = "Only half of the door seal's strength remains! You must fight on!";
 const char* SEAL_PCT_5      = "The door seal is about to collapse! All is lost if the Blue Dragonflight breaks through the door!";
+
+// Boss replacements
+struct VHBossReplaceStruct
+{
+    uint32_t bossEntry;
+    uint32_t ghostEntry;
+    float spawn_x, spawn_y, spawn_z, spawn_o;
+};
+
+const uint8_t MaxBossReplacements = 6;
+const VHBossReplaceStruct BossReplacements [] =
+{
+    { CN_EREKEM,    CN_ARAKKOA,   1877.03f, 853.84f, 43.33f, 0 },
+    { CN_ZURAMAT,   CN_VOID_LORD, 1922.41f, 847.95f, 47.15f, 0 },
+    { CN_XEVOZZ,    CN_ETHERAL,   1903.61f, 838.46f, 38.72f, 0 },
+    { CN_ICHORON,   CN_SWIRLING,  1915.52f, 779.13f, 35.94f, 0 },
+    { CN_LAVANTHOR, CN_LAVA_HOUND,1855.28f, 760.85f, 38.65f, 0 },
+    { CN_MORAGG,    CN_WATCHER,   1890.51f, 752.85f, 47.66f, 0 }
+};

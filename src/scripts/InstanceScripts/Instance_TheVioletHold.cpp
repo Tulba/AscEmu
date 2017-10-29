@@ -20,9 +20,16 @@ class TheVioletHoldScript : public InstanceScript
     bool m_isDefAchievFailed;
 
     // Low guids of gameobjects
-    uint32_t mainGatesGUID;
+    uint32_t m_mainGatesGUID;
+    uint32_t m_MorrogCellGUID;
+    uint32_t m_IchnonorCellGUID;
+    uint32_t m_XevozzCellGUID;
+    uint32_t m_LavanthorCellGUID;
+    uint32_t m_ZuramatCellGUID;
+    uint32_t m_ErekemCellGUID;
+    uint32_t m_ErekemGuardCellGUID[2];
 
-    // Low guids of creatures
+    // Sinclari low guid
     uint32_t m_sinclariGUID;
 
     // Guid lists
@@ -33,11 +40,12 @@ class TheVioletHoldScript : public InstanceScript
     std::list<uint32_t> m_eventSpawns;      // Portal event spawns (it won't contain main portal guardians)
 
     // Portal summoning event
-    uint32_t portalSummonTimer;
+    uint32_t m_portalSummonTimer;
     VHPortalInfo m_activePortal;
-    uint32_t portalGUID;
-    uint32_t portalGuardianGUID;
+    uint32_t m_portalGUID;
+    uint32_t m_portalGuardianGUID;
 
+    // Booleans used to control sinclari reports about seal hp
     bool emote75pct;
     bool emote50pct;
     bool emote5pct;
@@ -53,11 +61,11 @@ class TheVioletHoldScript : public InstanceScript
             InstanceScript(pMapMgr),
             m_isZuramatAchievFailed(false),
             m_isDefAchievFailed(false),
-            mainGatesGUID(0),
+            m_mainGatesGUID(0),
             m_sinclariGUID(0),
-            portalSummonTimer(0),
-            portalGUID(0),
-            portalGuardianGUID(0),
+            m_portalSummonTimer(0),
+            m_portalGUID(0),
+            m_portalGuardianGUID(0),
             emote75pct(false),
             emote50pct(false),
             emote5pct(false)
@@ -71,6 +79,8 @@ class TheVioletHoldScript : public InstanceScript
         void ResetInstanceData()
         {
             memset(m_VHencounterData, State_NotStarted, sizeof(m_VHencounterData));
+            m_activePortal.ResetData();
+            m_activePortal.summonsList.clear(); // listed spawns are already removed by using m_eventSpawns container
         }
 
         void SetInstanceData(uint32_t /*pType*/, uint32_t pIndex, uint32_t pData)
@@ -95,7 +105,7 @@ class TheVioletHoldScript : public InstanceScript
                     {
                         RemoveIntroNpcs(false);
                         // Close the gates
-                        if (GameObject* pGO = GetInstance()->GetGameObject(mainGatesGUID))
+                        if (GameObject* pGO = GetInstance()->GetGameObject(m_mainGatesGUID))
                         {
                             pGO->SetState(GO_STATE_CLOSED);
                         }
@@ -114,7 +124,7 @@ class TheVioletHoldScript : public InstanceScript
 
                     if (pData == State_InProgress)
                     {
-                        portalSummonTimer = VH_INITIAL_PORTAL_TIME;
+                        m_portalSummonTimer = VH_INITIAL_PORTAL_TIME;
                     }
 
                     if (pData == State_Failed)
@@ -126,7 +136,7 @@ class TheVioletHoldScript : public InstanceScript
                     if (pData == State_Finished)
                     {
                         // Open gates
-                        GameObject* pGates = GetInstance()->GetGameObject(mainGatesGUID);
+                        GameObject* pGates = GetInstance()->GetGameObject(m_mainGatesGUID);
                         if (pGates && pGates->GetState() == GO_STATE_CLOSED)
                         {
                             pGates->SetState(GO_STATE_OPEN);
@@ -144,11 +154,11 @@ class TheVioletHoldScript : public InstanceScript
                 {
                     if (pData == State_Finished)
                     {
-                        if (Creature* pPortal = GetInstance()->GetCreature(portalGUID))
+                        if (Creature* pPortal = GetInstance()->GetCreature(m_portalGUID))
                         {
                             pPortal->Despawn(1000, 0);
                         }
-                        portalGUID = 0;
+                        m_portalGUID = 0;
 
                         // Lets reset event
                         SetInstanceData(0, INDEX_PORTAL_PROGRESS, State_NotStarted);
@@ -232,15 +242,43 @@ class TheVioletHoldScript : public InstanceScript
             {
                 case GO_PRISON_SEAL:
                 {
-                    mainGatesGUID = pGo->GetLowGUID();
-                    if (GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress && pGo->GetState() == GO_STATE_OPEN)
-                    {
-                        pGo->SetState(GO_STATE_CLOSED);
-                    }
+                    m_mainGatesGUID = pGo->GetLowGUID();
                 }break;
                 case GO_ACTIVATION_CRYSTAL:
                 {
                     m_crystalGuids.push_back(pGo->GetLowGUID());
+                }break;
+                case GO_XEVOZZ_CELL:
+                {
+                    m_XevozzCellGUID = pGo->GetLowGUID();
+                }break;
+                case GO_LAVANTHOR_CELL:
+                {
+                    m_LavanthorCellGUID = pGo->GetLowGUID();
+                }break;
+                case GO_ICHORON_CELL:
+                {
+                    m_IchnonorCellGUID = pGo->GetLowGUID();
+                }break;
+                case GO_ZURAMAT_CELL:
+                {
+                    m_ZuramatCellGUID = pGo->GetLowGUID();
+                }break;
+                case GO_EREKEM_CELL:
+                {
+                    m_ErekemCellGUID = pGo->GetLowGUID();
+                }break;
+                case GO_EREKEM_GUARD_CELL1:
+                {
+                    m_ErekemGuardCellGUID[0] = pGo->GetLowGUID();
+                }break;
+                case GO_EREKEM_GUARD_CELL2:
+                {
+                    m_ErekemGuardCellGUID[1] = pGo->GetLowGUID();
+                }break;
+                case GO_MORAGG_DOOR:
+                {
+                    m_MorrogCellGUID = pGo->GetLowGUID();
                 }break;
                 default:
                     break;
@@ -260,10 +298,6 @@ class TheVioletHoldScript : public InstanceScript
                 // Make object not selectable
                 pGo->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NONSELECTABLE);
                 pGo->SetState(GO_STATE_OPEN);
-
-                // Spell actually sends script event 20001 but theres no handling for such effects
-                // plr->CastSpell(plr, SPELL_VH_CRYSTAL_ACTIVATION, true);
-
                 DoCrystalActivation();
             }
         }
@@ -297,9 +331,9 @@ class TheVioletHoldScript : public InstanceScript
                 {
                     // HACKY INVISIBLE
                     // invisible display id
-                    // this is required to make visual effect working perfectly
-                    //if (pCreature->GetDisplayId() != 11686)
-                      //  pCreature->SetDisplayId(11686);
+                    // this is required to make visual effect
+                    if (pCreature->GetDisplayId() != 11686)
+                        pCreature->SetDisplayId(11686);
                 }break;
                 case CN_VIOLET_HOLD_GUARD:
                 {
@@ -332,11 +366,11 @@ class TheVioletHoldScript : public InstanceScript
                 case CN_DEFENSE_SYSTEM_TRIGGER:
                 {
                     m_defenseTriggers.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
-                    pCreature->Phase(PHASE_SET, 1);
                 }break;
                 case CN_PORTAL:
                 {
-                    portalGUID = GET_LOWGUID_PART(pCreature->GetGUID());
+                    m_portalGUID = GET_LOWGUID_PART(pCreature->GetGUID());
+                    pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
                 }break;
                 // Main portal event related
                 case CN_AZURE_INVADER:
@@ -353,8 +387,13 @@ class TheVioletHoldScript : public InstanceScript
                 case CN_PORTAL_GUARDIAN:
                 case CN_PORTAL_KEEPER:
                 {
-                    portalGuardianGUID = GET_LOWGUID_PART(pCreature->GetGUID());
+                    m_portalGuardianGUID = GET_LOWGUID_PART(pCreature->GetGUID());
                 }break;
+                case CN_MORAGG:
+                case CN_ICHORON:
+                case CN_XEVOZZ:
+                case CN_LAVANTHOR:
+                case CN_ZURAMAT:
                 default:
                     break;
             }
@@ -370,6 +409,7 @@ class TheVioletHoldScript : public InstanceScript
                     {
                         UpdateAchievCriteriaForPlayers(ACHIEV_CRIT_VOID_DANCE, 1);
                     }
+                    setData(pCreature->GetEntry(), Finished);
                 }break;
                 case CN_VOID_SENTRY:
                 {
@@ -430,7 +470,7 @@ class TheVioletHoldScript : public InstanceScript
                     {
                         SetInstanceData(0, INDEX_PORTAL_PROGRESS, State_Finished);
                     }
-                    portalGuardianGUID = 0;
+                    m_portalGuardianGUID = 0;
                 }break;
                 default:
                     break;
@@ -455,14 +495,14 @@ class TheVioletHoldScript : public InstanceScript
             {
                 if (GetInstanceData(0, INDEX_PORTAL_PROGRESS) == State_NotStarted)
                 {
-                    if (portalSummonTimer == 0)
+                    if (m_portalSummonTimer == 0)
                     {
-                        portalSummonTimer = VH_NEXT_PORTAL_SPAWN_TIME;
+                        m_portalSummonTimer = VH_NEXT_PORTAL_SPAWN_TIME;
                         SpawnPortal();
                         SetInstanceData(0, INDEX_PORTAL_PROGRESS, State_InProgress);
                     }
                     else
-                        --portalSummonTimer;
+                        --m_portalSummonTimer;
                 }
             }
 
@@ -599,8 +639,46 @@ class TheVioletHoldScript : public InstanceScript
 
         void ResetIntro()
         {
-            SpawnIntro();
-            ResetCrystals(false);
+            // Despawn event spawns
+            if (!m_eventSpawns.empty())
+            {
+                for (std::list<uint32_t>::iterator itr = m_eventSpawns.begin(); itr != m_eventSpawns.end(); itr = m_eventSpawns.erase(itr))
+                {
+                    if (Creature* pSummon = GetInstance()->GetCreature(*itr))
+                    {
+                        pSummon->Despawn(1000, 0);
+                    }
+                }
+            }
+
+            // Despawn last portal guardian
+            if (m_portalGuardianGUID != 0)
+            {
+                if (Creature* pGuardian = GetInstance()->GetCreature(m_portalGuardianGUID))
+                {
+                    pGuardian->Despawn(1000, 0);
+                    m_portalGuardianGUID = 0;
+                }
+            }
+
+            // Despawn last portal
+            if (m_portalGUID != 0)
+            {
+                if (Creature* pGuardian = GetInstance()->GetCreature(m_portalGUID))
+                {
+                    pGuardian->Despawn(1000, 0);
+                    m_portalGUID = 0;
+                }
+            }
+
+            // Open the gates
+            if (m_mainGatesGUID != 0)
+            {
+                if (GameObject* pGates = GetInstance()->GetGameObject(m_mainGatesGUID))
+                {
+                    pGates->SetState(GO_STATE_OPEN);
+                }
+            }
 
             // Return sinclari to spawn location
             // There is possible issue where you can get two sinclaris :D
@@ -618,47 +696,8 @@ class TheVioletHoldScript : public InstanceScript
                 // GUID will be set at OnCreaturePushToWorld event
                 spawnCreature(CN_LIEUTNANT_SINCLARI, SinclariSpawnLoc.x, SinclariSpawnLoc.y, SinclariSpawnLoc.z, SinclariSpawnLoc.o);
             }
-
-            // Despawn event spawns
-            if (!m_eventSpawns.empty())
-            {
-                for (std::list<uint32_t>::iterator itr = m_eventSpawns.begin(); itr != m_eventSpawns.end(); itr = m_eventSpawns.erase(itr))
-                {
-                    if (Creature* pSummon = GetInstance()->GetCreature(*itr))
-                    {
-                        pSummon->Despawn(1000, 0);
-                    }
-                }
-            }
-
-            // Despawn last portal guardian
-            if (portalGuardianGUID != 0)
-            {
-                if (Creature* pGuardian = GetInstance()->GetCreature(portalGuardianGUID))
-                {
-                    pGuardian->Despawn(1000, 0);
-                    portalGuardianGUID = 0;
-                }
-            }
-
-            // Despawn last portal
-            if (portalGUID != 0)
-            {
-                if (Creature* pGuardian = GetInstance()->GetCreature(portalGUID))
-                {
-                    pGuardian->Despawn(1000, 0);
-                    portalGUID = 0;
-                }
-            }
-
-            // Open the gates
-            if (mainGatesGUID != 0)
-            {
-                if (GameObject* pGates = GetInstance()->GetGameObject(mainGatesGUID))
-                {
-                    pGates->SetState(GO_STATE_OPEN);
-                }
-            }
+            SpawnIntro();
+            ResetCrystals(false);
         }
 
         // Removes all dead intro npcs
@@ -1239,7 +1278,7 @@ class VH_DefenseAI : public CreatureAIScript
                 // Damage guardians too
                 if (pInstance->m_activePortal.guardianEntry != 0)
                 {
-                    Creature* pCreature = pInstance->GetInstance()->GetCreature(pInstance->portalGuardianGUID);
+                    Creature* pCreature = pInstance->GetInstance()->GetCreature(pInstance->m_portalGuardianGUID);
                     if (pCreature && pCreature->isAlive())
                     {
                         if (counter == 3)
