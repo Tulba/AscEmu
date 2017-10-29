@@ -1000,10 +1000,10 @@ class VHAttackerAI : public CreatureAIScript
                 isMoveSet = true;
             }
             InstanceScript* pInstance = GetUnit()->GetMapMgr()->GetScript();
-            if (pInstance && pInstance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress)
+            if (pInstance && pInstance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress && !GetUnit()->CombatStatus.IsInCombat() && !GetUnit()->GetAIInterface()->isCreatureState(MOVING))
             {
                 Creature* pTriggerTarget = getNearestCreature(CN_DOOR_SEAL);
-                if (pTriggerTarget && !GetUnit()->GetAIInterface()->isCreatureState(MOVING))
+                if (pTriggerTarget)
                 {
                     GetUnit()->GetAIInterface()->setFacing(M_PI_FLOAT);
                     GetUnit()->SetChannelSpellId(SPELL_VH_DESTROY_DOOR_SEAL);
