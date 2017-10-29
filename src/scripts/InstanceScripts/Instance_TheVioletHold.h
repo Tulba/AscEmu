@@ -33,9 +33,12 @@ enum CreatureEntry : uint32_t
     // Portal event
     CN_PORTAL_GUARDIAN                      = 30660,
     CN_PORTAL_KEEPER                        = 30695,
+    CN_PORTAL                               = 30679,
+    CN_DOOR_SEAL                            = 30896,
 
+    // Defense AI
     CN_DEFENSE_SYSTEM                       = 30837,
-    CN_DEFENSE_SYSTEM_TRIGGER               = 30857,
+    CN_DEFENSE_SYSTEM_TRIGGER               = 30857,    // Used for lightning effect
 
     // Sinclari event
     CN_LIEUTNANT_SINCLARI                   = 30658,
@@ -48,11 +51,7 @@ enum CreatureEntry : uint32_t
     CN_INTRO_AZURE_MAGE_SLAYER_MELEE        = 31010,
     CN_PORTAL_INTRO                         = 31011,
 
-    // Portal npcs
-    CN_PORTAL                               = 30679,
-    CN_DOOR_SEAL                            = 30896,
-
-    //Portal Guardians
+    // Portal fighters (not keepers/guardians)
     CN_AZURE_INVADER                        = 30661,
     CN_AZURE_SPELLBREAKER                   = 30662,
     CN_AZURE_BINDER                         = 30663,
@@ -61,9 +60,6 @@ enum CreatureEntry : uint32_t
     CN_AZURE_SORCERER                       = 30667,
     CN_AZURE_RAIDER                         = 30668,
     CN_AZURE_STALKER                        = 32191,
-
-    // NPC with spell arcane spher
-    CN_CRYSTAL_SYSTEM                       = 30837,
 
     // Zurumat event
     CN_ZURAMAT                              = 29314,
@@ -162,7 +158,7 @@ enum VH_Spells
     SPELL_VH_DEFENSE_SYSTEM_VISUAL      = 57887,
     SPELL_VH_DEFENSE_SYSTEM_SPAWN       = 57886,
     SPELL_VH_LIGHTNING_INTRO            = 60038,
-    SPELL_VH_ARCANE_LIGHTNING_INSTAKILL = 57930,
+    SPELL_VH_ARCANE_DAMAGE              = 57912,
 
     SPELL_VH_TELEPORT_PLAYER            = 62138,
     SPELL_VH_TELEPORT_PLAYER_EFFECT     = 62139,
@@ -355,6 +351,12 @@ const uint32_t portalGuardians[maxPortalGuardians] =
     CN_AZURE_STALKER
 };
 
+// Keepers/guardians/squad groups announce
 const char* GUARDIAN_ANNOUNCE   = "A Portal Gurdian defends the new portal!";
 const char* KEEPER_ANNOUNCE     = "A Portal Keeper emerges from the portal!";
 const char* SQUAD_ANNOUNCE      = "An elite Blue Dragonflight squad appears from the portal!";
+
+// Sinclari's warning
+const char* SEAL_PCT_75     = "Adventurers, the door is beinning to weaken!";
+const char* SEAL_PCT_50     = "Only half of the door seal's strength remains! You must fight on!";
+const char* SEAL_PCT_5      = "The door seal is about to collapse! All is lost if the Blue Dragonflight breaks through the door!";

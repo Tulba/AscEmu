@@ -36,6 +36,11 @@ class TheVioletHoldScript : public InstanceScript
     uint32_t portalSummonTimer;
     VHPortalInfo m_activePortal;
     uint32_t portalGUID;
+    uint32_t portalGuardianGUID;
+
+    bool emote75pct;
+    bool emote50pct;
+    bool emote5pct;
 
     // Friend classes which will able to use private instance data
     friend class VH_DefenseAI;
@@ -51,7 +56,11 @@ class TheVioletHoldScript : public InstanceScript
             mainGatesGUID(0),
             m_sinclariGUID(0),
             portalSummonTimer(0),
-            portalGUID(0)
+            portalGUID(0),
+            portalGuardianGUID(0),
+            emote75pct(false),
+            emote50pct(false),
+            emote5pct(false)
         {
             //TODO: this should be redone by checking actual saved data for heroic mode
             memset(m_VHencounterData, State_NotStarted, sizeof(m_VHencounterData));
@@ -94,11 +103,12 @@ class TheVioletHoldScript : public InstanceScript
                                 pGO->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NONSELECTABLE);
                             }
                         }
+                        // Set HP
+                        SetInstanceData(0, DATA_SEAL_HEALTH, 100);
                     }
 
                     if (pData == State_InProgress)
                     {
-                        SetInstanceData(0, DATA_SEAL_HEALTH, 100);
                         portalSummonTimer = VH_INITIAL_PORTAL_TIME;
                     }
 
@@ -144,7 +154,37 @@ class TheVioletHoldScript : public InstanceScript
                 }break;
                 case DATA_SEAL_HEALTH:
                 {
-                    UpdateWorldStates();
+                    if (GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress)
+                    {
+                        if (pData <= 75 && !emote75pct)
+                        {
+                            if (Creature* pCreature = GetInstance()->GetCreature(m_sinclariGUID))
+                            {
+                                pCreature->SendChatMessage(CHAT_MSG_MONSTER_SAY, LANG_UNIVERSAL, SEAL_PCT_75);
+                            }
+                            emote75pct = true;
+                        }
+
+                        if (pData <= 50 && !emote50pct)
+                        {
+                            if (Creature* pCreature = GetInstance()->GetCreature(m_sinclariGUID))
+                            {
+                                pCreature->SendChatMessage(CHAT_MSG_MONSTER_SAY, LANG_UNIVERSAL, SEAL_PCT_50);
+                            }
+                            emote50pct = true;
+                        }
+
+                        if (pData <= 5 && !emote5pct)
+                        {
+                            if (Creature* pCreature = GetInstance()->GetCreature(m_sinclariGUID))
+                            {
+                                pCreature->SendChatMessage(CHAT_MSG_MONSTER_SAY, LANG_UNIVERSAL, SEAL_PCT_5);
+                            }
+                            emote5pct = true;
+                        }
+
+                        UpdateWorldStates();
+                    }
                 }break;
                 default:
                     break;
@@ -220,6 +260,24 @@ class TheVioletHoldScript : public InstanceScript
             }
         }
 
+
+        /*void SaveInstanceData(uint32_t spawnId)
+        {
+            if (GetInstance()->iInstanceMode != MODE_HEROIC)
+                return;
+
+            if (GetInstance()->pInstance->m_killedNpcs.find(spawnId) == GetInstance()->pInstance->m_killedNpcs.end())
+            {
+                GetSavedInstance()->m_killedNpcs.insert(spawnId);
+                GetSavedInstance()->SaveToDB();
+            }
+        }
+
+        Instance* GetSavedInstance()
+        {
+            return GetInstance()->pInstance;
+        }*/
+
         void OnCreaturePushToWorld(Creature* pCreature)
         {
             // Make sure all spawned npcs are in phase 1
@@ -232,8 +290,8 @@ class TheVioletHoldScript : public InstanceScript
                     // HACKY INVISIBLE
                     // invisible display id
                     // this is required to make visual effect working perfectly
-                    if (pCreature->GetDisplayId() != 11686)
-                        pCreature->SetDisplayId(11686);
+                    //if (pCreature->GetDisplayId() != 11686)
+                      //  pCreature->SetDisplayId(11686);
                 }break;
                 case CN_VIOLET_HOLD_GUARD:
                 {
@@ -284,26 +342,14 @@ class TheVioletHoldScript : public InstanceScript
                 {
                     m_eventSpawns.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
                 }break;
+                case CN_PORTAL_GUARDIAN:
+                case CN_PORTAL_KEEPER:
+                {
+                    portalGuardianGUID = GET_LOWGUID_PART(pCreature->GetGUID());
+                }break;
                 default:
                     break;
             }
-        }
-
-        void SaveInstanceData(uint32_t spawnId)
-        {
-            if (GetInstance()->iInstanceMode != MODE_HEROIC)
-                return;
-
-            if (GetInstance()->pInstance->m_killedNpcs.find(spawnId) == GetInstance()->pInstance->m_killedNpcs.end())
-            {
-                GetSavedInstance()->m_killedNpcs.insert(spawnId);
-                GetSavedInstance()->SaveToDB();
-            }
-        }
-
-        Instance* GetSavedInstance()
-        {
-            return GetInstance()->pInstance;
         }
 
         void OnCreatureDeath(Creature* pCreature, Unit* /*pKiller*/)
@@ -336,7 +382,7 @@ class TheVioletHoldScript : public InstanceScript
                         UpdateAchievCriteriaForPlayers(ACHIEV_CRIT_DEFENSELES, 1);
                     }
                     setData(pCreature->GetEntry(), Finished);
-                    SaveInstanceData(pCreature->GetSQL_id());
+                    // SaveInstanceData(pCreature->GetSQL_id());
                 }break;
                 case CN_VIOLET_HOLD_GUARD:
                 {
@@ -348,7 +394,7 @@ class TheVioletHoldScript : public InstanceScript
                 case CN_LAVANTHOR:
                 {
                     setData(pCreature->GetEntry(), Finished);
-                    SaveInstanceData(pCreature->GetSQL_id());
+                    //SaveInstanceData(pCreature->GetSQL_id());
                 }break;
                 // Main portal event related
                 case CN_AZURE_INVADER:
@@ -362,7 +408,7 @@ class TheVioletHoldScript : public InstanceScript
                 {
                     if (m_activePortal.type == VH_PORTAL_TYPE_SQUAD && GetInstanceData(0, INDEX_PORTAL_PROGRESS) == State_InProgress)
                     {
-                        m_activePortal.DelSummonDataByGuid(pCreature->GetGUID());
+                        m_activePortal.DelSummonDataByGuid(GET_LOWGUID_PART(pCreature->GetGUID()));
                         if (m_activePortal.summonsList.empty())
                         {
                             SetInstanceData(0, INDEX_PORTAL_PROGRESS, State_Finished);
@@ -376,6 +422,7 @@ class TheVioletHoldScript : public InstanceScript
                     {
                         SetInstanceData(0, INDEX_PORTAL_PROGRESS, State_Finished);
                     }
+                    portalGuardianGUID = 0;
                 }break;
                 default:
                     break;
@@ -392,6 +439,7 @@ class TheVioletHoldScript : public InstanceScript
             if (GetInstanceData(0, INDEX_INSTANCE_PROGRESS) != State_InProgress || GetInstanceData(0, INDEX_INSTANCE_PROGRESS) != State_Finished)
             {
                 RemoveIntroNpcs(true);
+                //HACK: guards positions should be updated by core
                 UpdateGuards();
             }
 
@@ -410,7 +458,7 @@ class TheVioletHoldScript : public InstanceScript
                 }
             }
 
-            // Erase non existing summons from lists
+            //HACK: Erase non existing summons from lists, they should be removed OnDied events
             if (GetInstanceData(0, INDEX_PORTAL_PROGRESS) == State_InProgress && GetInstanceData(0, DATA_ARE_SUMMONS_MADE) == 1 && m_activePortal.type == VH_PORTAL_TYPE_SQUAD)
             {
                 if (!m_activePortal.summonsList.empty())
@@ -432,7 +480,7 @@ class TheVioletHoldScript : public InstanceScript
                 }
             }
 
-            // Erase non existing main event summons guids
+            //HACK: Erase non existing main event summons guids, they should be removed by OnDied events
             if (!m_eventSpawns.empty())
             {
                 for (std::list<uint32_t>::iterator itr = m_eventSpawns.begin(); itr != m_eventSpawns.end();)
@@ -958,9 +1006,9 @@ class VHAttackerAI : public CreatureAIScript
         VHAttackerAI(Creature* pCreature) : CreatureAIScript(pCreature), isMoveSet(false)
         {
             RegisterAIUpdateEvent(2000);
-            _unit->GetAIInterface()->setCurrentAgent(AGENT_NULL);
-            _unit->GetAIInterface()->setAiState(AI_STATE_SCRIPTIDLE);
-            _unit->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
+            pCreature->GetAIInterface()->setCurrentAgent(AGENT_NULL);
+            pCreature->GetAIInterface()->setAiState(AI_STATE_SCRIPTIDLE);
+            pCreature->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
         }
 
         void OnCombatStop(Unit* /*pEnemy*/)
@@ -991,10 +1039,6 @@ class VHAttackerAI : public CreatureAIScript
             // Stop channelling (this can happen if player will use crystal)
             GetUnit()->SetChannelSpellId(0);
             GetUnit()->SetChannelSpellTargetGUID(0);
-            if (pTriggerTarget)
-            {
-                pTriggerTarget->removeAllAurasById(SPELL_VH_DESTROY_DOOR_SEAL);
-            }
             RemoveAIUpdateEvent();
         }
 
@@ -1004,10 +1048,6 @@ class VHAttackerAI : public CreatureAIScript
             GetUnit()->SetChannelSpellId(0);
             GetUnit()->SetChannelSpellTargetGUID(0);
             RegisterAIUpdateEvent(1000);
-            if (pTriggerTarget)
-            {
-                pTriggerTarget->removeAllAurasById(SPELL_VH_DESTROY_DOOR_SEAL);
-            }
         }
 
         void AIUpdate()
@@ -1021,10 +1061,10 @@ class VHAttackerAI : public CreatureAIScript
                     isMoveSet = true;
                 }
                 InstanceScript* pInstance = GetUnit()->GetMapMgr()->GetScript();
-                if (GetUnit()->GetChannelSpellId() == 0 && pInstance && pInstance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress && !GetUnit()->GetAIInterface()->isCreatureState(MOVING))
+                if (GetUnit()->GetChannelSpellId() == 0 && pInstance && pInstance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress)
                 {
                     pTriggerTarget = getNearestCreature(CN_DOOR_SEAL);
-                    if (pTriggerTarget)
+                    if (pTriggerTarget && GetUnit()->CalcDistance(GetUnit(), pTriggerTarget) <= 30.0f)
                     {
                         GetUnit()->GetAIInterface()->setFacing(M_PI_FLOAT);
                         GetUnit()->SetChannelSpellId(SPELL_VH_DESTROY_DOOR_SEAL);
@@ -1075,9 +1115,9 @@ class VH_DefenseAI : public CreatureAIScript
                         {
                             if (Creature* pTarget = pInstance->GetInstance()->GetCreature(*itr))
                             {
-                                GetUnit()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_ARCANE_LIGHTNING_INSTAKILL), true);
-                                // Make sure they all dies
+                                GetUnit()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_LIGHTNING_INTRO), true);
                                 pTarget->Die(pTarget, pTarget->GetHealth(), 0);
+                                // Make sure they all dies
                                 pTarget->Despawn(1000, 0);
                             }
                         }
@@ -1105,8 +1145,7 @@ class VH_DefenseAI : public CreatureAIScript
                         {
                             if (Creature* pTarget = pInstance->GetInstance()->GetCreature(*itr))
                             {
-                                GetUnit()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_ARCANE_LIGHTNING_INSTAKILL), true);
-                                // Make sure they all dies
+                                GetUnit()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_LIGHTNING_INTRO), true);
                                 pTarget->Die(pTarget, pTarget->GetHealth(), 0);
                             }
                         }
@@ -1128,6 +1167,24 @@ class VH_DefenseAI : public CreatureAIScript
                         if (Creature* pTarget = pInstance->GetInstance()->GetCreature(*itr))
                         {
                             GetUnit()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_LIGHTNING_INTRO), true);
+                        }
+                    }
+                }
+
+                // Damage guardians too
+                if (pInstance->m_activePortal.guardianEntry != 0)
+                {
+                    Creature* pCreature = pInstance->GetInstance()->GetCreature(pInstance->portalGuardianGUID);
+                    if (pCreature && pCreature->isAlive())
+                    {
+                        if (counter == 3)
+                        {
+                            GetUnit()->CastSpellAoF(pCreature->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_LIGHTNING_INTRO), true);
+                            pCreature->Die(pCreature, pCreature->GetHealth(), 0);
+                        }
+                        else
+                        {
+                            GetUnit()->CastSpellAoF(pCreature->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_LIGHTNING_INTRO), true);
                         }
                     }
                 }
