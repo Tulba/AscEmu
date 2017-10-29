@@ -203,8 +203,7 @@ const uint32_t randomVHBossArray[maxVHBosses] =
     CN_MORAGG,
     CN_ICHORON,
     CN_XEVOZZ,
-    CN_LAVANTHOR,
-    CN_CYANIGOSA
+    CN_LAVANTHOR
 };
 
 const Movement::Location DefenseSystemLocation  = { 1888.146f, 803.382f,  58.60389f, 3.071779f };
