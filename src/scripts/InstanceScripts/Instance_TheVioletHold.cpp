@@ -1331,6 +1331,7 @@ class TeleportationPortalAI : public CreatureAIScript
                     break;
                 case VH_PORTAL_TYPE_GUARDIAN:
                 {
+                    GetUnit()->CastSpell(GetUnit(), SPELL_VH_TELEPORTATION_PORTAL_VISUAL, true);
                     float landHeight = GetUnit()->GetMapMgr()->GetLandHeight(GetUnit()->GetPositionX(), GetUnit()->GetPositionY(), GetUnit()->GetPositionZ());
                     if (!isGuardianSpawned)
                     {
@@ -1360,6 +1361,7 @@ class TeleportationPortalAI : public CreatureAIScript
                 }break;
                 case VH_PORTAL_TYPE_SQUAD:
                 {
+                    GetUnit()->CastSpell(GetUnit(), SPELL_VH_TELEPORTATION_PORTAL_VISUAL, true);
                     GetUnit()->SendChatMessage(CHAT_MSG_RAID_BOSS_EMOTE, LANG_UNIVERSAL, SQUAD_ANNOUNCE);
                     //TODO: This count needs to be corrected
                     for(uint8 i = 0; i < 5; i++)
@@ -1373,10 +1375,11 @@ class TeleportationPortalAI : public CreatureAIScript
                         }
                     }
                     RemoveAIUpdateEvent();
-                    despawn(2000, 0);
+                    despawn(1000, 0);
                 }break;
                 case VH_PORTAL_TYPE_BOSS:
                 {
+                    GetUnit()->CastSpell(GetUnit(), SPELL_VH_TELEPORTATION_PORTAL_VISUAL, true);
                     float landHeight = GetUnit()->GetMapMgr()->GetLandHeight(GetUnit()->GetPositionX(), GetUnit()->GetPositionY(), GetUnit()->GetPositionZ());
                     spawnCreature(CN_AZURE_SABOTEUR, GetUnit()->GetPositionX(), GetUnit()->GetPositionY(), landHeight, GetUnit()->GetOrientation());
                     RemoveAIUpdateEvent();
