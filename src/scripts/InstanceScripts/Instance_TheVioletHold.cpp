@@ -10,6 +10,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 class VH_DefenseAI;
 class TeleportationPortalAI;
+class AzureSaboteurAI;
 
 class TheVioletHoldScript : public InstanceScript
 {
@@ -53,6 +54,7 @@ class TheVioletHoldScript : public InstanceScript
     // Friend classes which will able to use private instance data
     friend class VH_DefenseAI;
     friend class TeleportationPortalAI;
+    friend class AzureSaboteurAI;
 
     public:
 
@@ -1321,7 +1323,6 @@ class TeleportationPortalAI : public CreatureAIScript
         {
             if (!pInstance)
             {
-                printf("ERROR \n");
                 return;
             }
             switch (pInstance->m_activePortal.type)
@@ -1371,14 +1372,217 @@ class TeleportationPortalAI : public CreatureAIScript
                             pInstance->m_eventSpawns.push_back(GET_LOWGUID_PART(pSummon->GetGUID()));
                         }
                     }
+                    RemoveAIUpdateEvent();
                     despawn(2000, 0);
                 }break;
                 case VH_PORTAL_TYPE_BOSS:
                 {
-
+                    float landHeight = GetUnit()->GetMapMgr()->GetLandHeight(GetUnit()->GetPositionX(), GetUnit()->GetPositionY(), GetUnit()->GetPositionZ());
+                    spawnCreature(CN_AZURE_SABOTEUR, GetUnit()->GetPositionX(), GetUnit()->GetPositionY(), landHeight, GetUnit()->GetOrientation());
+                    RemoveAIUpdateEvent();
+                    despawn(1000, 0);
                 }break;
             }
             pInstance->SetInstanceData(0, DATA_ARE_SUMMONS_MADE, 1);
+        }
+};
+
+class AzureSaboteurAI : public CreatureAIScript
+{
+    TheVioletHoldScript* pInstance;
+    uint8_t mStep;
+    public:
+
+        static CreatureAIScript* Create(Creature* c) { return new AzureSaboteurAI(c); }
+        AzureSaboteurAI(Creature* pCreature) : CreatureAIScript(pCreature), mStep(0)
+        {
+            pInstance = static_cast<TheVioletHoldScript* >(pCreature->GetMapMgr()->GetScript());
+            if (pInstance && pInstance->m_activePortal.type == VH_PORTAL_TYPE_BOSS)
+            {
+                switch (pInstance->m_activePortal.bossEntry)
+                {
+                    case CN_MORAGG:
+                    {
+                        for (uint8_t i = 0; i < MaxWpToMoragg; i++)
+                        {
+                            uint32_t waitTime = 0;
+                            // First wp
+                            if (i == 0)
+                                waitTime = GenerateWaitTime(SaboteurMoraggPath[i].x, GetUnit()->GetPositionX(), SaboteurMoraggPath[i].y, GetUnit()->GetPositionY());
+                            else
+                                waitTime = GenerateWaitTime(SaboteurMoraggPath[i].x, SaboteurMoraggPath[i - 1].x, SaboteurMoraggPath[i].y, SaboteurMoraggPath[i - 1].y);
+
+                            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, SaboteurMoraggPath[i]));
+                        }
+                    }break;
+                    case CN_ICHORON:
+                    {
+                        for (uint8_t i = 0; i < MaxWpToIchonor; i++)
+                        {
+                            uint32_t waitTime = 0;
+                            // First wp
+                            if (i == 0)
+                                waitTime = GenerateWaitTime(SaboteurIchoronPath[i].x, GetUnit()->GetPositionX(), SaboteurIchoronPath[i].y, GetUnit()->GetPositionY());
+                            else
+                                waitTime = GenerateWaitTime(SaboteurIchoronPath[i].x, SaboteurIchoronPath[i - 1].x, SaboteurIchoronPath[i].y, SaboteurIchoronPath[i - 1].y);
+
+                            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, SaboteurIchoronPath[i]));
+                        }
+                    }break;
+                    case CN_XEVOZZ:
+                    {
+                        for (uint8_t i = 0; i < MaxWpToXevozz; i++)
+                        {
+                            uint32_t waitTime = 0;
+                            // First wp
+                            if (i == 0)
+                                waitTime = GenerateWaitTime(SaboteurXevozzPath[i].x, GetUnit()->GetPositionX(), SaboteurXevozzPath[i].y, GetUnit()->GetPositionY());
+                            else
+                                waitTime = GenerateWaitTime(SaboteurXevozzPath[i].x, SaboteurXevozzPath[i - 1].x, SaboteurXevozzPath[i].y, SaboteurXevozzPath[i - 1].y);
+
+                            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, SaboteurXevozzPath[i]));
+                        }
+                    }break;
+                    case CN_LAVANTHOR:
+                    {
+                        for (uint8_t i = 0; i < MaxWpToLavanthor; i++)
+                        {
+                            uint32_t waitTime = 0;
+                            // First wp
+                            if (i == 0)
+                                waitTime = GenerateWaitTime(SaboteurLavanthorPath[i].x, GetUnit()->GetPositionX(), SaboteurLavanthorPath[i].y, GetUnit()->GetPositionY());
+                            else
+                                waitTime = GenerateWaitTime(SaboteurLavanthorPath[i].x, SaboteurLavanthorPath[i - 1].x, SaboteurLavanthorPath[i].y, SaboteurLavanthorPath[i - 1].y);
+
+                            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, SaboteurLavanthorPath[i]));
+                        }
+                    }break;
+                    case CN_EREKEM:
+                    {
+                        for (uint8_t i = 0; i < MaxWpToErekem; i++)
+                        {
+                            uint32_t waitTime = 0;
+                            // First wp
+                            if (i == 0)
+                                waitTime = GenerateWaitTime(SaboteurErekemPath[i].x, GetUnit()->GetPositionX(), SaboteurErekemPath[i].y, GetUnit()->GetPositionY());
+                            else
+                                waitTime = GenerateWaitTime(SaboteurErekemPath[i].x, SaboteurErekemPath[i - 1].x, SaboteurErekemPath[i].y, SaboteurErekemPath[i - 1].y);
+
+                            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, SaboteurErekemPath[i]));
+                        }
+                    }break;
+                    case CN_ZURAMAT:
+                    {
+                        for (uint8_t i = 0; i < MaxWpToZuramat; i++)
+                        {
+                            uint32_t waitTime = 0;
+                            // First wp
+                            if (i == 0)
+                                waitTime = GenerateWaitTime(SaboteurZuramatPath[i].x, GetUnit()->GetPositionX(), SaboteurZuramatPath[i].y, GetUnit()->GetPositionY());
+                            else
+                                waitTime = GenerateWaitTime(SaboteurZuramatPath[i].x, SaboteurZuramatPath[i - 1].x, SaboteurZuramatPath[i].y, SaboteurZuramatPath[i - 1].y);
+
+                            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime - 300, SaboteurZuramatPath[i]));
+                        }
+                    }break;
+                    default:
+                        break;
+                }
+            }
+            pCreature->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
+            RegisterAIUpdateEvent(2000);    // Start event after 2 seconds after spawn
+            setCanEnterCombat(false);       // Unit cannot enter combat
+        }
+
+        void OnReachWP(uint32 iWaypointId, bool /*bForwards*/)
+        {
+            if (pInstance)
+            {
+                switch(pInstance->m_activePortal.bossEntry)
+                {
+                    case CN_MORAGG:
+                    {
+                        if (iWaypointId == (MaxWpToMoragg - 1))
+                        {
+                            GetUnit()->SetFacing(4.689994f);
+                        }
+                    }break;
+                    case CN_ICHORON:
+                    {
+                        if (iWaypointId == (MaxWpToIchonor- 1))
+                        {
+                        }
+                    }break;
+                    case CN_XEVOZZ:
+                    {
+                        if (iWaypointId == (MaxWpToXevozz - 1))
+                        {
+                        }
+                    }break;
+                    case CN_LAVANTHOR:
+                    {
+                        if (iWaypointId == (MaxWpToLavanthor - 1))
+                        {
+                        }
+                    }break;
+                    case CN_EREKEM:
+                    {
+                        if (iWaypointId == (MaxWpToErekem - 1))
+                        {
+                        }
+                    }break;
+                    case CN_ZURAMAT:
+                    {
+                        if (iWaypointId == (MaxWpToZuramat - 1))
+                        {
+                        }
+                    }break;
+                }
+            }
+        }
+        void AIUpdate()
+        {
+            switch (mStep)
+            {
+                // Start movement
+                case 0:
+                {   GetUnit()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_FORWARDTHENSTOP);
+                    GetUnit()->GetAIInterface()->setWayPointToMove(1);
+                    RemoveAIUpdateEvent();
+                }break;
+                default:
+                    break;
+            }
+            ++mStep;
+        }
+
+        // Helper functions
+
+        uint32_t GenerateWaitTime(float newX, float currentX, float newY, float currentY)
+        {
+            float distanceX = (newX - currentX) * (newX - currentX);
+            float distanceY = (newY - currentY) * (newY - currentY);
+            float distance = sqrt(distanceX + distanceY);
+            return  (1000 * std::abs(distance / GetUnit()->GetCreatureProperties()->run_speed));
+        }
+
+        Movement::WayPoint* CreateWaypoint(uint32_t pId, uint32_t waitTime, Movement::Location pCoords)
+        {
+            Movement::WayPoint* wp = GetUnit()->CreateWaypointStruct();
+            wp->id = pId;
+            wp->x = pCoords.x;
+            wp->y = pCoords.y;
+            wp->z = pCoords.z;
+            wp->o = pCoords.o;
+            wp->waittime = waitTime;
+            wp->flags = Movement::WP_MOVE_TYPE_RUN;
+            wp->forwardemoteoneshot = false;
+            wp->forwardemoteid = 0;
+            wp->backwardemoteoneshot = false;
+            wp->backwardemoteid = 0;
+            wp->forwardskinid = 0;
+            wp->backwardskinid = 0;
+            return wp;
         }
 };
 
@@ -1425,6 +1629,7 @@ void SetupTheVioletHold(ScriptMgr* mgr)
     mgr->register_creature_script(CN_AZURE_SORCERER, &VHAttackerAI::Create);
     mgr->register_creature_script(CN_AZURE_RAIDER, &VHAttackerAI::Create);
     mgr->register_creature_script(CN_AZURE_STALKER, &VHAttackerAI::Create);
+    mgr->register_creature_script(CN_AZURE_SABOTEUR, &AzureSaboteurAI::Create);
 
     // Spells
     mgr->register_script_effect(SPELL_VH_TELEPORT_PLAYER, &TeleportPlayerInEffect);
