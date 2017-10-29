@@ -954,19 +954,22 @@ class VHAttackerAI : public CreatureAIScript
         {
             RegisterAIUpdateEvent(2000);
             _unit->GetAIInterface()->setCurrentAgent(AGENT_NULL);
-            _unit->GetAIInterface()->setAiState(AI_STATE_IDLE);
+            _unit->GetAIInterface()->setAiState(AI_STATE_SCRIPTIDLE);
             _unit->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
         }
 
         void OnCombatStop(Unit* /*pEnemy*/)
         {
+            // Stop any movement
             GetUnit()->GetAIInterface()->setCurrentAgent(AGENT_NULL);
-            GetUnit()->GetAIInterface()->setAiState(AI_STATE_IDLE);
+            GetUnit()->GetAIInterface()->setAiState(AI_STATE_SCRIPTIDLE);
             stopMovement();
 
+            // Run to gates
             GetUnit()->GetAIInterface()->setSplineRun();
             moveTo(sealAttackLoc.x, sealAttackLoc.y, sealAttackLoc.z);
 
+            // Cast spell to seal
             Creature* pTriggerTarget = getNearestCreature(CN_DOOR_SEAL);
             if (pTriggerTarget && !GetUnit()->GetAIInterface()->isCreatureState(MOVING))
             {
@@ -980,6 +983,7 @@ class VHAttackerAI : public CreatureAIScript
 
         void OnDied(Unit* /*pKiller*/)
         {
+            // Stop channelling (this can happen if player will use crystal)
             GetUnit()->SetChannelSpellId(0);
             GetUnit()->SetChannelSpellTargetGUID(0);
             RemoveAIUpdateEvent();
@@ -987,29 +991,34 @@ class VHAttackerAI : public CreatureAIScript
 
         void OnCombatStart(Unit* /*pKiller*/)
         {
+            // Stop channeling and fight...
             GetUnit()->SetChannelSpellId(0);
             GetUnit()->SetChannelSpellTargetGUID(0);
+            RegisterAIUpdateEvent(1000);
         }
 
         void AIUpdate()
         {
-            if (!GetUnit()->getcombatstatus()->IsInCombat() && !isMoveSet)
+            if (!GetUnit()->getcombatstatus()->IsInCombat())
             {
-                _unit->GetAIInterface()->setSplineRun();
-                moveTo(sealAttackLoc.x, sealAttackLoc.y, sealAttackLoc.z);
-                isMoveSet = true;
-            }
-            InstanceScript* pInstance = GetUnit()->GetMapMgr()->GetScript();
-            if (pInstance && pInstance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress && !GetUnit()->CombatStatus.IsInCombat() && !GetUnit()->GetAIInterface()->isCreatureState(MOVING))
-            {
-                Creature* pTriggerTarget = getNearestCreature(CN_DOOR_SEAL);
-                if (pTriggerTarget)
+                if (!isMoveSet)
                 {
-                    GetUnit()->GetAIInterface()->setFacing(M_PI_FLOAT);
-                    GetUnit()->SetChannelSpellId(SPELL_VH_DESTROY_DOOR_SEAL);
-                    GetUnit()->SetChannelSpellTargetGUID(pTriggerTarget->GetGUID());
-                    RemoveAIUpdateEvent();
-                    //GetUnit()->CastSpellAoF(pTriggerTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_DESTROY_DOOR_SEAL), false);
+                    _unit->GetAIInterface()->setSplineRun();
+                    moveTo(sealAttackLoc.x, sealAttackLoc.y, sealAttackLoc.z);
+                    isMoveSet = true;
+                }
+                InstanceScript* pInstance = GetUnit()->GetMapMgr()->GetScript();
+                if (pInstance && pInstance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress && !GetUnit()->GetAIInterface()->isCreatureState(MOVING))
+                {
+                    Creature* pTriggerTarget = getNearestCreature(CN_DOOR_SEAL);
+                    if (pTriggerTarget)
+                    {
+                        GetUnit()->GetAIInterface()->setFacing(M_PI_FLOAT);
+                        GetUnit()->SetChannelSpellId(SPELL_VH_DESTROY_DOOR_SEAL);
+                        GetUnit()->SetChannelSpellTargetGUID(pTriggerTarget->GetGUID());
+                        RemoveAIUpdateEvent();
+                        //GetUnit()->CastSpellAoF(pTriggerTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_DESTROY_DOOR_SEAL), false);
+                    }
                 }
             }
         }
