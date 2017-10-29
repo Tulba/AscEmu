@@ -62,10 +62,15 @@ class TheVioletHoldScript : public InstanceScript
             emote50pct(false),
             emote5pct(false)
         {
-            //TODO: this should be redone by checking actual saved data for heroic mode
-            memset(m_VHencounterData, State_NotStarted, sizeof(m_VHencounterData));
+            ResetInstanceData();
             pMapMgr->pInstance = sInstanceMgr.GetInstanceByIds(MAP_VIOLET_HOLD, pMapMgr->GetInstanceID());
             generateBossDataState();
+        }
+
+        //TODO: this should be redone by checking actual saved data for heroic mode
+        void ResetInstanceData()
+        {
+            memset(m_VHencounterData, State_NotStarted, sizeof(m_VHencounterData));
         }
 
         void SetInstanceData(uint32_t /*pType*/, uint32_t pIndex, uint32_t pData)
@@ -115,29 +120,7 @@ class TheVioletHoldScript : public InstanceScript
                     if (pData == State_Failed)
                     {
                         ResetIntro();
-                        ResetCrystals(false);
-                        // Despawn event spawns
-                        if (!m_eventSpawns.empty())
-                        {
-                            for (std::list<uint32_t>::iterator itr = m_eventSpawns.begin(); itr != m_eventSpawns.end(); itr = m_eventSpawns.erase(itr))
-                            {
-                                if (Creature* pSummon = GetInstance()->GetCreature(*itr))
-                                {
-                                    pSummon->Despawn(1000, 0);
-                                }
-                            }
-                        }
-
-                        // Despawn last portal guardian
-                        if (portalGuardianGUID != 0)
-                        {
-                            if (Creature* pGuardian = GetInstance()->GetCreature(portalGuardianGUID))
-                            {
-                                pGuardian->Despawn(1000, 0);
-                            }
-                        }
-
-                        SetInstanceData(0, INDEX_INSTANCE_PROGRESS, State_NotStarted);
+                        ResetInstanceData();
                     }
 
                     if (pData == State_Finished)
@@ -617,17 +600,64 @@ class TheVioletHoldScript : public InstanceScript
         void ResetIntro()
         {
             SpawnIntro();
+            ResetCrystals(false);
 
             // Return sinclari to spawn location
-            if (Creature* pCreature = GetInstance()->GetCreature(m_sinclariGUID))
+            // There is possible issue where you can get two sinclaris :D
+            if (m_sinclariGUID != 0)
             {
-                // Despawn and respawn her in 1 sec (2 seconds)
-                pCreature->Despawn(1000, 1000);
+                if (Creature* pCreature = GetInstance()->GetCreature(m_sinclariGUID))
+                {
+                    // Despawn and respawn her in 1 sec (2 seconds)
+                    pCreature->Despawn(1000, 0);
+                    spawnCreature(CN_LIEUTNANT_SINCLARI, SinclariSpawnLoc.x, SinclariSpawnLoc.y, SinclariSpawnLoc.z, SinclariSpawnLoc.o);
+                }
             }
             else
             {
                 // GUID will be set at OnCreaturePushToWorld event
                 spawnCreature(CN_LIEUTNANT_SINCLARI, SinclariSpawnLoc.x, SinclariSpawnLoc.y, SinclariSpawnLoc.z, SinclariSpawnLoc.o);
+            }
+
+            // Despawn event spawns
+            if (!m_eventSpawns.empty())
+            {
+                for (std::list<uint32_t>::iterator itr = m_eventSpawns.begin(); itr != m_eventSpawns.end(); itr = m_eventSpawns.erase(itr))
+                {
+                    if (Creature* pSummon = GetInstance()->GetCreature(*itr))
+                    {
+                        pSummon->Despawn(1000, 0);
+                    }
+                }
+            }
+
+            // Despawn last portal guardian
+            if (portalGuardianGUID != 0)
+            {
+                if (Creature* pGuardian = GetInstance()->GetCreature(portalGuardianGUID))
+                {
+                    pGuardian->Despawn(1000, 0);
+                    portalGuardianGUID = 0;
+                }
+            }
+
+            // Despawn last portal
+            if (portalGUID != 0)
+            {
+                if (Creature* pGuardian = GetInstance()->GetCreature(portalGUID))
+                {
+                    pGuardian->Despawn(1000, 0);
+                    portalGUID = 0;
+                }
+            }
+
+            // Open the gates
+            if (mainGatesGUID != 0)
+            {
+                if (GameObject* pGates = GetInstance()->GetGameObject(mainGatesGUID))
+                {
+                    pGates->SetState(GO_STATE_OPEN);
+                }
             }
         }
 
@@ -778,7 +808,7 @@ class TheVioletHoldScript : public InstanceScript
                 {
                     if (!pGuard->isAlive())
                     {
-                        pGuard->Despawn(1000, 1000);
+                        pGuard->Despawn(1000, 3000);
                     }
                     // hack fix to set their original facing
                     if (!pGuard->getcombatstatus()->IsInCombat() && pGuard->GetAIInterface()->MoveDone())
@@ -1148,6 +1178,7 @@ class VH_DefenseAI : public CreatureAIScript
                         {
                             if (Creature* pTarget = pInstance->GetInstance()->GetCreature(*itr))
                             {
+                                // HACK
                                 GetUnit()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_LIGHTNING_INTRO), true);
                                 pTarget->Die(pTarget, pTarget->GetHealth(), 0);
                                 // Make sure they all dies
@@ -1178,6 +1209,7 @@ class VH_DefenseAI : public CreatureAIScript
                         {
                             if (Creature* pTarget = pInstance->GetInstance()->GetCreature(*itr))
                             {
+                                //HACK
                                 GetUnit()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_LIGHTNING_INTRO), true);
                                 pTarget->Die(pTarget, pTarget->GetHealth(), 0);
                             }
@@ -1212,6 +1244,7 @@ class VH_DefenseAI : public CreatureAIScript
                     {
                         if (counter == 3)
                         {
+                            // HACK
                             GetUnit()->CastSpellAoF(pCreature->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_LIGHTNING_INTRO), true);
                             pCreature->Die(pCreature, pCreature->GetHealth(), 0);
                         }
@@ -1326,32 +1359,6 @@ bool TeleportPlayerInEffect(uint32 /*i*/, Spell* pSpell)
     return false;
 }
 
-bool DestroyDoorSealDummy(uint32 i, Aura* pAura, bool apply)
-{
-    if (!apply)
-    {
-        printf ("NO APPLY\n");
-        return false;
-    }
-
-    Unit* pCaster = pAura->GetUnitCaster();
-    if (!pCaster)
-    {
-        printf("NO CASTER\n");
-        return false;
-    }
-
-    InstanceScript* pInstance = pCaster->GetMapMgr()->GetScript();
-    if (!pInstance)
-    {
-        printf("NO INSTANCE \n");
-        return false;
-    }
-    printf ("CALLED \n");
-    pInstance->SetInstanceData(0, DATA_SEAL_HEALTH, pInstance->GetInstanceData(0, DATA_SEAL_HEALTH) - 1);
-    return true;
-}
-
 void SetupTheVioletHold(ScriptMgr* mgr)
 {
     //Instance
@@ -1382,5 +1389,4 @@ void SetupTheVioletHold(ScriptMgr* mgr)
 
     // Spells
     mgr->register_script_effect(SPELL_VH_TELEPORT_PLAYER, &TeleportPlayerInEffect);
-    mgr->register_dummy_aura(SPELL_VH_DESTROY_DOOR_SEAL, &DestroyDoorSealDummy);
 }
