@@ -5,6 +5,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 #include "Setup.h"
 #include "Instance_TheVioletHold.h"
+#include "Spell/SpellAuras.h"
 
 class VH_DefenseAI;
 class TeleportationPortalAI;
@@ -221,6 +222,14 @@ class TheVioletHoldScript : public InstanceScript
 
             switch(pCreature->GetEntry())
             {
+                case CN_DOOR_SEAL:
+                {
+                    // HACKY INVISIBLE
+                    // invisible display id
+                    // this is required to make visual effect working perfectly
+                    if (pCreature->GetDisplayId() != 11686)
+                        pCreature->SetDisplayId(11686);
+                }break;
                 case CN_VIOLET_HOLD_GUARD:
                 {
                     m_guardsGuids.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
@@ -246,7 +255,6 @@ class TheVioletHoldScript : public InstanceScript
                 case CN_INTRO_AZURE_SPELLBREAKER_ARCANE:
                 {
                     m_introSpawns.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
-                    pCreature->Phase(PHASE_SET, 1);
                     pCreature->setByteFlag(UNIT_FIELD_BYTES_2, 0, SHEATH_STATE_MELEE);
                     pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNKNOWN_16);
                 }break;
@@ -950,14 +958,37 @@ class VHAttackerAI : public CreatureAIScript
             _unit->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
         }
 
-        void OnCombatStop(Unit* /*pEnemy*/) override
+        void OnCombatStop(Unit* /*pEnemy*/)
         {
-            _unit->GetAIInterface()->setCurrentAgent(AGENT_NULL);
-            _unit->GetAIInterface()->setAiState(AI_STATE_IDLE);
+            GetUnit()->GetAIInterface()->setCurrentAgent(AGENT_NULL);
+            GetUnit()->GetAIInterface()->setAiState(AI_STATE_IDLE);
             stopMovement();
 
-            _unit->GetAIInterface()->setSplineRun();
+            GetUnit()->GetAIInterface()->setSplineRun();
             moveTo(sealAttackLoc.x, sealAttackLoc.y, sealAttackLoc.z);
+
+            Creature* pTriggerTarget = getNearestCreature(CN_DOOR_SEAL);
+            if (pTriggerTarget && !GetUnit()->GetAIInterface()->isCreatureState(MOVING))
+            {
+                GetUnit()->GetAIInterface()->setFacing(M_PI_FLOAT);
+                GetUnit()->SetChannelSpellId(SPELL_VH_DESTROY_DOOR_SEAL);
+                GetUnit()->SetChannelSpellTargetGUID(pTriggerTarget->GetGUID());
+                RemoveAIUpdateEvent();
+                //GetUnit()->CastSpellAoF(pTriggerTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_DESTROY_DOOR_SEAL), false);
+            }
+        }
+
+        void OnDied(Unit* /*pKiller*/)
+        {
+            GetUnit()->SetChannelSpellId(0);
+            GetUnit()->SetChannelSpellTargetGUID(0);
+            RemoveAIUpdateEvent();
+        }
+
+        void OnCombatStart(Unit* /*pKiller*/)
+        {
+            GetUnit()->SetChannelSpellId(0);
+            GetUnit()->SetChannelSpellTargetGUID(0);
         }
 
         void AIUpdate()
@@ -967,6 +998,19 @@ class VHAttackerAI : public CreatureAIScript
                 _unit->GetAIInterface()->setSplineRun();
                 moveTo(sealAttackLoc.x, sealAttackLoc.y, sealAttackLoc.z);
                 isMoveSet = true;
+            }
+            InstanceScript* pInstance = GetUnit()->GetMapMgr()->GetScript();
+            if (pInstance && pInstance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress)
+            {
+                Creature* pTriggerTarget = getNearestCreature(CN_DOOR_SEAL);
+                if (pTriggerTarget && !GetUnit()->GetAIInterface()->isCreatureState(MOVING))
+                {
+                    GetUnit()->GetAIInterface()->setFacing(M_PI_FLOAT);
+                    GetUnit()->SetChannelSpellId(SPELL_VH_DESTROY_DOOR_SEAL);
+                    GetUnit()->SetChannelSpellTargetGUID(pTriggerTarget->GetGUID());
+                    RemoveAIUpdateEvent();
+                    //GetUnit()->CastSpellAoF(pTriggerTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_DESTROY_DOOR_SEAL), false);
+                }
             }
         }
 
@@ -985,11 +1029,12 @@ class VH_DefenseAI : public CreatureAIScript
         {
             RegisterAIUpdateEvent(1000);
             despawn(7000);
-            GetUnit()->CastSpell(pCreature, sSpellCustomizations.GetSpellInfo(SPELL_VH_DEFENSE_SYSTEM_VISUAL), true);
         }
 
         void AIUpdate()
         {
+            GetUnit()->CastSpell(GetUnit(), SPELL_VH_DEFENSE_SYSTEM_SPAWN, true);
+            GetUnit()->CastSpell(GetUnit(), SPELL_VH_DEFENSE_SYSTEM_VISUAL, true);
             if (TheVioletHoldScript* pInstance = static_cast<TheVioletHoldScript*>(GetUnit()->GetMapMgr()->GetScript()))
             {
                 // Intro spawns
@@ -1137,6 +1182,10 @@ class TeleportationPortalAI : public CreatureAIScript
                     }
                     despawn(2000, 0);
                 }break;
+                case VH_PORTAL_TYPE_BOSS:
+                {
+
+                }break;
             }
             pInstance->SetInstanceData(0, DATA_ARE_SUMMONS_MADE, 1);
         }
@@ -1156,6 +1205,23 @@ bool TeleportPlayerInEffect(uint32 /*i*/, Spell* pSpell)
     }
 
     return false;
+}
+
+bool DestroyDoorSealDummy(uint32 i, Aura* pAura, bool apply)
+{
+    if (!apply)
+        return false;
+
+    Unit* pCaster = pAura->GetUnitCaster();
+    if (!pCaster)
+        return false;
+
+    InstanceScript* pInstance = pCaster->GetMapMgr()->GetScript();
+    if (!pInstance)
+        return false;
+
+    pInstance->SetInstanceData(0, DATA_SEAL_HEALTH, pInstance->GetInstanceData(0, DATA_SEAL_HEALTH) - 1);
+    return true;
 }
 
 void SetupTheVioletHold(ScriptMgr* mgr)
@@ -1188,4 +1254,5 @@ void SetupTheVioletHold(ScriptMgr* mgr)
 
     // Spells
     mgr->register_script_effect(SPELL_VH_TELEPORT_PLAYER, &TeleportPlayerInEffect);
+    mgr->register_dummy_aura(SPELL_VH_DESTROY_DOOR_SEAL, &DestroyDoorSealDummy);
 }

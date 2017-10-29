@@ -48,3 +48,12 @@ insert into `npc_script_text` (`entry`, `text`, `creature_entry`, `id`, `type`, 
 
 -- Update Azure Mage Slayer faction, perviously was 35 (friendly)
 update creature_properties set faction=1720 where entry in (30664, 31497);
+
+-- Delete unneeded target for spell 58040
+DELETE FROM `spelltargetconstraints` WHERE `SpellID` = '58040';
+
+-- Increased view distance
+UPDATE `worldmap_info` SET `viewingDistance` = '1000' WHERE `entry` = '608'; 
+
+-- Update prison seal invisibility, base invisibility is hack done in script
+UPDATE `creature_properties` SET `invisibility_type` = '0' WHERE `entry` = 30896;

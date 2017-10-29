@@ -165,7 +165,9 @@ enum VH_Spells
     SPELL_VH_ARCANE_LIGHTNING_INSTAKILL = 57930,
 
     SPELL_VH_TELEPORT_PLAYER            = 62138,
-    SPELL_VH_TELEPORT_PLAYER_EFFECT     = 62139
+    SPELL_VH_TELEPORT_PLAYER_EFFECT     = 62139,
+
+    SPELL_VH_DESTROY_DOOR_SEAL          = 58040
 };
 
 enum VH_PORTAL_TYPE : uint8_t
@@ -252,6 +254,57 @@ const Movement::Location PortalPositions[MaxPortalPositions] =
 };
 
 const Movement::Location BossPortalLoc = { 1890.73f, 803.309f, 38.4001f, 2.4139f };  // center
+
+const Movement::Location SaboteurMoraggPath[] =
+{
+    { 1886.251f, 803.0743f, 38.42326f, 0 },
+    { 1885.71f,  799.8929f, 38.37241f, 0 },
+    { 1889.505f, 762.3288f, 47.66684f, 0 },
+    { 1894.542f, 742.1829f, 47.66684f, 0 },
+    { 1894.603f, 739.9231f, 47.66684f, 0 },
+};
+
+const Movement::Location SaboteurErekemPath[] =
+{
+    { 1886.251f, 803.0743f, 38.42326f, 0 },
+    { 1881.047f, 829.6866f, 38.64856f, 0 },
+    { 1877.585f, 844.6685f, 38.49014f, 0 },
+    { 1876.085f, 851.6685f, 42.99014f, 0 },
+    { 1873.747f, 864.1373f, 43.33349f, 0 }
+};
+
+const Movement::Location SaboteurIchoronPath[] =
+{
+    { 1886.251f, 803.0743f, 38.42326f, 0 },
+    { 1888.672f, 801.2348f, 38.42305f, 0 },
+    { 1901.987f, 793.3254f, 38.65126f, 0 }
+};
+
+const Movement::Location SaboteurLavanthorPath[] =
+{
+    { 1886.251f, 803.0743f, 38.42326f, 0 },
+    { 1867.925f, 778.8035f, 38.64702f, 0 },
+    { 1853.304f, 759.0161f, 38.65761f, 0 }
+};
+
+const Movement::Location SaboteurXevozzPath[] =
+{
+    { 1886.251f, 803.0743f, 38.42326f, 0 },
+    { 1889.096f, 810.0487f, 38.43871f, 0 },
+    { 1896.547f, 823.5473f, 38.72863f, 0 },
+    { 1906.666f, 842.3111f, 38.63351f, 0 }
+};
+
+const Movement::Location SaboteurZuramatPath[] =
+{
+    { 1886.251f, 803.0743f, 38.42326f, 0 },
+    { 1889.69f,  807.0032f, 38.39914f, 0 },
+    { 1906.91f,  818.2574f, 38.86596f, 0 },
+    { 1929.03f,  824.2713f, 46.09165f, 0 },
+    { 1928.441f, 842.8891f, 47.15078f, 0 },
+    { 1927.454f, 851.6091f, 47.19094f, 0 },
+    { 1927.947f, 852.2986f, 47.19637f, 0 }
+};
 
 struct VHPortalInfo
 {
