@@ -1331,7 +1331,6 @@ class TeleportationPortalAI : public CreatureAIScript
                     break;
                 case VH_PORTAL_TYPE_GUARDIAN:
                 {
-                    GetUnit()->CastSpell(GetUnit(), SPELL_VH_TELEPORTATION_PORTAL_VISUAL, true);
                     float landHeight = GetUnit()->GetMapMgr()->GetLandHeight(GetUnit()->GetPositionX(), GetUnit()->GetPositionY(), GetUnit()->GetPositionZ());
                     if (!isGuardianSpawned)
                     {
@@ -1361,7 +1360,6 @@ class TeleportationPortalAI : public CreatureAIScript
                 }break;
                 case VH_PORTAL_TYPE_SQUAD:
                 {
-                    GetUnit()->CastSpell(GetUnit(), SPELL_VH_TELEPORTATION_PORTAL_VISUAL, true);
                     GetUnit()->SendChatMessage(CHAT_MSG_RAID_BOSS_EMOTE, LANG_UNIVERSAL, SQUAD_ANNOUNCE);
                     //TODO: This count needs to be corrected
                     for(uint8 i = 0; i < 5; i++)
@@ -1379,7 +1377,6 @@ class TeleportationPortalAI : public CreatureAIScript
                 }break;
                 case VH_PORTAL_TYPE_BOSS:
                 {
-                    GetUnit()->CastSpell(GetUnit(), SPELL_VH_TELEPORTATION_PORTAL_VISUAL, true);
                     float landHeight = GetUnit()->GetMapMgr()->GetLandHeight(GetUnit()->GetPositionX(), GetUnit()->GetPositionY(), GetUnit()->GetPositionZ());
                     spawnCreature(CN_AZURE_SABOTEUR, GetUnit()->GetPositionX(), GetUnit()->GetPositionY(), landHeight, GetUnit()->GetOrientation());
                     RemoveAIUpdateEvent();
@@ -1485,15 +1482,17 @@ class AzureSaboteurAI : public CreatureAIScript
                             else
                                 waitTime = GenerateWaitTime(SaboteurZuramatPath[i].x, SaboteurZuramatPath[i - 1].x, SaboteurZuramatPath[i].y, SaboteurZuramatPath[i - 1].y);
 
-                            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime - 300, SaboteurZuramatPath[i]));
+                            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, SaboteurZuramatPath[i]));
                         }
                     }break;
                     default:
-                        break;
+                    {
+                        LOG_ERROR("Violet Hold: Unhandled boss entry %u used for Saboteur", pInstance->m_activePortal.bossEntry);
+                    }break;
                 }
             }
             pCreature->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
-            RegisterAIUpdateEvent(2000);    // Start event after 2 seconds after spawn
+            RegisterAIUpdateEvent(1000);    // Start event after 1 second after spawn
             setCanEnterCombat(false);       // Unit cannot enter combat
         }
 
@@ -1508,41 +1507,53 @@ class AzureSaboteurAI : public CreatureAIScript
                         if (iWaypointId == (MaxWpToMoragg - 1))
                         {
                             GetUnit()->SetFacing(4.689994f);
+                            RegisterAIUpdateEvent(1000);
                         }
                     }break;
                     case CN_ICHORON:
                     {
                         if (iWaypointId == (MaxWpToIchonor- 1))
                         {
+                            GetUnit()->SetFacing(5.411396f);
+                            RegisterAIUpdateEvent(1000);
                         }
                     }break;
                     case CN_XEVOZZ:
                     {
                         if (iWaypointId == (MaxWpToXevozz - 1))
                         {
+                            GetUnit()->SetFacing(1.060255f);
+                            RegisterAIUpdateEvent(1000);
                         }
                     }break;
                     case CN_LAVANTHOR:
                     {
                         if (iWaypointId == (MaxWpToLavanthor - 1))
                         {
+                            GetUnit()->SetFacing(4.025167f);
+                            RegisterAIUpdateEvent(1000);
                         }
                     }break;
                     case CN_EREKEM:
                     {
                         if (iWaypointId == (MaxWpToErekem - 1))
                         {
+                            GetUnit()->SetFacing(1.955642f);
+                            RegisterAIUpdateEvent(1000);
                         }
                     }break;
                     case CN_ZURAMAT:
                     {
                         if (iWaypointId == (MaxWpToZuramat - 1))
                         {
+                            GetUnit()->SetFacing(0.942478f);
+                            RegisterAIUpdateEvent(1000);
                         }
                     }break;
                 }
             }
         }
+
         void AIUpdate()
         {
             switch (mStep)
@@ -1552,6 +1563,50 @@ class AzureSaboteurAI : public CreatureAIScript
                 {   GetUnit()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_FORWARDTHENSTOP);
                     GetUnit()->GetAIInterface()->setWayPointToMove(1);
                     RemoveAIUpdateEvent();
+                }break;
+                // Do same action 3 times
+                case 1:
+                case 2:
+                case 3:
+                {
+                    GetUnit()->CastSpell(GetUnit(), SPELL_VH_SHIELD_DISRUPTION, true);
+                }break;
+                case 4:
+                {
+                    GetUnit()->CastSpell(GetUnit(), SPELL_VH_SIMPLE_TELEPORT, true);
+                    despawn(1000, 0);
+
+                    // Let instance prepare boss
+                    if (pInstance)
+                    {
+                        switch(pInstance->m_activePortal.bossEntry)
+                        {
+                            case CN_MORAGG:
+                            {
+                                pInstance->SetInstanceData(0, INDEX_MORAGG, State_PreProgress);
+                            }break;
+                            case CN_ICHORON:
+                            {
+                                pInstance->SetInstanceData(0, INDEX_ICHONOR, State_PreProgress);
+                            }break;
+                            case CN_XEVOZZ:
+                            {
+                                pInstance->SetInstanceData(0, INDEX_XEVOZZ, State_PreProgress);
+                            }break;
+                            case CN_LAVANTHOR:
+                            {
+                                pInstance->SetInstanceData(0, INDEX_LAVANTHOR, State_PreProgress);
+                            }break;
+                            case CN_EREKEM:
+                            {
+                                pInstance->SetInstanceData(0, INDEX_EREKEM, State_PreProgress);
+                            }break;
+                            case CN_ZURAMAT:
+                            {
+                                pInstance->SetInstanceData(0, INDEX_ZURAMAT, State_PreProgress);
+                            }break;
+                        }
+                    }
                 }break;
                 default:
                     break;
@@ -1566,7 +1621,7 @@ class AzureSaboteurAI : public CreatureAIScript
             float distanceX = (newX - currentX) * (newX - currentX);
             float distanceY = (newY - currentY) * (newY - currentY);
             float distance = sqrt(distanceX + distanceY);
-            return  (1000 * std::abs(distance / GetUnit()->GetCreatureProperties()->run_speed));
+            return  (1000 * std::abs(distance / GetUnit()->GetCreatureProperties()->run_speed)) - 1000;
         }
 
         Movement::WayPoint* CreateWaypoint(uint32_t pId, uint32_t waitTime, Movement::Location pCoords)

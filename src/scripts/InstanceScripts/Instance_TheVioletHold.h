@@ -25,7 +25,7 @@ enum DataIndex : uint8_t
     DATA_ARE_SUMMONS_MADE,          // This INDEX identifies if portal summoned adds successfuly (0 - false, 1 - true)
 
     // BOSS DATA
-    INDEX_MAROGG,
+    INDEX_MORAGG,
     INDEX_ICHONOR,
     INDEX_ZURAMAT,
     INDEX_EREKEM,
@@ -170,7 +170,6 @@ enum VH_Spells : uint32_t
 {
     SPELL_VH_PORTAL_PERIODIC            = 58008,
     SPELL_VH_PORTAL_CHANNEL             = 58012,
-    SPELL_VH_TELEPORTATION_PORTAL_VISUAL  = 57687,
 
     SPELL_VH_CRYSTAL_ACTIVATION         = 57804,
     SPELL_VH_DEFENSE_SYSTEM_VISUAL      = 57887,
@@ -181,7 +180,10 @@ enum VH_Spells : uint32_t
     SPELL_VH_TELEPORT_PLAYER            = 62138,
     SPELL_VH_TELEPORT_PLAYER_EFFECT     = 62139,
 
-    SPELL_VH_DESTROY_DOOR_SEAL          = 58040
+    SPELL_VH_DESTROY_DOOR_SEAL          = 58040,
+
+    SPELL_VH_SHIELD_DISRUPTION          = 58291,
+    SPELL_VH_SIMPLE_TELEPORT            = 12980,
 };
 
 enum VH_PORTAL_TYPE : uint8_t
@@ -310,10 +312,9 @@ const Movement::Location SaboteurLavanthorPath[MaxWpToLavanthor] =
     {}
 };
 
-const uint8_t MaxWpToXevozz = 5;
+const uint8_t MaxWpToXevozz = 4;
 const Movement::Location SaboteurXevozzPath[MaxWpToXevozz] =
 {
-    { 1886.251f, 803.0743f, 38.42326f, 0 },
     { 1889.096f, 810.0487f, 38.43871f, 0 },
     { 1896.547f, 823.5473f, 38.72863f, 0 },
     { 1906.666f, 842.3111f, 38.63351f, 0 },
