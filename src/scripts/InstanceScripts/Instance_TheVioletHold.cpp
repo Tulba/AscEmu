@@ -6,6 +6,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Setup.h"
 #include "Instance_TheVioletHold.h"
 #include "Spell/SpellAuras.h"
+#include "Objects/Faction.h"
 
 class VH_DefenseAI;
 class TeleportationPortalAI;
@@ -140,6 +141,10 @@ class TheVioletHoldScript : public InstanceScript
                         SetInstanceData(0, DATA_ARE_SUMMONS_MADE, 0);
                         m_activePortal.ResetData();
                     }
+                }break;
+                case DATA_SEAL_HEALTH:
+                {
+                    UpdateWorldStates();
                 }break;
                 default:
                     break;
@@ -970,7 +975,7 @@ class VHAttackerAI : public CreatureAIScript
             moveTo(sealAttackLoc.x, sealAttackLoc.y, sealAttackLoc.z);
 
             // Cast spell to seal
-            Creature* pTriggerTarget = getNearestCreature(CN_DOOR_SEAL);
+            pTriggerTarget = getNearestCreature(CN_DOOR_SEAL);
             if (pTriggerTarget && !GetUnit()->GetAIInterface()->isCreatureState(MOVING))
             {
                 GetUnit()->GetAIInterface()->setFacing(M_PI_FLOAT);
@@ -986,6 +991,10 @@ class VHAttackerAI : public CreatureAIScript
             // Stop channelling (this can happen if player will use crystal)
             GetUnit()->SetChannelSpellId(0);
             GetUnit()->SetChannelSpellTargetGUID(0);
+            if (pTriggerTarget)
+            {
+                pTriggerTarget->removeAllAurasById(SPELL_VH_DESTROY_DOOR_SEAL);
+            }
             RemoveAIUpdateEvent();
         }
 
@@ -995,6 +1004,10 @@ class VHAttackerAI : public CreatureAIScript
             GetUnit()->SetChannelSpellId(0);
             GetUnit()->SetChannelSpellTargetGUID(0);
             RegisterAIUpdateEvent(1000);
+            if (pTriggerTarget)
+            {
+                pTriggerTarget->removeAllAurasById(SPELL_VH_DESTROY_DOOR_SEAL);
+            }
         }
 
         void AIUpdate()
@@ -1008,23 +1021,30 @@ class VHAttackerAI : public CreatureAIScript
                     isMoveSet = true;
                 }
                 InstanceScript* pInstance = GetUnit()->GetMapMgr()->GetScript();
-                if (pInstance && pInstance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress && !GetUnit()->GetAIInterface()->isCreatureState(MOVING))
+                if (GetUnit()->GetChannelSpellId() == 0 && pInstance && pInstance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress && !GetUnit()->GetAIInterface()->isCreatureState(MOVING))
                 {
-                    Creature* pTriggerTarget = getNearestCreature(CN_DOOR_SEAL);
+                    pTriggerTarget = getNearestCreature(CN_DOOR_SEAL);
                     if (pTriggerTarget)
                     {
                         GetUnit()->GetAIInterface()->setFacing(M_PI_FLOAT);
                         GetUnit()->SetChannelSpellId(SPELL_VH_DESTROY_DOOR_SEAL);
+                        pTriggerTarget->CastSpell(pTriggerTarget, SPELL_VH_DESTROY_DOOR_SEAL, true);
                         GetUnit()->SetChannelSpellTargetGUID(pTriggerTarget->GetGUID());
-                        RemoveAIUpdateEvent();
-                        //GetUnit()->CastSpellAoF(pTriggerTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_DESTROY_DOOR_SEAL), false);
+                        ModifyAIUpdateEvent(6000);
+                        return; // Do not perform next actions
                     }
+                }
+
+                // Huge nasty hack
+                if (pInstance && pTriggerTarget && GetUnit()->GetChannelSpellId() == SPELL_VH_DESTROY_DOOR_SEAL && GetUnit()->GetChannelSpellTargetGUID() == pTriggerTarget->GetGUID() && pInstance->GetInstanceData(0, DATA_SEAL_HEALTH) != 0)
+                {
+                    pInstance->SetInstanceData(0, DATA_SEAL_HEALTH, pInstance->GetInstanceData(0, DATA_SEAL_HEALTH) - 1);
                 }
             }
         }
 
     protected:
-
+        Creature* pTriggerTarget;
         bool isMoveSet;
 };
 
@@ -1219,16 +1239,25 @@ bool TeleportPlayerInEffect(uint32 /*i*/, Spell* pSpell)
 bool DestroyDoorSealDummy(uint32 i, Aura* pAura, bool apply)
 {
     if (!apply)
+    {
+        printf ("NO APPLY\n");
         return false;
+    }
 
     Unit* pCaster = pAura->GetUnitCaster();
     if (!pCaster)
+    {
+        printf("NO CASTER\n");
         return false;
+    }
 
     InstanceScript* pInstance = pCaster->GetMapMgr()->GetScript();
     if (!pInstance)
+    {
+        printf("NO INSTANCE \n");
         return false;
-
+    }
+    printf ("CALLED \n");
     pInstance->SetInstanceData(0, DATA_SEAL_HEALTH, pInstance->GetInstanceData(0, DATA_SEAL_HEALTH) - 1);
     return true;
 }
