@@ -30,7 +30,7 @@ class TheVioletHoldScript : public InstanceScript
     uint32_t m_ErekemCellGUID;
     uint32_t m_ErekemGuardCellGUID[2];
 
-    // Sinclari low guid
+    // Low guids of creatures
     uint32_t m_sinclariGUID;
 
     // Guid lists
@@ -1172,7 +1172,6 @@ class VHAttackerAI : public CreatureAIScript
                     {
                         GetUnit()->GetAIInterface()->setFacing(M_PI_FLOAT);
                         GetUnit()->SetChannelSpellId(SPELL_VH_DESTROY_DOOR_SEAL);
-                        pTriggerTarget->CastSpell(pTriggerTarget, SPELL_VH_DESTROY_DOOR_SEAL, true);
                         GetUnit()->SetChannelSpellTargetGUID(pTriggerTarget->GetGUID());
                         ModifyAIUpdateEvent(6000);
                         return; // Do not perform next actions
@@ -1201,13 +1200,14 @@ class VH_DefenseAI : public CreatureAIScript
         VH_DefenseAI(Creature* pCreature) : CreatureAIScript(pCreature), counter(0)
         {
             RegisterAIUpdateEvent(1000);
-            despawn(7000);
+            pCreature->SetScale(5.0f);  // Temp, this will moved to db
+            GetUnit()->CastSpell(GetUnit(), SPELL_VH_DEFENSE_SYSTEM_VISUAL, true);
+            despawn(4000);
         }
 
         void AIUpdate()
         {
-            GetUnit()->CastSpell(GetUnit(), SPELL_VH_DEFENSE_SYSTEM_SPAWN, true);
-            GetUnit()->CastSpell(GetUnit(), SPELL_VH_DEFENSE_SYSTEM_VISUAL, true);
+
             if (TheVioletHoldScript* pInstance = static_cast<TheVioletHoldScript*>(GetUnit()->GetMapMgr()->GetScript()))
             {
                 // Intro spawns
@@ -1265,7 +1265,7 @@ class VH_DefenseAI : public CreatureAIScript
                     }
                 }
 
-                // Defense triggers
+                // Defense triggers (ONLY animation)
                 if (!pInstance->m_defenseTriggers.empty() && counter < 3)
                 {
                     for (std::list<uint32_t>::iterator itr = pInstance->m_defenseTriggers.begin(); itr != pInstance->m_defenseTriggers.end(); ++itr)
@@ -1294,6 +1294,11 @@ class VH_DefenseAI : public CreatureAIScript
                             GetUnit()->CastSpellAoF(pCreature->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_LIGHTNING_INTRO), true);
                         }
                     }
+                }
+
+                if (counter >= 3)
+                {
+                    GetUnit()->CastSpell(GetUnit(), SPELL_VH_DEFENSE_SYSTEM_SPAWN, true);
                 }
                 ++counter;
             }
@@ -1576,7 +1581,7 @@ class AzureSaboteurAI : public CreatureAIScript
                     GetUnit()->CastSpell(GetUnit(), SPELL_VH_SIMPLE_TELEPORT, true);
                     despawn(1000, 0);
 
-                    // Let instance prepare boss
+                    // Let instance prepare boss event
                     if (pInstance)
                     {
                         switch(pInstance->m_activePortal.bossEntry)

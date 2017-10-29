@@ -42,7 +42,7 @@ enum CreatureEntry : uint32_t
     CN_PORTAL_KEEPER                        = 30695,
     CN_PORTAL                               = 30679,
     CN_DOOR_SEAL                            = 30896,
-    CN_AZURE_SABOTEUR                      = 31079,
+    CN_AZURE_SABOTEUR                       = 31079,
 
     // Defense AI
     CN_DEFENSE_SYSTEM                       = 30837,
@@ -411,3 +411,73 @@ const VHBossReplaceStruct BossReplacements [] =
     { CN_LAVANTHOR, CN_LAVA_HOUND,1855.28f, 760.85f, 38.65f, 0 },
     { CN_MORAGG,    CN_WATCHER,   1890.51f, 752.85f, 47.66f, 0 }
 };
+
+// Boss intro waypoints
+const uint8_t MoraggPathSize = 3;
+const Movement::Location MoraggPath[MoraggPathSize] =
+{
+    { 1893.895f, 728.1261f, 47.75016f, 0 },
+    { 1892.997f, 738.4987f, 47.66684f, 0 },
+    { 1889.76f,  758.1089f, 47.66684f, 0 }
+};
+
+const uint8_t ErekemPathSize = 3;
+const Movement::Location ErekemPath[ErekemPathSize] =
+{
+    { 1871.456f, 871.0361f, 43.41524f, 0 },
+    { 1874.948f, 859.5452f, 43.33349f, 0 },
+    { 1877.245f, 851.967f,  43.3335f, 0  }
+};
+
+const uint8_t ErekemGuardLeftPathSize = 3;
+const Movement::Location ErekemGuardLeftPath[ErekemGuardLeftPathSize] =
+{
+    { 1853.752f, 862.4528f, 43.41614f, 0 },
+    { 1866.931f, 854.577f,  43.3335f, 0 },
+    { 1872.973f, 850.7875f, 43.3335f, 0  }
+};
+
+const uint8_t ErekemGuardRightPathSize = 3;
+const Movement::Location ErekemGuardRightPath[ErekemGuardRightPathSize] =
+{
+    { 1892.418f, 872.2831f, 43.41563f, 0 },
+    { 1885.639f, 859.0245f, 43.3335f, 0 },
+    { 1882.432f, 852.2423f, 43.3335f, 0 }
+};
+
+const uint8_t IchoronPathSize = 5;
+const Movement::Location IchoronPath[IchoronPathSize] =
+{
+    { 1942.041f, 749.5228f, 30.95229f, 0 },
+    { 1930.571f, 762.9065f, 31.98814f, 0 },
+    { 1923.657f, 770.6718f, 34.07256f, 0 },
+    { 1910.631f, 784.4096f, 37.09015f, 0 },
+    { 1906.595f, 788.3828f, 37.99429f, 0 }
+};
+
+const uint8_t LavanthorPathSize = 3;
+const Movement::Location LavanthorPath[LavanthorPathSize] =
+{
+    { 1844.557f, 748.7083f, 38.74205f, 0 },
+    { 1854.618f, 761.5295f, 38.65631f, 0 },
+    { 1862.17f,  773.2255f, 38.74879f, 0 }
+};
+
+const uint8_t XevozzPathSize = 3;
+const Movement::Location XevozzPath[XevozzPathSize] =
+{
+    { 1908.417f, 845.8502f, 38.71947f, 0 },
+    { 1905.557f, 841.3157f, 38.65529f, 0 },
+    { 1899.453f, 832.533f,  38.70752f, 0 }
+};
+
+const uint8_t ZuramatPathSize = 3;
+const Movement::Location ZuramatPath[ZuramatPathSize] =
+{
+    { 1934.151f, 860.9463f, 47.29499f, 0 },
+    { 1927.085f, 852.1342f, 47.19214f, 0 },
+    { 1923.226f, 847.3297f, 47.15541f, 0 }
+};
+
+const Movement::Location CyanigosaSpawnLocation = { 1922.109f, 804.4493f, 52.49254f, 3.176499f };
+const Movement::Location CyanigosaJumpLocation  = { 1888.32f,  804.473f,  38.3578f,  0.0f      };
