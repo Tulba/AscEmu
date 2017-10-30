@@ -480,3 +480,105 @@ const Movement::Location ZuramatPath[ZuramatPathSize] =
 
 const Movement::Location CyanigosaSpawnLocation = { 1922.109f, 804.4493f, 52.49254f, 3.176499f };
 const Movement::Location CyanigosaJumpLocation  = { 1888.32f,  804.473f,  38.3578f,  0.0f      };
+
+// Waypoints used by portal summons
+// Portal near Erekem boss waypoints
+const uint8_t MaxFirstPortalWP = 6;
+const Movement::Location FirstPortalWPs[MaxFirstPortalWP] =
+{
+    {1877.670288f, 842.280273f, 43.333591f, 0},
+    {1877.338867f, 834.615356f, 38.762287f, 0},
+    {1872.161011f, 823.854309f, 38.645401f, 0},
+    {1864.860474f, 815.787170f, 38.784843f, 0},
+    {1858.953735f, 810.048950f, 44.008759f, 0},
+    {1843.707153f, 805.807739f, 44.135197f, 0}
+    //{1825.736084f, 807.305847f, 44.363785f}
+};
+
+// Portal near Zuramat boss waypoints (left side)
+const uint8_t MaxSecondPortalLeftWPS = 9;
+const Movement::Location SecondPortalFirstWPs[MaxSecondPortalLeftWPS] =
+{
+    {1902.561401f, 853.334656f, 47.106117f, 0},
+    {1895.486084f, 855.376404f, 44.334591f, 0},
+    {1882.805176f, 854.993286f, 43.333591f, 0},
+    {1877.670288f, 842.280273f, 43.333591f, 0},
+    {1877.338867f, 834.615356f, 38.762287f, 0},
+    {1872.161011f, 823.854309f, 38.645401f, 0},
+    {1864.860474f, 815.787170f, 38.784843f, 0},
+    {1858.953735f, 810.048950f, 44.008759f, 0},
+    {1843.707153f, 805.807739f, 44.135197f, 0}
+    //{1825.736084f, 807.305847f, 44.363785f}
+};
+
+// Portal near Zuramat boss waypoints (right side)
+const uint8_t MaxSecondPortalRightWPS = 8;
+const Movement::Location SecondPortalSecondWPs[MaxSecondPortalRightWPS] =
+{
+    {1929.392212f, 837.614990f, 47.136166f, 0},
+    {1928.290649f, 824.750427f, 45.474411f, 0},
+    {1915.544922f, 826.919373f, 38.642811f, 0},
+    {1900.933960f, 818.855652f, 38.801647f, 0},
+    {1886.810547f, 813.536621f, 38.490490f, 0},
+    {1869.079712f, 808.701538f, 38.689003f, 0},
+    {1860.843384f, 806.645020f, 44.008789f, 0},
+    {1843.707153f, 805.807739f, 44.135197f, 0}
+    //{1825.736084f, 807.305847f, 44.363785f}
+};
+
+// Top edge portal waypoints
+const uint8_t MaxThirdPortalWPS = 8;
+const Movement::Location ThirdPortalWPs[MaxThirdPortalWPS] =
+{
+    {1934.049438f, 815.778503f, 52.408699f, 0},
+    {1928.290649f, 824.750427f, 45.474411f, 0},
+    {1915.544922f, 826.919373f, 38.642811f, 0},
+    {1900.933960f, 818.855652f, 38.801647f, 0},
+    {1886.810547f, 813.536621f, 38.490490f, 0},
+    {1869.079712f, 808.701538f, 38.689003f, 0},
+    {1860.843384f, 806.645020f, 44.008789f, 0},
+    {1843.707153f, 805.807739f, 44.135197f, 0}
+    //{1825.736084f, 807.305847f, 44.363785f}
+};
+
+// Squad group spawn location near Moragg boss
+const uint8_t MaxFourthPortalWPS = 9;
+const Movement::Location FourthPortalWPs[MaxFourthPortalWPS] =
+{
+    {1921.658447f, 761.657043f, 50.866741f, 0},
+    {1910.559814f, 755.780457f, 47.701447f, 0},
+    {1896.664673f, 752.920898f, 47.667004f, 0},
+    {1887.398804f, 763.633240f, 47.666851f, 0},
+    {1879.020386f, 775.396973f, 38.705990f, 0},
+    {1872.439087f, 782.568604f, 38.808292f, 0},
+    {1863.573364f, 791.173584f, 38.743660f, 0},
+    {1857.811890f, 796.765564f, 43.950329f, 0},
+    {1845.577759f, 800.681152f, 44.104248f, 0}
+    //{1827.100342f, 801.605957f, 44.363358f}
+};
+
+// Portal near Moragg boss
+const uint8_t MaxFifthPortalWPS = 6;
+const Movement::Location FifthPortalWPs[MaxFifthPortalWPS] =
+{
+    {1887.398804f, 763.633240f, 47.666851f, 0},
+    {1879.020386f, 775.396973f, 38.705990f, 0},
+    {1872.439087f, 782.568604f, 38.808292f, 0},
+    {1863.573364f, 791.173584f, 38.743660f, 0},
+    {1857.811890f, 796.765564f, 43.950329f, 0},
+    {1845.577759f, 800.681152f, 44.104248f, 0}
+    //{1827.100342f, 801.605957f, 44.363358f}
+};
+
+// Portal near Ichonor boss waypoints
+const uint8_t MaxSixhtPortalWPS = 4;
+const Movement::Location SixthPoralWPs[MaxSixhtPortalWPS] =
+{
+    {1888.861084f, 805.074768f, 38.375790f, 0},
+    {1869.793823f, 804.135804f, 38.647018f, 0},
+    {1861.541504f, 804.149780f, 43.968292f, 0},
+    {1843.567017f, 804.288208f, 44.139091f, 0}
+    //{1826.889648f, 803.929993f, 44.363239f}
+};
+
+const Movement::Location DefaultPortalWPs = { 1843.567017f, 804.288208f, 44.139091f, 0 };

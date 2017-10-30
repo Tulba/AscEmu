@@ -342,8 +342,8 @@ class TheVioletHoldScript : public InstanceScript
                     m_guardsGuids.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
                     pCreature->setByteFlag(UNIT_FIELD_BYTES_2, 0, SHEATH_STATE_MELEE);
                     pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLUS_MOB | UNIT_FLAG_UNKNOWN_16);
-                    pCreature->setMoveDisableGravity(true);
-                    pCreature->GetAIInterface()->setSplineRun();
+                    pCreature->SetFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_ENABLE_POWER_REGEN );
+                    pCreature->setUInt32Value(UNIT_DYNAMIC_FLAGS, 0);
                 }break;
                 case CN_LIEUTNANT_SINCLARI:
                 {
@@ -423,6 +423,7 @@ class TheVioletHoldScript : public InstanceScript
                 case CN_INTRO_AZURE_MAGE_SLAYER_MELEE:
                 case CN_INTRO_AZURE_SPELLBREAKER_ARCANE:
                 {
+                    GetInstance()->EventRespawnCreature(pCreature, (uint16_t)pCreature->GetPositionX(), (uint16_t)pCreature->GetPositionY());
                     pCreature->Despawn(4000, 0);
                 }break;
                 case CN_CYANIGOSA:
@@ -437,6 +438,7 @@ class TheVioletHoldScript : public InstanceScript
                 case CN_VIOLET_HOLD_GUARD:
                 {
                     pCreature->Despawn(1000, 1000);
+                    printf("Despawn called\n");
                 }break;
                 case CN_MORAGG:
                 case CN_ICHORON:
@@ -475,8 +477,12 @@ class TheVioletHoldScript : public InstanceScript
                     m_portalGuardianGUID = 0;
                 }break;
                 default:
-                    break;
+                {
+                    LOG_ERROR("UNHANDLED CREATURE %u", pCreature->GetEntry());
+
+                }break;
             }
+            printf("OnDied was called for entry %u\n", pCreature->GetEntry());
         }
 
         void OnPlayerEnter(Player* plr)
@@ -838,6 +844,7 @@ class TheVioletHoldScript : public InstanceScript
             }
         }
 
+        // Huge HACK
         void UpdateGuards()
         {
             if (m_guardsGuids.empty())
@@ -847,12 +854,15 @@ class TheVioletHoldScript : public InstanceScript
             {
                 if (Creature* pGuard = GetInstance()->GetCreature(*itr))
                 {
-                    if (!pGuard->isAlive())
+                    // hack fix to get his respawn properly
+                    if (pGuard->IsDead())
                     {
-                        pGuard->Despawn(1000, 3000);
+                        pGuard->Despawn(1000, 1000);
+                        pGuard->setDeathState(ALIVE);
                     }
+
                     // hack fix to set their original facing
-                    if (!pGuard->getcombatstatus()->IsInCombat() && pGuard->GetAIInterface()->MoveDone())
+                    if (pGuard->IsInInstance() && pGuard->isAlive() && !pGuard->getcombatstatus()->IsInCombat() && pGuard->GetAIInterface()->MoveDone())
                     {
                         if (pGuard->GetOrientation() != pGuard->GetSpawnO())
                             pGuard->SetFacing(pGuard->GetSpawnO());
