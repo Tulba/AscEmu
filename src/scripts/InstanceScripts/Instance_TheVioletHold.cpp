@@ -74,7 +74,42 @@ class TheVioletHoldScript : public InstanceScript
         {
             ResetInstanceData();
             pMapMgr->pInstance = sInstanceMgr.GetInstanceByIds(MAP_VIOLET_HOLD, pMapMgr->GetInstanceID());
+            SetCellForcedStates(1800.0f, 2000.0f, 600.0f, 900.0f, true);
             generateBossDataState();
+        }
+
+        void SetCellForcedStates(float pMinX, float pMaxX, float pMinY, float pMaxY, bool pActivate)
+        {
+            if (pMinX == pMaxX || pMinY == pMaxY)
+                return;
+
+            float Y = pMinY;
+            while (pMinX < pMaxX)
+            {
+                while (pMinY < pMaxY)
+                {
+                    MapCell* CurrentCell = mInstance->GetCellByCoords(pMinX, pMinY);
+                    if (pActivate && CurrentCell == nullptr)
+                    {
+                        CurrentCell = mInstance->CreateByCoords(pMinX, pMinY);
+                        if (CurrentCell != nullptr)
+                            CurrentCell->Init(mInstance->GetPosX(pMinX), mInstance->GetPosY(pMinY), mInstance);
+                    }
+
+                    if (CurrentCell != nullptr)
+                    {
+                        if (pActivate)
+                            mInstance->AddForcedCell(CurrentCell);
+                        else
+                            mInstance->RemoveForcedCell(CurrentCell);
+                    }
+
+                    pMinY += 40.0f;
+                }
+
+                pMinY = Y;
+                pMinX += 40.0f;
+            }
         }
 
         //TODO: this should be redone by checking actual saved data for heroic mode
@@ -423,8 +458,8 @@ class TheVioletHoldScript : public InstanceScript
                 case CN_INTRO_AZURE_MAGE_SLAYER_MELEE:
                 case CN_INTRO_AZURE_SPELLBREAKER_ARCANE:
                 {
-                    GetInstance()->EventRespawnCreature(pCreature, (uint16_t)pCreature->GetPositionX(), (uint16_t)pCreature->GetPositionY());
-                    pCreature->Despawn(4000, 0);
+                    pCreature->Despawn(2000, 0);
+                    pCreature->SendChatMessage(CHAT_MSG_MONSTER_SAY, LANG_UNIVERSAL, "I died");
                 }break;
                 case CN_CYANIGOSA:
                 {
@@ -437,8 +472,7 @@ class TheVioletHoldScript : public InstanceScript
                 }break;
                 case CN_VIOLET_HOLD_GUARD:
                 {
-                    pCreature->Despawn(1000, 1000);
-                    printf("Despawn called\n");
+                    pCreature->Despawn(0, 1000);
                 }break;
                 case CN_MORAGG:
                 case CN_ICHORON:
@@ -482,7 +516,6 @@ class TheVioletHoldScript : public InstanceScript
 
                 }break;
             }
-            printf("OnDied was called for entry %u\n", pCreature->GetEntry());
         }
 
         void OnPlayerEnter(Player* plr)
@@ -492,15 +525,17 @@ class TheVioletHoldScript : public InstanceScript
 
         void UpdateEvent()
         {
+#ifdef ENABLE_VH_HACKS
             if (GetInstanceData(0, INDEX_INSTANCE_PROGRESS) != State_InProgress || GetInstanceData(0, INDEX_INSTANCE_PROGRESS) != State_Finished)
             {
-                RemoveIntroNpcs(true);
-                //HACK: guards positions should be updated by core
-#ifdef ENABLE_VH_HACKS
-                UpdateGuards();
-#endif
-            }
 
+                //RemoveIntroNpcs(true);
+                //HACK: guards positions should be updated by core
+
+                UpdateGuards();
+
+            }
+#endif
             if (GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress)
             {
                 if (GetInstanceData(0, INDEX_PORTAL_PROGRESS) == State_NotStarted)
@@ -1199,8 +1234,9 @@ class VHAttackerAI : public CreatureAIScript
                 {
                     pInstance->SetInstanceData(0, DATA_SEAL_HEALTH, pInstance->GetInstanceData(0, DATA_SEAL_HEALTH) - 1);
                 }
-            }
 #endif //#ifdef ENABLE_VH_HACKS
+            }
+
         }
 
     protected:
@@ -1358,11 +1394,11 @@ class TeleportationPortalAI : public CreatureAIScript
                     break;
                 case VH_PORTAL_TYPE_GUARDIAN:
                 {
-                    float landHeight = GetUnit()->GetMapMgr()->GetLandHeight(GetUnit()->GetPositionX(), GetUnit()->GetPositionY(), GetUnit()->GetPositionZ());
+                    float landHeight = GetUnit()->GetMapMgr()->GetADTLandHeight(GetUnit()->GetPositionX(), GetUnit()->GetPositionY());
                     if (!isGuardianSpawned)
                     {
                         GetUnit()->SendChatMessage(CHAT_MSG_RAID_BOSS_EMOTE, LANG_UNIVERSAL, pInstance->m_activePortal.guardianEntry == CN_PORTAL_GUARDIAN ? GUARDIAN_ANNOUNCE : KEEPER_ANNOUNCE);
-                        Creature* pGuardian = spawnCreature(pInstance->m_activePortal.guardianEntry, GetUnit()->GetPositionX() + RandomFloat(3), GetUnit()->GetPositionY() + RandomFloat(3), landHeight, GetUnit()->GetOrientation());
+                        Creature* pGuardian = spawnCreature(pInstance->m_activePortal.guardianEntry, GetUnit()->GetPositionX(), GetUnit()->GetPositionY(), landHeight, GetUnit()->GetOrientation());
                         if (pGuardian)
                         {
                             isGuardianSpawned = true;
@@ -1391,7 +1427,8 @@ class TeleportationPortalAI : public CreatureAIScript
                     //TODO: This count needs to be corrected
                     for(uint8 i = 0; i < 5; i++)
                     {
-                        Creature* pSummon = spawnCreature(portalGuardians[RandomUInt(maxPortalGuardians - 1)], GetUnit()->GetPositionX() + RandomFloat(3), GetUnit()->GetPositionY() + RandomFloat(3), GetUnit()->GetPositionZ(), GetUnit()->GetOrientation());
+                        float landHeight = GetUnit()->GetMapMgr()->GetADTLandHeight(GetUnit()->GetPositionX(), GetUnit()->GetPositionY());
+                        Creature* pSummon = spawnCreature(portalGuardians[RandomUInt(maxPortalGuardians - 1)], GetUnit()->GetPositionX(), GetUnit()->GetPositionY(), landHeight, GetUnit()->GetOrientation());
                         if (pSummon)
                         {
                             //TODO: replace this with cleaner solution
@@ -1404,7 +1441,7 @@ class TeleportationPortalAI : public CreatureAIScript
                 }break;
                 case VH_PORTAL_TYPE_BOSS:
                 {
-                    float landHeight = GetUnit()->GetMapMgr()->GetLandHeight(GetUnit()->GetPositionX(), GetUnit()->GetPositionY(), GetUnit()->GetPositionZ());
+                    float landHeight = GetUnit()->GetMapMgr()->GetADTLandHeight(GetUnit()->GetPositionX(), GetUnit()->GetPositionY());
                     spawnCreature(CN_AZURE_SABOTEUR, GetUnit()->GetPositionX(), GetUnit()->GetPositionY(), landHeight, GetUnit()->GetOrientation());
                     RemoveAIUpdateEvent();
                     despawn(1000, 0);
@@ -1519,7 +1556,7 @@ class AzureSaboteurAI : public CreatureAIScript
                 }
             }
             pCreature->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
-            RegisterAIUpdateEvent(1000);    // Start event after 1 second after spawn
+
             setCanEnterCombat(false);       // Unit cannot enter combat
         }
 
