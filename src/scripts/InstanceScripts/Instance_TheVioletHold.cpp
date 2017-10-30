@@ -496,7 +496,9 @@ class TheVioletHoldScript : public InstanceScript
             {
                 RemoveIntroNpcs(true);
                 //HACK: guards positions should be updated by core
+#ifdef ENABLE_VH_HACKS
                 UpdateGuards();
+#endif
             }
 
             if (GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress)
@@ -515,6 +517,7 @@ class TheVioletHoldScript : public InstanceScript
             }
 
             //HACK: Erase non existing summons from lists, they should be removed OnDied events
+#ifdef ENABLE_VH_HACKS
             if (GetInstanceData(0, INDEX_PORTAL_PROGRESS) == State_InProgress && GetInstanceData(0, DATA_ARE_SUMMONS_MADE) == 1 && m_activePortal.type == VH_PORTAL_TYPE_SQUAD)
             {
                 if (!m_activePortal.summonsList.empty())
@@ -552,6 +555,7 @@ class TheVioletHoldScript : public InstanceScript
                     ++itr;
                 }
             }
+#endif // ENABLE_VH_HACKS
         }
 
         // Generate very basic portal info
@@ -845,6 +849,7 @@ class TheVioletHoldScript : public InstanceScript
         }
 
         // Huge HACK
+#ifdef ENABLE_VH_HACKS
         void UpdateGuards()
         {
             if (m_guardsGuids.empty())
@@ -858,7 +863,7 @@ class TheVioletHoldScript : public InstanceScript
                     if (pGuard->IsDead())
                     {
                         pGuard->Despawn(1000, 1000);
-                        pGuard->setDeathState(ALIVE);
+                        pGuard->setDeathState(ALIVE);   // This prevents him from respawn/despawn loop
                     }
 
                     // hack fix to set their original facing
@@ -870,6 +875,7 @@ class TheVioletHoldScript : public InstanceScript
                 }
             }
         }
+#endif //#ifdef ENABLE_VH_HACKS
 };
 
 /// ESCORT/GOSSIP EVENT
@@ -1187,13 +1193,14 @@ class VHAttackerAI : public CreatureAIScript
                         return; // Do not perform next actions
                     }
                 }
-
+#ifdef ENABLE_VH_HACKS
                 // Huge nasty hack
                 if (pInstance && pTriggerTarget && GetUnit()->GetChannelSpellId() == SPELL_VH_DESTROY_DOOR_SEAL && GetUnit()->GetChannelSpellTargetGUID() == pTriggerTarget->GetGUID() && pInstance->GetInstanceData(0, DATA_SEAL_HEALTH) != 0)
                 {
                     pInstance->SetInstanceData(0, DATA_SEAL_HEALTH, pInstance->GetInstanceData(0, DATA_SEAL_HEALTH) - 1);
                 }
             }
+#endif //#ifdef ENABLE_VH_HACKS
         }
 
     protected:
@@ -1229,11 +1236,12 @@ class VH_DefenseAI : public CreatureAIScript
                         {
                             if (Creature* pTarget = pInstance->GetInstance()->GetCreature(*itr))
                             {
+#ifdef ENABLE_VH_HACKS
                                 // HACK
                                 GetUnit()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_LIGHTNING_INTRO), true);
                                 pTarget->Die(pTarget, pTarget->GetHealth(), 0);
-                                // Make sure they all dies
                                 pTarget->Despawn(1000, 0);
+#endif //#ifdef ENABLE_VH_HACKS
                             }
                         }
                         else
@@ -1260,9 +1268,11 @@ class VH_DefenseAI : public CreatureAIScript
                         {
                             if (Creature* pTarget = pInstance->GetInstance()->GetCreature(*itr))
                             {
+#ifdef ENABLE_VH_HACKS
                                 //HACK
                                 GetUnit()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_LIGHTNING_INTRO), true);
                                 pTarget->Die(pTarget, pTarget->GetHealth(), 0);
+#endif //#ifdef ENABLE_VH_HACKS
                             }
                         }
                         else
@@ -1296,8 +1306,10 @@ class VH_DefenseAI : public CreatureAIScript
                         if (counter == 3)
                         {
                             // HACK
+#ifdef ENABLE_VH_HACKS
                             GetUnit()->CastSpellAoF(pCreature->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_LIGHTNING_INTRO), true);
                             pCreature->Die(pCreature, pCreature->GetHealth(), 0);
+#endif //#ifdef ENABLE_VH_HACKS
                         }
                         else
                         {

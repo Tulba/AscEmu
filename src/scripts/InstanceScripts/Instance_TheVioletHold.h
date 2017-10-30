@@ -5,6 +5,9 @@ This file is released under the MIT license. See README-MIT for more information
 
 #pragma once
 
+// comment it to disable hacks used in script
+#define ENABLE_VH_HACKS
+
 // Violet hold during whole encounters has total 18 portals summoned
 // one portal group is equal to 6 portals, every 6th portal unlocks boss
 enum DataIndex : uint8_t
