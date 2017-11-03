@@ -1394,7 +1394,7 @@ class TeleportationPortalAI : public CreatureAIScript
                     break;
                 case VH_PORTAL_TYPE_GUARDIAN:
                 {
-                    float landHeight = GetUnit()->GetMapMgr()->GetADTLandHeight(GetUnit()->GetPositionX(), GetUnit()->GetPositionY());
+                    float landHeight = GetUnit()->GetMapMgr()->GetLandHeight(GetUnit()->GetPositionX(), GetUnit()->GetPositionY(), GetUnit()->GetPositionZ());
                     if (!isGuardianSpawned)
                     {
                         GetUnit()->SendChatMessage(CHAT_MSG_RAID_BOSS_EMOTE, LANG_UNIVERSAL, pInstance->m_activePortal.guardianEntry == CN_PORTAL_GUARDIAN ? GUARDIAN_ANNOUNCE : KEEPER_ANNOUNCE);
@@ -1424,10 +1424,10 @@ class TeleportationPortalAI : public CreatureAIScript
                 case VH_PORTAL_TYPE_SQUAD:
                 {
                     GetUnit()->SendChatMessage(CHAT_MSG_RAID_BOSS_EMOTE, LANG_UNIVERSAL, SQUAD_ANNOUNCE);
+                    float landHeight = GetUnit()->GetMapMgr()->GetLandHeight(GetUnit()->GetPositionX(), GetUnit()->GetPositionY(), GetUnit()->GetPositionZ());
                     //TODO: This count needs to be corrected
                     for(uint8 i = 0; i < 5; i++)
                     {
-                        float landHeight = GetUnit()->GetMapMgr()->GetADTLandHeight(GetUnit()->GetPositionX(), GetUnit()->GetPositionY());
                         Creature* pSummon = spawnCreature(portalGuardians[RandomUInt(maxPortalGuardians - 1)], GetUnit()->GetPositionX(), GetUnit()->GetPositionY(), landHeight, GetUnit()->GetOrientation());
                         if (pSummon)
                         {
@@ -1441,7 +1441,7 @@ class TeleportationPortalAI : public CreatureAIScript
                 }break;
                 case VH_PORTAL_TYPE_BOSS:
                 {
-                    float landHeight = GetUnit()->GetMapMgr()->GetADTLandHeight(GetUnit()->GetPositionX(), GetUnit()->GetPositionY());
+                    float landHeight = GetUnit()->GetMapMgr()->GetLandHeight(GetUnit()->GetPositionX(), GetUnit()->GetPositionY(), GetUnit()->GetPositionZ());
                     spawnCreature(CN_AZURE_SABOTEUR, GetUnit()->GetPositionX(), GetUnit()->GetPositionY(), landHeight, GetUnit()->GetOrientation());
                     RemoveAIUpdateEvent();
                     despawn(1000, 0);
@@ -1685,7 +1685,7 @@ class AzureSaboteurAI : public CreatureAIScript
             float distanceX = (newX - currentX) * (newX - currentX);
             float distanceY = (newY - currentY) * (newY - currentY);
             float distance = sqrt(distanceX + distanceY);
-            return  (1000 * std::abs(distance / GetUnit()->GetCreatureProperties()->run_speed)) - 1000;
+            return  static_cast<uint32_t>((1000 * std::abs(distance / GetUnit()->GetCreatureProperties()->run_speed)) - 1000);
         }
 
         Movement::WayPoint* CreateWaypoint(uint32_t pId, uint32_t waitTime, Movement::Location pCoords)
