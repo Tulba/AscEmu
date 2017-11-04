@@ -8,913 +8,39 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Spell/SpellAuras.h"
 #include "Objects/Faction.h"
 
-class VH_DefenseAI;
-class TeleportationPortalAI;
-class AzureSaboteurAI;
+// Helper functions
 
-class TheVioletHoldScript : public InstanceScript
+uint32_t GenerateWaitTime(Creature* pCreature, float newX, float currentX, float newY, float currentY)
 {
-    uint32_t m_VHencounterData[INDEX_MAX];
-
-    // Achievements
-    bool m_isZuramatAchievFailed;
-    bool m_isDefAchievFailed;
-
-    // Low guids of gameobjects
-    uint32_t m_mainGatesGUID;
-    uint32_t m_MorrogCellGUID;
-    uint32_t m_IchnonorCellGUID;
-    uint32_t m_XevozzCellGUID;
-    uint32_t m_LavanthorCellGUID;
-    uint32_t m_ZuramatCellGUID;
-    uint32_t m_ErekemCellGUID;
-    uint32_t m_ErekemGuardCellGUID[2];
-
-    // Low guids of creatures
-    uint32_t m_sinclariGUID;
-
-    // Guid lists
-    std::list<uint32_t> m_guardsGuids;      // Guards at entrance guids
-    std::list<uint32_t> m_crystalGuids;     // Activation crystal guids
-    std::list<uint32_t> m_introSpawns;      // intro creatures guids
-    std::list<uint32_t> m_defenseTriggers;  // Used for visual effect in defense npc AI
-    std::list<uint32_t> m_eventSpawns;      // Portal event spawns (it won't contain main portal guardians)
-
-    // Portal summoning event
-    uint32_t m_portalSummonTimer;
-    VHPortalInfo m_activePortal;
-    uint32_t m_portalGUID;
-    uint32_t m_portalGuardianGUID;
-
-    // Booleans used to control sinclari reports about seal hp
-    bool emote75pct;
-    bool emote50pct;
-    bool emote5pct;
-
-    // Friend classes which will able to use private instance data
-    friend class VH_DefenseAI;
-    friend class TeleportationPortalAI;
-    friend class AzureSaboteurAI;
-
-    public:
-
-        static InstanceScript* Create(MapMgr* pMapMgr) { return new TheVioletHoldScript(pMapMgr); }
-        TheVioletHoldScript(MapMgr* pMapMgr) :
-            InstanceScript(pMapMgr),
-            m_isZuramatAchievFailed(false),
-            m_isDefAchievFailed(false),
-            m_mainGatesGUID(0),
-            m_sinclariGUID(0),
-            m_portalSummonTimer(0),
-            m_portalGUID(0),
-            m_portalGuardianGUID(0),
-            emote75pct(false),
-            emote50pct(false),
-            emote5pct(false)
-        {
-            ResetInstanceData();
-            pMapMgr->pInstance = sInstanceMgr.GetInstanceByIds(MAP_VIOLET_HOLD, pMapMgr->GetInstanceID());
-            SetCellForcedStates(1800.0f, 2000.0f, 600.0f, 900.0f, true);
-            generateBossDataState();
-        }
-
-        void SetCellForcedStates(float pMinX, float pMaxX, float pMinY, float pMaxY, bool pActivate)
-        {
-            if (pMinX == pMaxX || pMinY == pMaxY)
-                return;
-
-            float Y = pMinY;
-            while (pMinX < pMaxX)
-            {
-                while (pMinY < pMaxY)
-                {
-                    MapCell* CurrentCell = mInstance->GetCellByCoords(pMinX, pMinY);
-                    if (pActivate && CurrentCell == nullptr)
-                    {
-                        CurrentCell = mInstance->CreateByCoords(pMinX, pMinY);
-                        if (CurrentCell != nullptr)
-                            CurrentCell->Init(mInstance->GetPosX(pMinX), mInstance->GetPosY(pMinY), mInstance);
-                    }
-
-                    if (CurrentCell != nullptr)
-                    {
-                        if (pActivate)
-                            mInstance->AddForcedCell(CurrentCell);
-                        else
-                            mInstance->RemoveForcedCell(CurrentCell);
-                    }
-
-                    pMinY += 40.0f;
-                }
-
-                pMinY = Y;
-                pMinX += 40.0f;
-            }
-        }
-
-        //TODO: this should be redone by checking actual saved data for heroic mode
-        void ResetInstanceData()
-        {
-            memset(m_VHencounterData, State_NotStarted, sizeof(m_VHencounterData));
-            m_activePortal.ResetData();
-            m_activePortal.summonsList.clear(); // listed spawns are already removed by using m_eventSpawns container
-        }
-
-        void SetInstanceData(uint32_t /*pType*/, uint32_t pIndex, uint32_t pData)
-        {
-            if (pIndex >= INDEX_MAX)
-            {
-                return;
-            }
-
-            m_VHencounterData[pIndex] = pData;
-
-            switch (pIndex)
-            {
-                case INDEX_INSTANCE_PROGRESS:
-                {
-                    if (pData == State_Performed)
-                    {
-                        DoCrystalActivation();
-                    }
-
-                    if (pData == State_PreProgress)
-                    {
-                        RemoveIntroNpcs(false);
-                        // Close the gates
-                        if (GameObject* pGO = GetInstance()->GetGameObject(m_mainGatesGUID))
-                        {
-                            pGO->SetState(GO_STATE_CLOSED);
-                        }
-
-                        // Update crystals
-                        for (std::list<uint32_t>::iterator itr = m_crystalGuids.begin(); itr != m_crystalGuids.end(); ++itr)
-                        {
-                            if (GameObject* pGO = GetInstance()->GetGameObject(*itr))
-                            {
-                                pGO->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NONSELECTABLE);
-                            }
-                        }
-                        // Set HP
-                        SetInstanceData(0, DATA_SEAL_HEALTH, 100);
-                    }
-
-                    if (pData == State_InProgress)
-                    {
-                        m_portalSummonTimer = VH_INITIAL_PORTAL_TIME;
-                    }
-
-                    if (pData == State_Failed)
-                    {
-                        ResetIntro();
-                        ResetInstanceData();
-                    }
-
-                    if (pData == State_Finished)
-                    {
-                        // Open gates
-                        GameObject* pGates = GetInstance()->GetGameObject(m_mainGatesGUID);
-                        if (pGates && pGates->GetState() == GO_STATE_CLOSED)
-                        {
-                            pGates->SetState(GO_STATE_OPEN);
-                        }
-
-                        // Start her outro event
-                        Creature* pSinclari = GetInstance()->GetCreature(m_sinclariGUID);
-                        if (pSinclari && pSinclari->GetScript())
-                        {
-                            pSinclari->GetScript()->RegisterAIUpdateEvent(1000);
-                        }
-                    }
-                }break;
-                case INDEX_PORTAL_PROGRESS:
-                {
-                    if (pData == State_Finished)
-                    {
-                        if (Creature* pPortal = GetInstance()->GetCreature(m_portalGUID))
-                        {
-                            pPortal->Despawn(1000, 0);
-                        }
-                        m_portalGUID = 0;
-
-                        // Lets reset event
-                        SetInstanceData(0, INDEX_PORTAL_PROGRESS, State_NotStarted);
-                        SetInstanceData(0, DATA_ARE_SUMMONS_MADE, 0);
-                        m_activePortal.ResetData();
-                    }
-                }break;
-                case DATA_SEAL_HEALTH:
-                {
-                    if (GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress)
-                    {
-                        if (pData <= 75 && !emote75pct)
-                        {
-                            if (Creature* pCreature = GetInstance()->GetCreature(m_sinclariGUID))
-                            {
-                                pCreature->SendChatMessage(CHAT_MSG_MONSTER_SAY, LANG_UNIVERSAL, SEAL_PCT_75);
-                            }
-                            emote75pct = true;
-                        }
-
-                        if (pData <= 50 && !emote50pct)
-                        {
-                            if (Creature* pCreature = GetInstance()->GetCreature(m_sinclariGUID))
-                            {
-                                pCreature->SendChatMessage(CHAT_MSG_MONSTER_SAY, LANG_UNIVERSAL, SEAL_PCT_50);
-                            }
-                            emote50pct = true;
-                        }
-
-                        if (pData <= 5 && !emote5pct)
-                        {
-                            if (Creature* pCreature = GetInstance()->GetCreature(m_sinclariGUID))
-                            {
-                                pCreature->SendChatMessage(CHAT_MSG_MONSTER_SAY, LANG_UNIVERSAL, SEAL_PCT_5);
-                            }
-                            emote5pct = true;
-                        }
-
-                        if (pData == 0)
-                        {
-                            SetInstanceData(0, INDEX_INSTANCE_PROGRESS, State_Failed);
-                        }
-                        UpdateWorldStates();
-                    }
-                }break;
-                default:
-                    break;
-            }
-        }
-
-        uint32_t GetInstanceData(uint32_t /*pType*/, uint32_t pIndex)
-        {
-            if (pIndex >= INDEX_MAX)
-            {
-                return 0;
-            }
-
-            return m_VHencounterData[pIndex];
-        }
-
-        void OnLoad()
-        {
-            // For most creatures movements mmaps is needed
-            if (!sWorld.settings.terrainCollision.isPathfindingEnabled)
-            {
-                LOG_ERROR("Violet Hold: dungeon requires pathfinding support.");
-            }
-
-            // Spawn intro
-            if (GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_NotStarted)
-            {
-                ResetIntro();
-            }
-
-            RegisterUpdateEvent(VH_UPDATE_TIMER);
-        }
-
-        void OnGameObjectPushToWorld(GameObject* pGo)
-        {
-            switch(pGo->GetEntry())
-            {
-                case GO_PRISON_SEAL:
-                {
-                    m_mainGatesGUID = pGo->GetLowGUID();
-                }break;
-                case GO_ACTIVATION_CRYSTAL:
-                {
-                    m_crystalGuids.push_back(pGo->GetLowGUID());
-                }break;
-                case GO_XEVOZZ_CELL:
-                {
-                    m_XevozzCellGUID = pGo->GetLowGUID();
-                }break;
-                case GO_LAVANTHOR_CELL:
-                {
-                    m_LavanthorCellGUID = pGo->GetLowGUID();
-                }break;
-                case GO_ICHORON_CELL:
-                {
-                    m_IchnonorCellGUID = pGo->GetLowGUID();
-                }break;
-                case GO_ZURAMAT_CELL:
-                {
-                    m_ZuramatCellGUID = pGo->GetLowGUID();
-                }break;
-                case GO_EREKEM_CELL:
-                {
-                    m_ErekemCellGUID = pGo->GetLowGUID();
-                }break;
-                case GO_EREKEM_GUARD_CELL1:
-                {
-                    m_ErekemGuardCellGUID[0] = pGo->GetLowGUID();
-                }break;
-                case GO_EREKEM_GUARD_CELL2:
-                {
-                    m_ErekemGuardCellGUID[1] = pGo->GetLowGUID();
-                }break;
-                case GO_MORAGG_DOOR:
-                {
-                    m_MorrogCellGUID = pGo->GetLowGUID();
-                }break;
-                default:
-                    break;
-            }
-        }
-
-        void OnGameObjectActivate(GameObject* pGo, Player* plr)
-        {
-            if (pGo->GetEntry() == GO_ACTIVATION_CRYSTAL)
-            {
-                // Mark achiev as failed
-                if (!m_isDefAchievFailed)
-                {
-                    m_isDefAchievFailed = true;
-                }
-
-                // Make object not selectable
-                pGo->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NONSELECTABLE);
-                pGo->SetState(GO_STATE_OPEN);
-                DoCrystalActivation();
-            }
-        }
-
-
-        /*void SaveInstanceData(uint32_t spawnId)
-        {
-            if (GetInstance()->iInstanceMode != MODE_HEROIC)
-                return;
-
-            if (GetInstance()->pInstance->m_killedNpcs.find(spawnId) == GetInstance()->pInstance->m_killedNpcs.end())
-            {
-                GetSavedInstance()->m_killedNpcs.insert(spawnId);
-                GetSavedInstance()->SaveToDB();
-            }
-        }
-
-        Instance* GetSavedInstance()
-        {
-            return GetInstance()->pInstance;
-        }*/
-
-        void OnCreaturePushToWorld(Creature* pCreature)
-        {
-            // Make sure all spawned npcs are in phase 1
-            pCreature->Phase(PHASE_SET, 1);
-
-            switch(pCreature->GetEntry())
-            {
-                case CN_DOOR_SEAL:
-                {
-                    // HACKY INVISIBLE
-                    // invisible display id
-                    // this is required to make visual effect
-                    if (pCreature->GetDisplayId() != 11686)
-                        pCreature->SetDisplayId(11686);
-                }break;
-                case CN_VIOLET_HOLD_GUARD:
-                {
-                    m_guardsGuids.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
-                    pCreature->setByteFlag(UNIT_FIELD_BYTES_2, 0, SHEATH_STATE_MELEE);
-                    pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLUS_MOB | UNIT_FLAG_UNKNOWN_16);
-                    pCreature->SetFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_ENABLE_POWER_REGEN );
-                    pCreature->setUInt32Value(UNIT_DYNAMIC_FLAGS, 0);
-                }break;
-                case CN_LIEUTNANT_SINCLARI:
-                {
-                    m_sinclariGUID = GET_LOWGUID_PART(pCreature->GetGUID());
-                    pCreature->setByteFlag(UNIT_FIELD_BYTES_2, 0, SHEATH_STATE_MELEE);
-                    pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLUS_MOB | UNIT_FLAG_UNKNOWN_16);
-                }break;
-                case CN_PORTAL_INTRO:
-                {
-                     m_introSpawns.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
-                     pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNKNOWN_16);
-                }break;
-                case CN_INTRO_AZURE_BINDER_ARCANE:
-                case CN_INTRO_AZURE_INVADER_ARMS:
-                case CN_INTRO_AZURE_MAGE_SLAYER_MELEE:
-                case CN_INTRO_AZURE_SPELLBREAKER_ARCANE:
-                {
-                    m_introSpawns.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
-                    pCreature->setByteFlag(UNIT_FIELD_BYTES_2, 0, SHEATH_STATE_MELEE);
-                    pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNKNOWN_16);
-                }break;
-                case CN_DEFENSE_SYSTEM_TRIGGER:
-                {
-                    m_defenseTriggers.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
-                }break;
-                case CN_PORTAL:
-                {
-                    m_portalGUID = GET_LOWGUID_PART(pCreature->GetGUID());
-                    pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-                }break;
-                // Main portal event related
-                case CN_AZURE_INVADER:
-                case CN_AZURE_SPELLBREAKER:
-                case CN_AZURE_BINDER:
-                case CN_AZURE_MAGE_SLAYER:
-                case CN_AZURE_CAPTAIN:
-                case CN_AZURE_SORCERER:
-                case CN_AZURE_RAIDER:
-                case CN_AZURE_STALKER:
-                {
-                    m_eventSpawns.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
-                }break;
-                case CN_PORTAL_GUARDIAN:
-                case CN_PORTAL_KEEPER:
-                {
-                    m_portalGuardianGUID = GET_LOWGUID_PART(pCreature->GetGUID());
-                }break;
-                case CN_MORAGG:
-                case CN_ICHORON:
-                case CN_XEVOZZ:
-                case CN_LAVANTHOR:
-                case CN_ZURAMAT:
-                default:
-                    break;
-            }
-        }
-
-        void OnCreatureDeath(Creature* pCreature, Unit* /*pKiller*/)
-        {
-            switch (pCreature->GetEntry())
-            {
-                case CN_ZURAMAT:
-                {
-                    if (!m_isZuramatAchievFailed)
-                    {
-                        UpdateAchievCriteriaForPlayers(ACHIEV_CRIT_VOID_DANCE, 1);
-                    }
-                    setData(pCreature->GetEntry(), Finished);
-                }break;
-                case CN_VOID_SENTRY:
-                {
-                    m_isZuramatAchievFailed = true;
-                }break;
-                case CN_PORTAL_INTRO:
-                case CN_INTRO_AZURE_BINDER_ARCANE:
-                case CN_INTRO_AZURE_INVADER_ARMS:
-                case CN_INTRO_AZURE_MAGE_SLAYER_MELEE:
-                case CN_INTRO_AZURE_SPELLBREAKER_ARCANE:
-                {
-                    pCreature->Despawn(2000, 0);
-                    pCreature->SendChatMessage(CHAT_MSG_MONSTER_SAY, LANG_UNIVERSAL, "I died");
-                }break;
-                case CN_CYANIGOSA:
-                {
-                    if (!m_isDefAchievFailed)
-                    {
-                        UpdateAchievCriteriaForPlayers(ACHIEV_CRIT_DEFENSELES, 1);
-                    }
-                    setData(pCreature->GetEntry(), Finished);
-                    // SaveInstanceData(pCreature->GetSQL_id());
-                }break;
-                case CN_VIOLET_HOLD_GUARD:
-                {
-                    pCreature->Despawn(0, 1000);
-                }break;
-                case CN_MORAGG:
-                case CN_ICHORON:
-                case CN_XEVOZZ:
-                case CN_LAVANTHOR:
-                {
-                    setData(pCreature->GetEntry(), Finished);
-                    //SaveInstanceData(pCreature->GetSQL_id());
-                }break;
-                // Main portal event related
-                case CN_AZURE_INVADER:
-                case CN_AZURE_SPELLBREAKER:
-                case CN_AZURE_BINDER:
-                case CN_AZURE_MAGE_SLAYER:
-                case CN_AZURE_CAPTAIN:
-                case CN_AZURE_SORCERER:
-                case CN_AZURE_RAIDER:
-                case CN_AZURE_STALKER:
-                {
-                    if (m_activePortal.type == VH_PORTAL_TYPE_SQUAD && GetInstanceData(0, INDEX_PORTAL_PROGRESS) == State_InProgress)
-                    {
-                        m_activePortal.DelSummonDataByGuid(GET_LOWGUID_PART(pCreature->GetGUID()));
-                        if (m_activePortal.summonsList.empty())
-                        {
-                            SetInstanceData(0, INDEX_PORTAL_PROGRESS, State_Finished);
-                        }
-                    }
-                }break;
-                case CN_PORTAL_GUARDIAN:
-                case CN_PORTAL_KEEPER:
-                {
-                    if (m_activePortal.type == VH_PORTAL_TYPE_GUARDIAN)
-                    {
-                        SetInstanceData(0, INDEX_PORTAL_PROGRESS, State_Finished);
-                    }
-                    m_portalGuardianGUID = 0;
-                }break;
-                default:
-                {
-                    LOG_ERROR("UNHANDLED CREATURE %u", pCreature->GetEntry());
-
-                }break;
-            }
-        }
-
-        void OnPlayerEnter(Player* plr)
-        {
-            UpdateWorldStates();
-        }
-
-        void UpdateEvent()
-        {
-#ifdef ENABLE_VH_HACKS
-            if (GetInstanceData(0, INDEX_INSTANCE_PROGRESS) != State_InProgress || GetInstanceData(0, INDEX_INSTANCE_PROGRESS) != State_Finished)
-            {
-
-                //RemoveIntroNpcs(true);
-                //HACK: guards positions should be updated by core
-
-                UpdateGuards();
-
-            }
-#endif
-            if (GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress)
-            {
-                if (GetInstanceData(0, INDEX_PORTAL_PROGRESS) == State_NotStarted)
-                {
-                    if (m_portalSummonTimer == 0)
-                    {
-                        m_portalSummonTimer = VH_NEXT_PORTAL_SPAWN_TIME;
-                        SpawnPortal();
-                        SetInstanceData(0, INDEX_PORTAL_PROGRESS, State_InProgress);
-                    }
-                    else
-                        --m_portalSummonTimer;
-                }
-            }
-
-            //HACK: Erase non existing summons from lists, they should be removed OnDied events
-#ifdef ENABLE_VH_HACKS
-            if (GetInstanceData(0, INDEX_PORTAL_PROGRESS) == State_InProgress && GetInstanceData(0, DATA_ARE_SUMMONS_MADE) == 1 && m_activePortal.type == VH_PORTAL_TYPE_SQUAD)
-            {
-                if (!m_activePortal.summonsList.empty())
-                {
-                    for (std::list<uint32>::iterator itr = m_activePortal.summonsList.begin(); itr != m_activePortal.summonsList.end();)
-                    {
-                        Creature* pCreature = GetInstance()->GetCreature(*itr);
-                        if (pCreature && !pCreature->isAlive())
-                        {
-                            itr = m_activePortal.summonsList.erase(itr);
-                            continue;
-                        }
-                        ++itr;
-                    }
-                }
-                else
-                {
-                    SetInstanceData(0, INDEX_PORTAL_PROGRESS, State_Finished);
-                }
-            }
-
-            //HACK: Erase non existing main event summons guids, they should be removed by OnDied events
-            if (!m_eventSpawns.empty())
-            {
-                for (std::list<uint32_t>::iterator itr = m_eventSpawns.begin(); itr != m_eventSpawns.end();)
-                {
-                    Creature* pSummon = GetInstance()->GetCreature(*itr);
-                    if (!pSummon || !pSummon->isAlive())
-                    {
-                        // Let players get their skinning loots
-                        pSummon->Despawn(3 * 60 * 1000, 0); // 3 mins
-                        itr = m_eventSpawns.erase(itr);
-                        continue;
-                    }
-                    ++itr;
-                }
-            }
-#endif // ENABLE_VH_HACKS
-        }
-
-        // Generate very basic portal info
-        void GenerateRandomPortal(VHPortalInfo & newPortal)
-        {
-            uint8_t currentPortalCount = GetInstanceData(0, DATA_PORTAL_COUNT);
-            uint8_t perviousPortal = currentPortalCount != 0 ? GetInstanceData(0, DATA_PERVIOUS_PORTAL_ID) : RandomUInt(MaxPortalPositions - 1);
-            uint8_t newPortalId = RandomUInt(MaxPortalPositions - 1);
-
-            if ((currentPortalCount + 1) != 6 && (currentPortalCount + 1) != 12 && (currentPortalCount + 1) != 18)
-            {
-                // Generate new portal id which doesn't match to pervious portal
-                while (newPortalId == perviousPortal)
-                {
-                    newPortalId = RandomUInt(MaxPortalPositions - 1);
-                }
-                newPortal.id = newPortalId;
-
-                // if portal id is between 0 and 4, its guardian/keeper type
-                if (newPortal.id > 4)
-                {
-                    newPortal.type = VH_PORTAL_TYPE_SQUAD;
-                }
-                else
-                {
-                    newPortal.guardianEntry = RandomUInt(1) ? CN_PORTAL_GUARDIAN : CN_PORTAL_KEEPER;
-                    newPortal.type = VH_PORTAL_TYPE_GUARDIAN;
-                    // summon list data will published on spawn event
-                }
-            }
-            // boss portal
-            else
-            {
-                newPortal.type = VH_PORTAL_TYPE_BOSS;
-                // Generate random boss entry
-                while (newPortal.bossEntry == 0 || getData(newPortal.bossEntry) == Finished)
-                {
-                    newPortal.bossEntry = randomVHBossArray[RandomUInt(maxVHBosses - 1)];
-                }
-
-                // First boss
-                if ((currentPortalCount + 1) == 6)
-                    SetInstanceData(0, DATA_GROUP1_BOSS_ENTRY, newPortal.bossEntry);
-
-                // Second boss
-                if ((currentPortalCount + 1) == 12)
-                    SetInstanceData(0, DATA_GROUP2_BOSS_ENTRY, newPortal.bossEntry);
-            }
-        }
-
-        // SpawnPortal
-        void SpawnPortal()
-        {
-            uint8_t portalCount = GetInstanceData(0, DATA_PORTAL_COUNT);
-            if (portalCount + 1 >= 18)
-                return;
-
-            ++portalCount;
-
-            GenerateRandomPortal(m_activePortal);
-            float x, y, z, o;
-            if (m_activePortal.type != VH_PORTAL_TYPE_BOSS)
-            {
-                x = PortalPositions[m_activePortal.id].x;
-                y = PortalPositions[m_activePortal.id].y;
-                z = PortalPositions[m_activePortal.id].z;
-                o = PortalPositions[m_activePortal.id].o;
-            }
-            else
-            {
-                x = BossPortalLoc.x;
-                y = BossPortalLoc.y;
-                z = BossPortalLoc.z;
-                o = BossPortalLoc.o;
-            }
-
-            if (!spawnCreature(CN_PORTAL, x, y, z, o))
-            {
-                LOG_ERROR("Violet Hold: error spawning main event portal");
-            }
-            SetInstanceData(0, DATA_PORTAL_COUNT, portalCount);
-            SetInstanceData(0, DATA_PERVIOUS_PORTAL_ID, m_activePortal.id);
-            UpdateWorldStates();
-        }
-        /////////////////////////////////////////////////////////
-        /// Helper functions
-        ///
-
-        void DoCrystalActivation()
-        {
-            spawnCreature(CN_DEFENSE_SYSTEM, DefenseSystemLocation.x, DefenseSystemLocation.y, DefenseSystemLocation.z, DefenseSystemLocation.o);
-        }
-
-        void ResetIntro()
-        {
-            // Despawn event spawns
-            if (!m_eventSpawns.empty())
-            {
-                for (std::list<uint32_t>::iterator itr = m_eventSpawns.begin(); itr != m_eventSpawns.end(); itr = m_eventSpawns.erase(itr))
-                {
-                    if (Creature* pSummon = GetInstance()->GetCreature(*itr))
-                    {
-                        pSummon->Despawn(1000, 0);
-                    }
-                }
-            }
-
-            // Despawn last portal guardian
-            if (m_portalGuardianGUID != 0)
-            {
-                if (Creature* pGuardian = GetInstance()->GetCreature(m_portalGuardianGUID))
-                {
-                    pGuardian->Despawn(1000, 0);
-                    m_portalGuardianGUID = 0;
-                }
-            }
-
-            // Despawn last portal
-            if (m_portalGUID != 0)
-            {
-                if (Creature* pGuardian = GetInstance()->GetCreature(m_portalGUID))
-                {
-                    pGuardian->Despawn(1000, 0);
-                    m_portalGUID = 0;
-                }
-            }
-
-            // Open the gates
-            if (m_mainGatesGUID != 0)
-            {
-                if (GameObject* pGates = GetInstance()->GetGameObject(m_mainGatesGUID))
-                {
-                    pGates->SetState(GO_STATE_OPEN);
-                }
-            }
-
-            // Return sinclari to spawn location
-            // There is possible issue where you can get two sinclaris :D
-            if (m_sinclariGUID != 0)
-            {
-                if (Creature* pCreature = GetInstance()->GetCreature(m_sinclariGUID))
-                {
-                    // Despawn and respawn her in 1 sec (2 seconds)
-                    pCreature->Despawn(1000, 0);
-                    spawnCreature(CN_LIEUTNANT_SINCLARI, SinclariSpawnLoc.x, SinclariSpawnLoc.y, SinclariSpawnLoc.z, SinclariSpawnLoc.o);
-                }
-            }
-            else
-            {
-                // GUID will be set at OnCreaturePushToWorld event
-                spawnCreature(CN_LIEUTNANT_SINCLARI, SinclariSpawnLoc.x, SinclariSpawnLoc.y, SinclariSpawnLoc.z, SinclariSpawnLoc.o);
-            }
-            SpawnIntro();
-            ResetCrystals(false);
-        }
-
-        // Removes all dead intro npcs
-        void RemoveIntroNpcs(bool deadOnly)
-        {
-            if (!m_introSpawns.empty())
-            {
-                for (std::list<uint32_t>::iterator itr = m_introSpawns.begin(); itr != m_introSpawns.end();)
-                {
-                    Creature* pIntroSummon = GetInstance()->GetCreature(*itr);
-                    if (pIntroSummon && pIntroSummon->IsInInstance())
-                    {
-                        if (deadOnly)
-                        {
-                            if (!pIntroSummon->isAlive())
-                            {
-                                pIntroSummon->Despawn(4000, 0);
-                                itr = m_introSpawns.erase(itr);
-                                continue;
-                            }
-                        }
-                        else
-                        {
-                            pIntroSummon->Despawn(4000, 0);
-                            itr = m_introSpawns.erase(itr);
-                            continue;
-                        }
-                    }
-                    ++itr;
-                }
-            }
-        }
-
-        void RemoveIntroNpcByGuid(uint32_t guid)
-        {
-            if (!m_introSpawns.empty())
-            {
-                for (std::list<uint32_t>::iterator itr = m_introSpawns.begin(); itr != m_introSpawns.end(); ++itr)
-                {
-                    if ((*itr) == guid)
-                    {
-                        m_introSpawns.erase(itr);
-                        break;
-                    }
-                }
-            }
-        }
-
-        void UpdateWorldStates()
-        {
-            UpdateInstanceWorldState(WORLD_STATE_VH_SHOW, GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress ? 1 : 0);
-            UpdateInstanceWorldState(WORLD_STATE_VH_PRISON_STATE, GetInstanceData(0, DATA_SEAL_HEALTH));
-            UpdateInstanceWorldState(WORLD_STATE_VH_WAVE_COUNT, GetInstanceData(0, DATA_PORTAL_COUNT));
-        }
-
-        void UpdateInstanceWorldState(uint32_t field, uint32_t value)
-        {
-            WorldPacket data(SMSG_UPDATE_WORLD_STATE, 8);
-            data << field;
-            data << value;
-            GetInstance()->SendPacketToAllPlayers(&data);
-        }
-
-        // Spawn instance intro
-        void SpawnIntro()
-        {
-            // Spawn guards
-            for (uint8_t i = 0; i < guardsCount; i++)
-            {
-                Creature* pSummon = spawnCreature(CN_VIOLET_HOLD_GUARD, guardsSpawnLoc[i].x, guardsSpawnLoc[i].y, guardsSpawnLoc[i].z, guardsSpawnLoc[i].o);
-                if (!pSummon)
-                {
-                    LOG_ERROR("Violet Hold: error occured while spawning creature entry %u", CN_VIOLET_HOLD_GUARD);
-                }
-            }
-
-            // Spawn portals
-            for (uint8_t i = 0; i < introPortalCount; i++)
-            {
-                Creature* pSummon = spawnCreature(CN_PORTAL_INTRO, introPortals[i].x, introPortals[i].y, introPortals[i].z, introPortals[i].o);
-                if (!pSummon)
-                {
-                    LOG_ERROR("Violet Hold: error occured while spawning creature entry %u", CN_PORTAL_INTRO);
-                }
-            }
-        }
-
-        // Resets activation crystals
-        void ResetCrystals(bool isSelectable)
-        {
-            for (std::list<uint32_t>::iterator itr = m_crystalGuids.begin(); itr != m_crystalGuids.end(); ++itr)
-            {
-                if (GameObject* pCrystal = GetInstance()->GetGameObject(*itr))
-                {
-                    pCrystal->SetState(GO_STATE_CLOSED);
-                    if (!isSelectable)
-                    {
-                        pCrystal->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NONSELECTABLE);
-                    }
-                    else
-                    {
-                        pCrystal->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NONSELECTABLE);
-                    }
-                }
-            }
-        }
-
-        /// Update achievement criteria for all players by id
-        void UpdateAchievCriteriaForPlayers(uint32_t id, uint32_t criteriaCount)
-        {
-            for (PlayerStorageMap::iterator itr = GetInstance()->m_PlayerStorage.begin(); itr != GetInstance()->m_PlayerStorage.end(); ++itr)
-            {
-                Player* plr = (*itr).second;
-                if (plr && plr->IsInWorld() && !plr->GetAchievementMgr().HasCompleted(id))
-                {
-                    plr->GetAchievementMgr().UpdateAchievementCriteria(plr, id, criteriaCount);
-                    plr->SaveToDB(false);   // Make player happy ^^
-                }
-            }
-        }
-
-        // Calls guards out
-        void CallGuardsOut()
-        {
-            if (m_guardsGuids.empty())
-                return;
-
-            for (std::list<uint32_t>::iterator itr = m_guardsGuids.begin(); itr != m_guardsGuids.end(); itr = m_guardsGuids.erase(itr))
-            {
-                if (Creature* pGuard = GetInstance()->GetCreature(*itr))
-                {
-                    pGuard->GetAIInterface()->setSplineRun();
-                    pGuard->GetAIInterface()->MoveTo(introMoveLoc.x, introMoveLoc.y, introMoveLoc.z);
-                    pGuard->Despawn(4500, 0);
-                }
-            }
-        }
-
-        // Huge HACK
-#ifdef ENABLE_VH_HACKS
-        void UpdateGuards()
-        {
-            if (m_guardsGuids.empty())
-                return;
-
-            for (std::list<uint32_t>::iterator itr = m_guardsGuids.begin(); itr != m_guardsGuids.end(); ++itr)
-            {
-                if (Creature* pGuard = GetInstance()->GetCreature(*itr))
-                {
-                    // hack fix to get his respawn properly
-                    if (pGuard->IsDead())
-                    {
-                        pGuard->Despawn(1000, 1000);
-                        pGuard->setDeathState(ALIVE);   // This prevents him from respawn/despawn loop
-                    }
-
-                    // hack fix to set their original facing
-                    if (pGuard->IsInInstance() && pGuard->isAlive() && !pGuard->getcombatstatus()->IsInCombat() && pGuard->GetAIInterface()->MoveDone())
-                    {
-                        if (pGuard->GetOrientation() != pGuard->GetSpawnO())
-                            pGuard->SetFacing(pGuard->GetSpawnO());
-                    }
-                }
-            }
-        }
-#endif //#ifdef ENABLE_VH_HACKS
-};
+    if (!pCreature)
+        return 0;
+
+    float distanceX = (newX - currentX) * (newX - currentX);
+    float distanceY = (newY - currentY) * (newY - currentY);
+    float distance = sqrt(distanceX + distanceY);
+    return  static_cast<uint32_t>((1000 * std::abs(distance / pCreature->GetCreatureProperties()->run_speed)) - 1000);
+}
+
+Movement::WayPoint* CreateWaypoint(uint32_t pId, uint32_t waitTime, Movement::Location pCoords)
+{
+    Movement::WayPoint* wp = new Movement::WayPoint();
+    wp->id = pId;
+    wp->x = pCoords.x;
+    wp->y = pCoords.y;
+    wp->z = pCoords.z;
+    wp->o = pCoords.o;
+    wp->waittime = waitTime;
+    wp->flags = Movement::WP_MOVE_TYPE_RUN;
+    wp->forwardemoteoneshot = false;
+    wp->forwardemoteid = 0;
+    wp->backwardemoteoneshot = false;
+    wp->backwardemoteid = 0;
+    wp->forwardskinid = 0;
+    wp->backwardskinid = 0;
+    return wp;
+}
 
 /// ESCORT/GOSSIP EVENT
-
 class SinclariAI : public CreatureAIScript
 {
     public:
@@ -922,7 +48,7 @@ class SinclariAI : public CreatureAIScript
         static CreatureAIScript* Create(Creature* c) { return new SinclariAI(c); }
         SinclariAI(Creature* pCreature) : CreatureAIScript(pCreature), m_Step(0)
         {
-            VH_instance = static_cast<TheVioletHoldScript*>(pCreature->GetMapMgr()->GetScript());
+            VH_instance = static_cast<TheVioletHoldInstance*>(pCreature->GetMapMgr()->GetScript());
             pCreature->GetAIInterface()->setWalkMode(WALKMODE_WALK);
         }
 
@@ -1039,7 +165,7 @@ class SinclariAI : public CreatureAIScript
 
         uint32_t aiUpdateFreq;
         uint8_t m_Step;
-        TheVioletHoldScript* VH_instance;
+        TheVioletHoldInstance* VH_instance;
 };
 
 class SinclariGossip : public Arcemu::Gossip::Script
@@ -1106,16 +232,13 @@ class SinclariGossip : public Arcemu::Gossip::Script
 
 class IntroPortalAI : public CreatureAIScript
 {
-    TheVioletHoldScript* VH_instance;
+    TheVioletHoldInstance* VH_instance;
     public:
 
         static CreatureAIScript* Create(Creature* c) { return new IntroPortalAI(c); }
-        IntroPortalAI(Creature* pCreature) : CreatureAIScript(pCreature)
+        IntroPortalAI(Creature* pCreature) : CreatureAIScript(pCreature), portalId(-1)
         {
-            VH_instance = static_cast< TheVioletHoldScript*>(pCreature->GetMapMgr()->GetScript());
-            if (VH_instance)
-            {
-            }
+            VH_instance = static_cast< TheVioletHoldInstance*>(pCreature->GetMapMgr()->GetScript());
         }
 
         void OnDespawn()
@@ -1145,12 +268,70 @@ class IntroPortalAI : public CreatureAIScript
         void AIUpdate()
         {
             // Summon adds every 15 or 20 seconds
-            if (VH_instance && !(VH_instance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress || VH_instance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_Performed))
+            if (VH_instance && !(VH_instance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress || VH_instance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_Performed) && portalId != -1)
             {
+                float landHeight = GetUnit()->GetMapMgr()->GetLandHeight(GetUnit()->GetPositionX(), GetUnit()->GetPositionY(), GetUnit()->GetPositionZ());
                 ModifyAIUpdateEvent(RandomUInt(1) ? VH_TIMER_SPAWN_INTRO_MOB_MIN : VH_TIMER_SPAWN_INTRO_MOB_MAX);
-                spawnCreature(VHIntroMobs[RandomUInt(VHIntroMobCount - 1)], GetUnit()->GetPositionX(), GetUnit()->GetPositionY(), GetUnit()->GetPositionZ(), GetUnit()->GetOrientation());
+                if (Creature* pAttacker = spawnCreature(VHIntroMobs[RandomUInt(VHIntroMobCount - 1)], GetUnit()->GetPositionX(), GetUnit()->GetPositionY(), landHeight, GetUnit()->GetOrientation()))
+                {
+                    switch (portalId)
+                    {
+                        case 0: // left
+                        {
+                            for (uint8_t i = 0; i < MaxFirstPortalWPS; i++)
+                            {
+                                uint32_t waitTime = 1000;
+                                if (i == 0)
+                                    waitTime += GenerateWaitTime(GetUnit(), FirstPortalWPs[i].x, GetUnit()->GetPositionX(), FirstPortalWPs[i].y, GetUnit()->GetPositionY());
+                                else
+                                    waitTime += GenerateWaitTime(GetUnit(), FirstPortalWPs[i].x, FirstPortalWPs[i - 1].x, FirstPortalWPs[i].y, FirstPortalWPs[i - 1].y);
+
+                                pAttacker->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, FirstPortalWPs[i]));
+                            }
+                        }break;
+                        case 1: // right
+                        {
+                            for (uint8_t i = 0; i < MaxFifthPortalWPS; i++)
+                            {
+                                uint32_t waitTime = 700;
+                                if (i == 0)
+                                    waitTime += GenerateWaitTime(GetUnit(), FifthPortalWPs[i].x, GetUnit()->GetPositionX(), FifthPortalWPs[i].y, GetUnit()->GetPositionY());
+                                else
+                                    waitTime += GenerateWaitTime(GetUnit(), FifthPortalWPs[i].x, FifthPortalWPs[i - 1].x, FifthPortalWPs[i].y, FifthPortalWPs[i - 1].y);
+
+                                pAttacker->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, FifthPortalWPs[i]));
+                            }
+                        }break;
+                        case 2: // middle
+                        {
+                            for (uint8_t i = 0; i < MaxThirdPortalWPS; i++)
+                            {
+                                uint32_t waitTime = 700;
+                                if (i == 0)
+                                    waitTime += GenerateWaitTime(GetUnit(), ThirdPortalWPs[i].x, GetUnit()->GetPositionX(), ThirdPortalWPs[i].y, GetUnit()->GetPositionY());
+                                else
+                                    waitTime += GenerateWaitTime(GetUnit(), ThirdPortalWPs[i].x, ThirdPortalWPs[i - 1].x, ThirdPortalWPs[i].y, ThirdPortalWPs[i - 1].y);
+
+                                pAttacker->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, ThirdPortalWPs[i]));
+                            }
+                        }break;
+                        default:
+                            break;
+                    }
+
+                    if (pAttacker->GetScript())
+                    {
+                        pAttacker->GetScript()->RegisterAIUpdateEvent(1000);
+                    }
+                }
+                else
+                {
+                    printf("NO INTRO ATTACKER\n");
+                }
             }
-       }
+        }
+
+        int8_t portalId;
 };
 
 class VHAttackerAI : public CreatureAIScript
@@ -1160,32 +341,43 @@ class VHAttackerAI : public CreatureAIScript
         static CreatureAIScript* Create(Creature* c) { return new VHAttackerAI(c); }
         VHAttackerAI(Creature* pCreature) : CreatureAIScript(pCreature), isMoveSet(false)
         {
-            RegisterAIUpdateEvent(2000);
-            pCreature->GetAIInterface()->setCurrentAgent(AGENT_NULL);
-            pCreature->GetAIInterface()->setAiState(AI_STATE_SCRIPTIDLE);
-            pCreature->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
+
+        }
+
+        void OnLoad()
+        {
+            GetUnit()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
+            GetUnit()->GetAIInterface()->setWayPointToMove(1);
+        }
+
+        void OnReachWP(uint32 iWaypointId, bool /*bForwards*/)
+        {
+            if (iWaypointId + 1 <= GetUnit()->GetAIInterface()->getWayPointsCount())
+            {
+                GetUnit()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
+                GetUnit()->GetAIInterface()->setWayPointToMove(iWaypointId + 1);
+            }
         }
 
         void OnCombatStop(Unit* /*pEnemy*/)
         {
-            // Stop any movement
-            GetUnit()->GetAIInterface()->setCurrentAgent(AGENT_NULL);
-            GetUnit()->GetAIInterface()->setAiState(AI_STATE_SCRIPTIDLE);
-            stopMovement();
-
-            // Run to gates
-            GetUnit()->GetAIInterface()->setSplineRun();
-            moveTo(sealAttackLoc.x, sealAttackLoc.y, sealAttackLoc.z);
-
-            // Cast spell to seal
-            pTriggerTarget = getNearestCreature(CN_DOOR_SEAL);
-            if (pTriggerTarget && !GetUnit()->GetAIInterface()->isCreatureState(MOVING))
+            if (GetUnit()->isAlive())
             {
-                GetUnit()->GetAIInterface()->setFacing(M_PI_FLOAT);
-                GetUnit()->SetChannelSpellId(SPELL_VH_DESTROY_DOOR_SEAL);
-                GetUnit()->SetChannelSpellTargetGUID(pTriggerTarget->GetGUID());
-                RemoveAIUpdateEvent();
-                //GetUnit()->CastSpellAoF(pTriggerTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_DESTROY_DOOR_SEAL), false);
+                // Stop any movement
+                GetUnit()->GetAIInterface()->setCurrentAgent(AGENT_NULL);
+                GetUnit()->GetAIInterface()->setAiState(AI_STATE_SCRIPTIDLE);
+                stopMovement();
+
+                // Cast spell to seal
+                pTriggerTarget = getNearestCreature(CN_DOOR_SEAL);
+                if (pTriggerTarget && !GetUnit()->GetAIInterface()->isCreatureState(MOVING))
+                {
+                    GetUnit()->GetAIInterface()->setFacing(M_PI_FLOAT);
+                    GetUnit()->SetChannelSpellId(SPELL_VH_DESTROY_DOOR_SEAL);
+                    GetUnit()->SetChannelSpellTargetGUID(pTriggerTarget->GetGUID());
+                    RemoveAIUpdateEvent();
+                    //GetUnit()->CastSpellAoF(pTriggerTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_DESTROY_DOOR_SEAL), false);
+                }
             }
         }
 
@@ -1195,6 +387,7 @@ class VHAttackerAI : public CreatureAIScript
             GetUnit()->SetChannelSpellId(0);
             GetUnit()->SetChannelSpellTargetGUID(0);
             RemoveAIUpdateEvent();
+            despawn();
         }
 
         void OnCombatStart(Unit* /*pKiller*/)
@@ -1209,34 +402,19 @@ class VHAttackerAI : public CreatureAIScript
         {
             if (!GetUnit()->getcombatstatus()->IsInCombat())
             {
-                if (!isMoveSet)
-                {
-                    _unit->GetAIInterface()->setSplineRun();
-                    moveTo(sealAttackLoc.x, sealAttackLoc.y, sealAttackLoc.z);
-                    isMoveSet = true;
-                }
-                InstanceScript* pInstance = GetUnit()->GetMapMgr()->GetScript();
-                if (GetUnit()->GetChannelSpellId() == 0 && pInstance && pInstance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress)
-                {
-                    pTriggerTarget = getNearestCreature(CN_DOOR_SEAL);
-                    if (pTriggerTarget && GetUnit()->CalcDistance(GetUnit(), pTriggerTarget) <= 30.0f)
-                    {
-                        GetUnit()->GetAIInterface()->setFacing(M_PI_FLOAT);
-                        GetUnit()->SetChannelSpellId(SPELL_VH_DESTROY_DOOR_SEAL);
-                        GetUnit()->SetChannelSpellTargetGUID(pTriggerTarget->GetGUID());
-                        ModifyAIUpdateEvent(6000);
-                        return; // Do not perform next actions
-                    }
-                }
-#ifdef ENABLE_VH_HACKS
                 // Huge nasty hack
-                if (pInstance && pTriggerTarget && GetUnit()->GetChannelSpellId() == SPELL_VH_DESTROY_DOOR_SEAL && GetUnit()->GetChannelSpellTargetGUID() == pTriggerTarget->GetGUID() && pInstance->GetInstanceData(0, DATA_SEAL_HEALTH) != 0)
-                {
-                    pInstance->SetInstanceData(0, DATA_SEAL_HEALTH, pInstance->GetInstanceData(0, DATA_SEAL_HEALTH) - 1);
-                }
-#endif //#ifdef ENABLE_VH_HACKS
+                //if (pInstance && pTriggerTarget && GetUnit()->GetChannelSpellId() == SPELL_VH_DESTROY_DOOR_SEAL && GetUnit()->GetChannelSpellTargetGUID() == pTriggerTarget->GetGUID() && pInstance->GetInstanceData(0, DATA_SEAL_HEALTH) != 0)
+                //{
+                    //pInstance->SetInstanceData(0, DATA_SEAL_HEALTH, pInstance->GetInstanceData(0, DATA_SEAL_HEALTH) - 1);
+                //}
             }
 
+            if (GetUnit()->GetAIInterface()->getCurrentWayPointId() < GetUnit()->GetAIInterface()->getWayPointsCount() && !isMoveSet)
+            {
+                GetUnit()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
+                GetUnit()->GetAIInterface()->setWayPointToMove(1);
+                isMoveSet = true;
+            }
         }
 
     protected:
@@ -1261,7 +439,7 @@ class VH_DefenseAI : public CreatureAIScript
         void AIUpdate()
         {
 
-            if (TheVioletHoldScript* pInstance = static_cast<TheVioletHoldScript*>(GetUnit()->GetMapMgr()->GetScript()))
+            if (TheVioletHoldInstance* pInstance = static_cast<TheVioletHoldInstance*>(GetUnit()->GetMapMgr()->GetScript()))
             {
                 // Intro spawns
                 if (!pInstance->m_introSpawns.empty())
@@ -1272,12 +450,10 @@ class VH_DefenseAI : public CreatureAIScript
                         {
                             if (Creature* pTarget = pInstance->GetInstance()->GetCreature(*itr))
                             {
-#ifdef ENABLE_VH_HACKS
                                 // HACK
                                 GetUnit()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_LIGHTNING_INTRO), true);
                                 pTarget->Die(pTarget, pTarget->GetHealth(), 0);
                                 pTarget->Despawn(1000, 0);
-#endif //#ifdef ENABLE_VH_HACKS
                             }
                         }
                         else
@@ -1366,13 +542,13 @@ class VH_DefenseAI : public CreatureAIScript
 class TeleportationPortalAI : public CreatureAIScript
 {
         bool isGuardianSpawned;
-        TheVioletHoldScript* pInstance;
+        TheVioletHoldInstance* pInstance;
     public:
 
         static CreatureAIScript* Create(Creature* c) { return new TeleportationPortalAI(c); }
         TeleportationPortalAI(Creature* pCreature) : CreatureAIScript(pCreature), isGuardianSpawned(false)
         {
-            pInstance = static_cast<TheVioletHoldScript*>(GetUnit()->GetMapMgr()->GetScript());
+            pInstance = static_cast<TheVioletHoldInstance*>(GetUnit()->GetMapMgr()->GetScript());
             if (pInstance)
             {
                 if (pInstance->m_activePortal.type != VH_PORTAL_TYPE_BOSS)
@@ -1453,14 +629,14 @@ class TeleportationPortalAI : public CreatureAIScript
 
 class AzureSaboteurAI : public CreatureAIScript
 {
-    TheVioletHoldScript* pInstance;
+    TheVioletHoldInstance* pInstance;
     uint8_t mStep;
     public:
 
         static CreatureAIScript* Create(Creature* c) { return new AzureSaboteurAI(c); }
         AzureSaboteurAI(Creature* pCreature) : CreatureAIScript(pCreature), mStep(0)
         {
-            pInstance = static_cast<TheVioletHoldScript* >(pCreature->GetMapMgr()->GetScript());
+            pInstance = static_cast<TheVioletHoldInstance* >(pCreature->GetMapMgr()->GetScript());
             if (pInstance && pInstance->m_activePortal.type == VH_PORTAL_TYPE_BOSS)
             {
                 switch (pInstance->m_activePortal.bossEntry)
@@ -1472,9 +648,9 @@ class AzureSaboteurAI : public CreatureAIScript
                             uint32_t waitTime = 0;
                             // First wp
                             if (i == 0)
-                                waitTime = GenerateWaitTime(SaboteurMoraggPath[i].x, GetUnit()->GetPositionX(), SaboteurMoraggPath[i].y, GetUnit()->GetPositionY());
+                                waitTime = GenerateWaitTime(GetUnit(), SaboteurMoraggPath[i].x, GetUnit()->GetPositionX(), SaboteurMoraggPath[i].y, GetUnit()->GetPositionY());
                             else
-                                waitTime = GenerateWaitTime(SaboteurMoraggPath[i].x, SaboteurMoraggPath[i - 1].x, SaboteurMoraggPath[i].y, SaboteurMoraggPath[i - 1].y);
+                                waitTime = GenerateWaitTime(GetUnit(), SaboteurMoraggPath[i].x, SaboteurMoraggPath[i - 1].x, SaboteurMoraggPath[i].y, SaboteurMoraggPath[i - 1].y);
 
                             pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, SaboteurMoraggPath[i]));
                         }
@@ -1486,9 +662,9 @@ class AzureSaboteurAI : public CreatureAIScript
                             uint32_t waitTime = 0;
                             // First wp
                             if (i == 0)
-                                waitTime = GenerateWaitTime(SaboteurIchoronPath[i].x, GetUnit()->GetPositionX(), SaboteurIchoronPath[i].y, GetUnit()->GetPositionY());
+                                waitTime = GenerateWaitTime(GetUnit(), SaboteurIchoronPath[i].x, GetUnit()->GetPositionX(), SaboteurIchoronPath[i].y, GetUnit()->GetPositionY());
                             else
-                                waitTime = GenerateWaitTime(SaboteurIchoronPath[i].x, SaboteurIchoronPath[i - 1].x, SaboteurIchoronPath[i].y, SaboteurIchoronPath[i - 1].y);
+                                waitTime = GenerateWaitTime(GetUnit(), SaboteurIchoronPath[i].x, SaboteurIchoronPath[i - 1].x, SaboteurIchoronPath[i].y, SaboteurIchoronPath[i - 1].y);
 
                             pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, SaboteurIchoronPath[i]));
                         }
@@ -1500,9 +676,9 @@ class AzureSaboteurAI : public CreatureAIScript
                             uint32_t waitTime = 0;
                             // First wp
                             if (i == 0)
-                                waitTime = GenerateWaitTime(SaboteurXevozzPath[i].x, GetUnit()->GetPositionX(), SaboteurXevozzPath[i].y, GetUnit()->GetPositionY());
+                                waitTime = GenerateWaitTime(GetUnit(), SaboteurXevozzPath[i].x, GetUnit()->GetPositionX(), SaboteurXevozzPath[i].y, GetUnit()->GetPositionY());
                             else
-                                waitTime = GenerateWaitTime(SaboteurXevozzPath[i].x, SaboteurXevozzPath[i - 1].x, SaboteurXevozzPath[i].y, SaboteurXevozzPath[i - 1].y);
+                                waitTime = GenerateWaitTime(GetUnit(), SaboteurXevozzPath[i].x, SaboteurXevozzPath[i - 1].x, SaboteurXevozzPath[i].y, SaboteurXevozzPath[i - 1].y);
 
                             pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, SaboteurXevozzPath[i]));
                         }
@@ -1514,9 +690,9 @@ class AzureSaboteurAI : public CreatureAIScript
                             uint32_t waitTime = 0;
                             // First wp
                             if (i == 0)
-                                waitTime = GenerateWaitTime(SaboteurLavanthorPath[i].x, GetUnit()->GetPositionX(), SaboteurLavanthorPath[i].y, GetUnit()->GetPositionY());
+                                waitTime = GenerateWaitTime(GetUnit(), SaboteurLavanthorPath[i].x, GetUnit()->GetPositionX(), SaboteurLavanthorPath[i].y, GetUnit()->GetPositionY());
                             else
-                                waitTime = GenerateWaitTime(SaboteurLavanthorPath[i].x, SaboteurLavanthorPath[i - 1].x, SaboteurLavanthorPath[i].y, SaboteurLavanthorPath[i - 1].y);
+                                waitTime = GenerateWaitTime(GetUnit(), SaboteurLavanthorPath[i].x, SaboteurLavanthorPath[i - 1].x, SaboteurLavanthorPath[i].y, SaboteurLavanthorPath[i - 1].y);
 
                             pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, SaboteurLavanthorPath[i]));
                         }
@@ -1528,9 +704,9 @@ class AzureSaboteurAI : public CreatureAIScript
                             uint32_t waitTime = 0;
                             // First wp
                             if (i == 0)
-                                waitTime = GenerateWaitTime(SaboteurErekemPath[i].x, GetUnit()->GetPositionX(), SaboteurErekemPath[i].y, GetUnit()->GetPositionY());
+                                waitTime = GenerateWaitTime(GetUnit(), SaboteurErekemPath[i].x, GetUnit()->GetPositionX(), SaboteurErekemPath[i].y, GetUnit()->GetPositionY());
                             else
-                                waitTime = GenerateWaitTime(SaboteurErekemPath[i].x, SaboteurErekemPath[i - 1].x, SaboteurErekemPath[i].y, SaboteurErekemPath[i - 1].y);
+                                waitTime = GenerateWaitTime(GetUnit(), SaboteurErekemPath[i].x, SaboteurErekemPath[i - 1].x, SaboteurErekemPath[i].y, SaboteurErekemPath[i - 1].y);
 
                             pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, SaboteurErekemPath[i]));
                         }
@@ -1542,9 +718,9 @@ class AzureSaboteurAI : public CreatureAIScript
                             uint32_t waitTime = 0;
                             // First wp
                             if (i == 0)
-                                waitTime = GenerateWaitTime(SaboteurZuramatPath[i].x, GetUnit()->GetPositionX(), SaboteurZuramatPath[i].y, GetUnit()->GetPositionY());
+                                waitTime = GenerateWaitTime(GetUnit(), SaboteurZuramatPath[i].x, GetUnit()->GetPositionX(), SaboteurZuramatPath[i].y, GetUnit()->GetPositionY());
                             else
-                                waitTime = GenerateWaitTime(SaboteurZuramatPath[i].x, SaboteurZuramatPath[i - 1].x, SaboteurZuramatPath[i].y, SaboteurZuramatPath[i - 1].y);
+                                waitTime = GenerateWaitTime(GetUnit(), SaboteurZuramatPath[i].x, SaboteurZuramatPath[i - 1].x, SaboteurZuramatPath[i].y, SaboteurZuramatPath[i - 1].y);
 
                             pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, SaboteurZuramatPath[i]));
                         }
@@ -1555,6 +731,7 @@ class AzureSaboteurAI : public CreatureAIScript
                     }break;
                 }
             }
+
             pCreature->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
 
             setCanEnterCombat(false);       // Unit cannot enter combat
@@ -1677,35 +854,6 @@ class AzureSaboteurAI : public CreatureAIScript
             }
             ++mStep;
         }
-
-        // Helper functions
-
-        uint32_t GenerateWaitTime(float newX, float currentX, float newY, float currentY)
-        {
-            float distanceX = (newX - currentX) * (newX - currentX);
-            float distanceY = (newY - currentY) * (newY - currentY);
-            float distance = sqrt(distanceX + distanceY);
-            return  static_cast<uint32_t>((1000 * std::abs(distance / GetUnit()->GetCreatureProperties()->run_speed)) - 1000);
-        }
-
-        Movement::WayPoint* CreateWaypoint(uint32_t pId, uint32_t waitTime, Movement::Location pCoords)
-        {
-            Movement::WayPoint* wp = GetUnit()->CreateWaypointStruct();
-            wp->id = pId;
-            wp->x = pCoords.x;
-            wp->y = pCoords.y;
-            wp->z = pCoords.z;
-            wp->o = pCoords.o;
-            wp->waittime = waitTime;
-            wp->flags = Movement::WP_MOVE_TYPE_RUN;
-            wp->forwardemoteoneshot = false;
-            wp->forwardemoteid = 0;
-            wp->backwardemoteoneshot = false;
-            wp->backwardemoteid = 0;
-            wp->forwardskinid = 0;
-            wp->backwardskinid = 0;
-            return wp;
-        }
 };
 
 // Spells
@@ -1724,10 +872,865 @@ bool TeleportPlayerInEffect(uint32 /*i*/, Spell* pSpell)
     return false;
 }
 
+TheVioletHoldInstance::TheVioletHoldInstance(MapMgr* pMapMgr) :
+    InstanceScript(pMapMgr),
+    m_isZuramatAchievFailed(false),
+    m_isDefAchievFailed(false),
+    m_mainGatesGUID(0),
+    m_sinclariGUID(0),
+    m_portalSummonTimer(0),
+    m_portalGUID(0),
+    m_portalGuardianGUID(0),
+    emote75pct(false),
+    emote50pct(false),
+    emote5pct(false)
+{
+    ResetInstanceData();
+    pMapMgr->pInstance = sInstanceMgr.GetInstanceByIds(MAP_VIOLET_HOLD, pMapMgr->GetInstanceID());
+    generateBossDataState();
+}
+
+void TheVioletHoldInstance::SetCellForcedStates(float pMinX, float pMaxX, float pMinY, float pMaxY, bool pActivate)
+{
+    if (pMinX == pMaxX || pMinY == pMaxY)
+        return;
+
+    float Y = pMinY;
+    while (pMinX < pMaxX)
+    {
+        while (pMinY < pMaxY)
+        {
+            MapCell* CurrentCell = mInstance->GetCellByCoords(pMinX, pMinY);
+            if (pActivate && CurrentCell == nullptr)
+            {
+                CurrentCell = mInstance->CreateByCoords(pMinX, pMinY);
+                if (CurrentCell != nullptr)
+                    CurrentCell->Init(mInstance->GetPosX(pMinX), mInstance->GetPosY(pMinY), mInstance);
+            }
+
+            if (CurrentCell != nullptr)
+            {
+                if (pActivate)
+                {
+                    mInstance->AddForcedCell(CurrentCell);
+                }
+                else
+                    mInstance->RemoveForcedCell(CurrentCell);
+            }
+
+            pMinY += 40.0f;
+        }
+
+        pMinY = Y;
+        pMinX += 40.0f;
+    }
+}
+
+//TODO: this should be redone by checking actual saved data for heroic mode
+void TheVioletHoldInstance::ResetInstanceData()
+{
+    memset(m_VHencounterData, State_NotStarted, sizeof(m_VHencounterData));
+    m_activePortal.ResetData();
+    m_activePortal.summonsList.clear(); // listed spawns are already removed by using m_eventSpawns container
+}
+
+void TheVioletHoldInstance::SetInstanceData(uint32_t /*pType*/, uint32_t pIndex, uint32_t pData)
+{
+    if (pIndex >= INDEX_MAX)
+    {
+        return;
+    }
+
+    m_VHencounterData[pIndex] = pData;
+
+    switch (pIndex)
+    {
+    case INDEX_INSTANCE_PROGRESS:
+    {
+        if (pData == State_Performed)
+        {
+            DoCrystalActivation();
+        }
+
+        if (pData == State_PreProgress)
+        {
+            RemoveIntroNpcs(false);
+            // Close the gates
+            if (GameObject* pGO = GetInstance()->GetGameObject(m_mainGatesGUID))
+            {
+                pGO->SetState(GO_STATE_CLOSED);
+            }
+
+            // Update crystals
+            for (std::list<uint32_t>::iterator itr = m_crystalGuids.begin(); itr != m_crystalGuids.end(); ++itr)
+            {
+                if (GameObject* pGO = GetInstance()->GetGameObject(*itr))
+                {
+                    pGO->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NONSELECTABLE);
+                }
+            }
+            // Set HP
+            SetInstanceData(0, DATA_SEAL_HEALTH, 100);
+        }
+
+        if (pData == State_InProgress)
+        {
+            m_portalSummonTimer = VH_INITIAL_PORTAL_TIME;
+        }
+
+        if (pData == State_Failed)
+        {
+            ResetIntro();
+            ResetInstanceData();
+        }
+
+        if (pData == State_Finished)
+        {
+            // Open gates
+            GameObject* pGates = GetInstance()->GetGameObject(m_mainGatesGUID);
+            if (pGates && pGates->GetState() == GO_STATE_CLOSED)
+            {
+                pGates->SetState(GO_STATE_OPEN);
+            }
+
+            // Start her outro event
+            Creature* pSinclari = GetInstance()->GetCreature(m_sinclariGUID);
+            if (pSinclari && pSinclari->GetScript())
+            {
+                pSinclari->GetScript()->RegisterAIUpdateEvent(1000);
+            }
+        }
+    }break;
+    case INDEX_PORTAL_PROGRESS:
+    {
+        if (pData == State_Finished)
+        {
+            if (Creature* pPortal = GetInstance()->GetCreature(m_portalGUID))
+            {
+                pPortal->Despawn(1000, 0);
+            }
+            m_portalGUID = 0;
+
+            // Lets reset event
+            SetInstanceData(0, INDEX_PORTAL_PROGRESS, State_NotStarted);
+            SetInstanceData(0, DATA_ARE_SUMMONS_MADE, 0);
+            m_activePortal.ResetData();
+        }
+    }break;
+    case DATA_SEAL_HEALTH:
+    {
+        if (GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress)
+        {
+            if (pData <= 75 && !emote75pct)
+            {
+                if (Creature* pCreature = GetInstance()->GetCreature(m_sinclariGUID))
+                {
+                    pCreature->SendChatMessage(CHAT_MSG_MONSTER_SAY, LANG_UNIVERSAL, SEAL_PCT_75);
+                }
+                emote75pct = true;
+            }
+
+            if (pData <= 50 && !emote50pct)
+            {
+                if (Creature* pCreature = GetInstance()->GetCreature(m_sinclariGUID))
+                {
+                    pCreature->SendChatMessage(CHAT_MSG_MONSTER_SAY, LANG_UNIVERSAL, SEAL_PCT_50);
+                }
+                emote50pct = true;
+            }
+
+            if (pData <= 5 && !emote5pct)
+            {
+                if (Creature* pCreature = GetInstance()->GetCreature(m_sinclariGUID))
+                {
+                    pCreature->SendChatMessage(CHAT_MSG_MONSTER_SAY, LANG_UNIVERSAL, SEAL_PCT_5);
+                }
+                emote5pct = true;
+            }
+
+            if (pData == 0)
+            {
+                SetInstanceData(0, INDEX_INSTANCE_PROGRESS, State_Failed);
+            }
+            UpdateWorldStates();
+        }
+    }break;
+    default:
+        break;
+    }
+}
+
+uint32_t TheVioletHoldInstance::GetInstanceData(uint32_t /*pType*/, uint32_t pIndex)
+{
+    if (pIndex >= INDEX_MAX)
+    {
+        return 0;
+    }
+
+    return m_VHencounterData[pIndex];
+}
+
+void TheVioletHoldInstance::OnLoad()
+{
+    // For most creatures movements mmaps is needed
+    if (!sWorld.settings.terrainCollision.isPathfindingEnabled)
+    {
+        LOG_ERROR("Violet Hold: dungeon requires pathfinding support.");
+    }
+
+    // Spawn intro
+    if (GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_NotStarted)
+    {
+        ResetIntro();
+    }
+    SetCellForcedStates(1700.0f, 2100.0f, 500.0f, 1000.0f, true);
+    RegisterUpdateEvent(VH_UPDATE_TIMER);
+}
+
+void TheVioletHoldInstance::OnGameObjectPushToWorld(GameObject* pGo)
+{
+    switch (pGo->GetEntry())
+    {
+    case GO_PRISON_SEAL:
+    {
+        m_mainGatesGUID = pGo->GetLowGUID();
+    }break;
+    case GO_ACTIVATION_CRYSTAL:
+    {
+        m_crystalGuids.push_back(pGo->GetLowGUID());
+    }break;
+    case GO_XEVOZZ_CELL:
+    {
+        m_XevozzCellGUID = pGo->GetLowGUID();
+    }break;
+    case GO_LAVANTHOR_CELL:
+    {
+        m_LavanthorCellGUID = pGo->GetLowGUID();
+    }break;
+    case GO_ICHORON_CELL:
+    {
+        m_IchnonorCellGUID = pGo->GetLowGUID();
+    }break;
+    case GO_ZURAMAT_CELL:
+    {
+        m_ZuramatCellGUID = pGo->GetLowGUID();
+    }break;
+    case GO_EREKEM_CELL:
+    {
+        m_ErekemCellGUID = pGo->GetLowGUID();
+    }break;
+    case GO_EREKEM_GUARD_CELL1:
+    {
+        m_ErekemGuardCellGUID[0] = pGo->GetLowGUID();
+    }break;
+    case GO_EREKEM_GUARD_CELL2:
+    {
+        m_ErekemGuardCellGUID[1] = pGo->GetLowGUID();
+    }break;
+    case GO_MORAGG_DOOR:
+    {
+        m_MorrogCellGUID = pGo->GetLowGUID();
+    }break;
+    default:
+        break;
+    }
+}
+
+void TheVioletHoldInstance::OnGameObjectActivate(GameObject* pGo, Player* plr)
+{
+    if (pGo->GetEntry() == GO_ACTIVATION_CRYSTAL)
+    {
+        // Mark achiev as failed
+        if (!m_isDefAchievFailed)
+        {
+            m_isDefAchievFailed = true;
+        }
+
+        // Make object not selectable
+        pGo->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NONSELECTABLE);
+        pGo->SetState(GO_STATE_OPEN);
+        DoCrystalActivation();
+    }
+}
+
+
+/*void TheVioletHoldInstance::SaveInstanceData(uint32_t spawnId)
+{
+    if (GetInstance()->iInstanceMode != MODE_HEROIC)
+        return;
+
+    if (GetInstance()->pInstance->m_killedNpcs.find(spawnId) == GetInstance()->pInstance->m_killedNpcs.end())
+    {
+        GetSavedInstance()->m_killedNpcs.insert(spawnId);
+        GetSavedInstance()->SaveToDB();
+    }
+
+
+Instance* GetSavedInstance()
+{
+    return GetInstance()->pInstance;
+}
+*/
+
+void TheVioletHoldInstance::OnCreaturePushToWorld(Creature* pCreature)
+{
+    // Make sure all spawned npcs are in phase 1
+    pCreature->Phase(PHASE_SET, 1);
+
+    switch (pCreature->GetEntry())
+    {
+    case CN_DOOR_SEAL:
+    {
+        // HACKY INVISIBLE
+        // invisible display id
+        // this is required to make visual effect
+        if (pCreature->GetDisplayId() != 11686)
+            pCreature->SetDisplayId(11686);
+    }break;
+    case CN_VIOLET_HOLD_GUARD:
+    {
+        m_guardsGuids.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
+        pCreature->setByteFlag(UNIT_FIELD_BYTES_2, 0, SHEATH_STATE_MELEE);
+        pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLUS_MOB | UNIT_FLAG_UNKNOWN_16);
+        pCreature->SetFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_ENABLE_POWER_REGEN);
+        pCreature->setUInt32Value(UNIT_DYNAMIC_FLAGS, 0);
+    }break;
+    case CN_LIEUTNANT_SINCLARI:
+    {
+        m_sinclariGUID = GET_LOWGUID_PART(pCreature->GetGUID());
+        pCreature->setByteFlag(UNIT_FIELD_BYTES_2, 0, SHEATH_STATE_MELEE);
+        pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLUS_MOB | UNIT_FLAG_UNKNOWN_16);
+    }break;
+    case CN_PORTAL_INTRO:
+    {
+        m_introSpawns.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
+        pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNKNOWN_16);
+    }break;
+    case CN_INTRO_AZURE_BINDER_ARCANE:
+    case CN_INTRO_AZURE_INVADER_ARMS:
+    case CN_INTRO_AZURE_MAGE_SLAYER_MELEE:
+    case CN_INTRO_AZURE_SPELLBREAKER_ARCANE:
+    {
+        m_introSpawns.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
+        pCreature->setByteFlag(UNIT_FIELD_BYTES_2, 0, SHEATH_STATE_MELEE);
+        pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNKNOWN_16);
+    }break;
+    case CN_DEFENSE_SYSTEM_TRIGGER:
+    {
+        m_defenseTriggers.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
+    }break;
+    case CN_PORTAL:
+    {
+        m_portalGUID = GET_LOWGUID_PART(pCreature->GetGUID());
+        pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+    }break;
+    // Main portal event related
+    case CN_AZURE_INVADER:
+    case CN_AZURE_SPELLBREAKER:
+    case CN_AZURE_BINDER:
+    case CN_AZURE_MAGE_SLAYER:
+    case CN_AZURE_CAPTAIN:
+    case CN_AZURE_SORCERER:
+    case CN_AZURE_RAIDER:
+    case CN_AZURE_STALKER:
+    {
+        m_eventSpawns.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
+    }break;
+    case CN_PORTAL_GUARDIAN:
+    case CN_PORTAL_KEEPER:
+    {
+        m_portalGuardianGUID = GET_LOWGUID_PART(pCreature->GetGUID());
+    }break;
+    case CN_MORAGG:
+    case CN_ICHORON:
+    case CN_XEVOZZ:
+    case CN_LAVANTHOR:
+    case CN_ZURAMAT:
+    default:
+        break;
+    }
+}
+
+void TheVioletHoldInstance::OnCreatureDeath(Creature* pCreature, Unit* pKiller)
+{
+    switch (pCreature->GetEntry())
+    {
+    case CN_ZURAMAT:
+    {
+        if (!m_isZuramatAchievFailed)
+        {
+            UpdateAchievCriteriaForPlayers(ACHIEV_CRIT_VOID_DANCE, 1);
+        }
+        setData(pCreature->GetEntry(), Finished);
+    }break;
+    case CN_VOID_SENTRY:
+    {
+        m_isZuramatAchievFailed = true;
+    }break;
+    case CN_PORTAL_INTRO:
+    case CN_INTRO_AZURE_BINDER_ARCANE:
+    case CN_INTRO_AZURE_INVADER_ARMS:
+    case CN_INTRO_AZURE_MAGE_SLAYER_MELEE:
+    case CN_INTRO_AZURE_SPELLBREAKER_ARCANE:
+    {
+        //TODO: replace this with basic despawn
+        if (pCreature->IsInWorld())
+        {
+            pCreature->RemoveFromWorld(true);
+        }
+    }break;
+    case CN_CYANIGOSA:
+    {
+        if (!m_isDefAchievFailed)
+        {
+            UpdateAchievCriteriaForPlayers(ACHIEV_CRIT_DEFENSELES, 1);
+        }
+        setData(pCreature->GetEntry(), Finished);
+        // SaveInstanceData(pCreature->GetSQL_id());
+    }break;
+    case CN_VIOLET_HOLD_GUARD:
+    {
+        pCreature->Despawn(0, 1000);
+    }break;
+    case CN_MORAGG:
+    case CN_ICHORON:
+    case CN_XEVOZZ:
+    case CN_LAVANTHOR:
+    {
+        setData(pCreature->GetEntry(), Finished);
+        //SaveInstanceData(pCreature->GetSQL_id());
+    }break;
+    // Main portal event related
+    case CN_AZURE_INVADER:
+    case CN_AZURE_SPELLBREAKER:
+    case CN_AZURE_BINDER:
+    case CN_AZURE_MAGE_SLAYER:
+    case CN_AZURE_CAPTAIN:
+    case CN_AZURE_SORCERER:
+    case CN_AZURE_RAIDER:
+    case CN_AZURE_STALKER:
+    {
+        if (m_activePortal.type == VH_PORTAL_TYPE_SQUAD && GetInstanceData(0, INDEX_PORTAL_PROGRESS) == State_InProgress)
+        {
+            m_activePortal.DelSummonDataByGuid(GET_LOWGUID_PART(pCreature->GetGUID()));
+            if (m_activePortal.summonsList.empty())
+            {
+                SetInstanceData(0, INDEX_PORTAL_PROGRESS, State_Finished);
+            }
+        }
+    }break;
+    case CN_PORTAL_GUARDIAN:
+    case CN_PORTAL_KEEPER:
+    {
+        if (m_activePortal.type == VH_PORTAL_TYPE_GUARDIAN)
+        {
+            SetInstanceData(0, INDEX_PORTAL_PROGRESS, State_Finished);
+        }
+        m_portalGuardianGUID = 0;
+    }break;
+    default:
+    {
+        LOG_ERROR("UNHANDLED CREATURE %u", pCreature->GetEntry());
+
+    }break;
+    }
+}
+
+void TheVioletHoldInstance::OnPlayerEnter(Player* plr)
+{
+    UpdateWorldStates();
+}
+
+void TheVioletHoldInstance::UpdateEvent()
+{
+    if (GetInstanceData(0, INDEX_INSTANCE_PROGRESS) != State_InProgress || GetInstanceData(0, INDEX_INSTANCE_PROGRESS) != State_Finished)
+    {
+
+        //RemoveIntroNpcs(true);
+        //UpdateGuards();
+
+    }
+    if (GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress)
+    {
+        if (GetInstanceData(0, INDEX_PORTAL_PROGRESS) == State_NotStarted)
+        {
+            if (m_portalSummonTimer == 0)
+            {
+                m_portalSummonTimer = VH_NEXT_PORTAL_SPAWN_TIME;
+                SpawnPortal();
+                SetInstanceData(0, INDEX_PORTAL_PROGRESS, State_InProgress);
+            }
+            else
+                --m_portalSummonTimer;
+        }
+    }
+
+    //HACK: Erase non existing summons from lists, they should be removed OnDied events
+    if (GetInstanceData(0, INDEX_PORTAL_PROGRESS) == State_InProgress && GetInstanceData(0, DATA_ARE_SUMMONS_MADE) == 1 && m_activePortal.type == VH_PORTAL_TYPE_SQUAD)
+    {
+        if (!m_activePortal.summonsList.empty())
+        {
+            for (std::list<uint32>::iterator itr = m_activePortal.summonsList.begin(); itr != m_activePortal.summonsList.end();)
+            {
+                Creature* pCreature = GetInstance()->GetCreature(*itr);
+                if (pCreature && !pCreature->isAlive())
+                {
+                    itr = m_activePortal.summonsList.erase(itr);
+                    continue;
+                }
+                ++itr;
+            }
+        }
+        else
+        {
+            SetInstanceData(0, INDEX_PORTAL_PROGRESS, State_Finished);
+        }
+    }
+
+    if (!m_eventSpawns.empty())
+    {
+        for (std::list<uint32_t>::iterator itr = m_eventSpawns.begin(); itr != m_eventSpawns.end();)
+        {
+            Creature* pSummon = GetInstance()->GetCreature(*itr);
+            if (!pSummon || !pSummon->isAlive())
+            {
+                // Let players get their skinning loots
+                pSummon->Despawn(2 * 60 * 1000, 0); // 2 mins
+                itr = m_eventSpawns.erase(itr);
+                continue;
+            }
+            ++itr;
+        }
+    }
+}
+
+// Generate very basic portal info
+void TheVioletHoldInstance::GenerateRandomPortal(VHPortalInfo & newPortal)
+{
+    uint8_t currentPortalCount = GetInstanceData(0, DATA_PORTAL_COUNT);
+    uint8_t perviousPortal = currentPortalCount != 0 ? GetInstanceData(0, DATA_PERVIOUS_PORTAL_ID) : RandomUInt(MaxPortalPositions - 1);
+    uint8_t newPortalId = RandomUInt(MaxPortalPositions - 1);
+
+    if ((currentPortalCount + 1) != 6 && (currentPortalCount + 1) != 12 && (currentPortalCount + 1) != 18)
+    {
+        // Generate new portal id which doesn't match to pervious portal
+        while (newPortalId == perviousPortal)
+        {
+            newPortalId = RandomUInt(MaxPortalPositions - 1);
+        }
+        newPortal.id = newPortalId;
+
+        // if portal id is between 0 and 4, its guardian/keeper type
+        if (newPortal.id > 4)
+        {
+            newPortal.type = VH_PORTAL_TYPE_SQUAD;
+        }
+        else
+        {
+            newPortal.guardianEntry = RandomUInt(1) ? CN_PORTAL_GUARDIAN : CN_PORTAL_KEEPER;
+            newPortal.type = VH_PORTAL_TYPE_GUARDIAN;
+            // summon list data will published on spawn event
+        }
+    }
+    // boss portal
+    else
+    {
+        newPortal.type = VH_PORTAL_TYPE_BOSS;
+        // Generate random boss entry
+        while (newPortal.bossEntry == 0 || getData(newPortal.bossEntry) == Finished)
+        {
+            newPortal.bossEntry = randomVHBossArray[RandomUInt(maxVHBosses - 1)];
+        }
+
+        // First boss
+        if ((currentPortalCount + 1) == 6)
+            SetInstanceData(0, DATA_GROUP1_BOSS_ENTRY, newPortal.bossEntry);
+
+        // Second boss
+        if ((currentPortalCount + 1) == 12)
+            SetInstanceData(0, DATA_GROUP2_BOSS_ENTRY, newPortal.bossEntry);
+    }
+}
+
+// SpawnPortal
+void TheVioletHoldInstance::SpawnPortal()
+{
+    uint8_t portalCount = GetInstanceData(0, DATA_PORTAL_COUNT);
+    if (portalCount + 1 >= 18)
+        return;
+
+    ++portalCount;
+
+    GenerateRandomPortal(m_activePortal);
+    float x, y, z, o;
+    if (m_activePortal.type != VH_PORTAL_TYPE_BOSS)
+    {
+        x = PortalPositions[m_activePortal.id].x;
+        y = PortalPositions[m_activePortal.id].y;
+        z = PortalPositions[m_activePortal.id].z;
+        o = PortalPositions[m_activePortal.id].o;
+    }
+    else
+    {
+        x = BossPortalLoc.x;
+        y = BossPortalLoc.y;
+        z = BossPortalLoc.z;
+        o = BossPortalLoc.o;
+    }
+
+    if (!spawnCreature(CN_PORTAL, x, y, z, o))
+    {
+        LOG_ERROR("Violet Hold: error spawning main event portal");
+    }
+    SetInstanceData(0, DATA_PORTAL_COUNT, portalCount);
+    SetInstanceData(0, DATA_PERVIOUS_PORTAL_ID, m_activePortal.id);
+    UpdateWorldStates();
+}
+    /////////////////////////////////////////////////////////
+    /// Helper functions
+    ///
+
+void TheVioletHoldInstance::DoCrystalActivation()
+{
+    spawnCreature(CN_DEFENSE_SYSTEM, DefenseSystemLocation.x, DefenseSystemLocation.y, DefenseSystemLocation.z, DefenseSystemLocation.o);
+}
+
+void TheVioletHoldInstance::ResetIntro()
+{
+    // Despawn event spawns
+    if (!m_eventSpawns.empty())
+    {
+        for (std::list<uint32_t>::iterator itr = m_eventSpawns.begin(); itr != m_eventSpawns.end(); itr = m_eventSpawns.erase(itr))
+        {
+            if (Creature* pSummon = GetInstance()->GetCreature(*itr))
+            {
+                pSummon->Despawn(1000, 0);
+            }
+        }
+    }
+
+    // Despawn last portal guardian
+    if (m_portalGuardianGUID != 0)
+    {
+        if (Creature* pGuardian = GetInstance()->GetCreature(m_portalGuardianGUID))
+        {
+            pGuardian->Despawn(1000, 0);
+            m_portalGuardianGUID = 0;
+        }
+    }
+
+    // Despawn last portal
+    if (m_portalGUID != 0)
+    {
+        if (Creature* pGuardian = GetInstance()->GetCreature(m_portalGUID))
+        {
+            pGuardian->Despawn(1000, 0);
+            m_portalGUID = 0;
+        }
+    }
+
+    // Open the gates
+    if (m_mainGatesGUID != 0)
+    {
+        if (GameObject* pGates = GetInstance()->GetGameObject(m_mainGatesGUID))
+        {
+            pGates->SetState(GO_STATE_OPEN);
+        }
+    }
+
+    // Return sinclari to spawn location
+    // There is possible issue where you can get two sinclaris :D
+    if (m_sinclariGUID != 0)
+    {
+        if (Creature* pCreature = GetInstance()->GetCreature(m_sinclariGUID))
+        {
+            // Despawn and respawn her in 1 sec (2 seconds)
+            pCreature->Despawn(1000, 0);
+            spawnCreature(CN_LIEUTNANT_SINCLARI, SinclariSpawnLoc.x, SinclariSpawnLoc.y, SinclariSpawnLoc.z, SinclariSpawnLoc.o);
+        }
+    }
+    else
+    {
+        // GUID will be set at OnCreaturePushToWorld event
+        spawnCreature(CN_LIEUTNANT_SINCLARI, SinclariSpawnLoc.x, SinclariSpawnLoc.y, SinclariSpawnLoc.z, SinclariSpawnLoc.o);
+    }
+    SpawnIntro();
+    ResetCrystals(false);
+}
+
+void TheVioletHoldInstance::RemoveIntroNpcs(bool deadOnly)
+{
+    if (!m_introSpawns.empty())
+    {
+        for (std::list<uint32_t>::iterator itr = m_introSpawns.begin(); itr != m_introSpawns.end();)
+        {
+            Creature* pIntroSummon = GetInstance()->GetCreature(*itr);
+            if (pIntroSummon && pIntroSummon->IsInInstance())
+            {
+                if (deadOnly)
+                {
+                    if (!pIntroSummon->isAlive())
+                    {
+                        pIntroSummon->Despawn(4000, 0);
+                        itr = m_introSpawns.erase(itr);
+                        continue;
+                    }
+                }
+                else
+                {
+                    pIntroSummon->Despawn(4000, 0);
+                    itr = m_introSpawns.erase(itr);
+                    continue;
+                }
+            }
+            ++itr;
+        }
+    }
+}
+
+void TheVioletHoldInstance::RemoveIntroNpcByGuid(uint32_t guid)
+{
+    if (!m_introSpawns.empty())
+    {
+        for (std::list<uint32_t>::iterator itr = m_introSpawns.begin(); itr != m_introSpawns.end(); ++itr)
+        {
+            if ((*itr) == guid)
+            {
+                m_introSpawns.erase(itr);
+                break;
+            }
+        }
+    }
+}
+
+void TheVioletHoldInstance::UpdateWorldStates()
+{
+    UpdateInstanceWorldState(WORLD_STATE_VH_SHOW, GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress ? 1 : 0);
+    UpdateInstanceWorldState(WORLD_STATE_VH_PRISON_STATE, GetInstanceData(0, DATA_SEAL_HEALTH));
+    UpdateInstanceWorldState(WORLD_STATE_VH_WAVE_COUNT, GetInstanceData(0, DATA_PORTAL_COUNT));
+}
+
+void TheVioletHoldInstance::UpdateInstanceWorldState(uint32_t field, uint32_t value)
+{
+    WorldPacket data(SMSG_UPDATE_WORLD_STATE, 8);
+    data << field;
+    data << value;
+    GetInstance()->SendPacketToAllPlayers(&data);
+}
+
+void TheVioletHoldInstance::SpawnIntro()
+{
+    // Spawn guards
+    for (uint8_t i = 0; i < guardsCount; i++)
+    {
+        Creature* pSummon = spawnCreature(CN_VIOLET_HOLD_GUARD, guardsSpawnLoc[i].x, guardsSpawnLoc[i].y, guardsSpawnLoc[i].z, guardsSpawnLoc[i].o);
+        if (!pSummon)
+        {
+            LOG_ERROR("Violet Hold: error occured while spawning creature entry %u", CN_VIOLET_HOLD_GUARD);
+        }
+    }
+
+    // Spawn portals
+    for (uint8_t i = 0; i < introPortalCount; i++)
+    {
+        Creature* pSummon = spawnCreature(CN_PORTAL_INTRO, introPortals[i].x, introPortals[i].y, introPortals[i].z, introPortals[i].o);
+        if (!pSummon)
+        {
+            LOG_ERROR("Violet Hold: error occured while spawning creature entry %u", CN_PORTAL_INTRO);
+        }
+        else
+        {
+            if (IntroPortalAI* pPortal = static_cast<IntroPortalAI*>(pSummon->GetScript()))
+            {
+                pPortal->portalId = i;
+            }
+        }
+    }
+    printf("spawned intro\n");
+}
+
+void TheVioletHoldInstance::ResetCrystals(bool isSelectable)
+{
+    for (std::list<uint32_t>::iterator itr = m_crystalGuids.begin(); itr != m_crystalGuids.end(); ++itr)
+    {
+        if (GameObject* pCrystal = GetInstance()->GetGameObject(*itr))
+        {
+            pCrystal->SetState(GO_STATE_CLOSED);
+            if (!isSelectable)
+            {
+                pCrystal->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NONSELECTABLE);
+            }
+            else
+            {
+                pCrystal->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NONSELECTABLE);
+            }
+        }
+    }
+}
+
+void TheVioletHoldInstance::UpdateAchievCriteriaForPlayers(uint32_t id, uint32_t criteriaCount)
+{
+    for (PlayerStorageMap::iterator itr = GetInstance()->m_PlayerStorage.begin(); itr != GetInstance()->m_PlayerStorage.end(); ++itr)
+    {
+        Player* plr = (*itr).second;
+        if (plr && plr->IsInWorld() && !plr->GetAchievementMgr().HasCompleted(id))
+        {
+            plr->GetAchievementMgr().UpdateAchievementCriteria(plr, id, criteriaCount);
+            plr->SaveToDB(false);   // Make player happy ^^
+        }
+    }
+}
+
+// Calls guards out
+void TheVioletHoldInstance::CallGuardsOut()
+{
+    if (m_guardsGuids.empty())
+        return;
+
+    for (std::list<uint32_t>::iterator itr = m_guardsGuids.begin(); itr != m_guardsGuids.end(); itr = m_guardsGuids.erase(itr))
+    {
+        if (Creature* pGuard = GetInstance()->GetCreature(*itr))
+        {
+            pGuard->GetAIInterface()->setSplineRun();
+            pGuard->GetAIInterface()->MoveTo(introMoveLoc.x, introMoveLoc.y, introMoveLoc.z);
+            pGuard->Despawn(4500, 0);
+        }
+    }
+}
+
+    // Huge HACK
+#ifdef ENABLE_VH_HACKS
+void TheVioletHoldInstance::UpdateGuards()
+{
+    if (m_guardsGuids.empty())
+        return;
+
+    for (std::list<uint32_t>::iterator itr = m_guardsGuids.begin(); itr != m_guardsGuids.end(); ++itr)
+    {
+        if (Creature* pGuard = GetInstance()->GetCreature(*itr))
+        {
+            // hack fix to get his respawn properly
+            if (pGuard->IsDead())
+            {
+                pGuard->Despawn(1000, 1000);
+                pGuard->setDeathState(ALIVE);   // This prevents him from respawn/despawn loop
+            }
+
+            // hack fix to set their original facing
+            if (pGuard->IsInInstance() && pGuard->isAlive() && !pGuard->getcombatstatus()->IsInCombat() && pGuard->GetAIInterface()->MoveDone())
+            {
+                if (pGuard->GetOrientation() != pGuard->GetSpawnO())
+                    pGuard->SetFacing(pGuard->GetSpawnO());
+            }
+        }
+    }
+}
+#endif //#ifdef ENABLE_VH_HACKS
+
 void SetupTheVioletHold(ScriptMgr* mgr)
 {
     //Instance
-    mgr->register_instance_script(MAP_VIOLET_HOLD, &TheVioletHoldScript::Create);
+    mgr->register_instance_script(MAP_VIOLET_HOLD, &TheVioletHoldInstance::Create);
 
     //Sinclari gossip/escort event
     mgr->register_creature_script(CN_LIEUTNANT_SINCLARI, &SinclariAI::Create);

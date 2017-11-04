@@ -245,7 +245,7 @@ const uint32_t VHIntroMobs[VHIntroMobCount] =
 };
 
 // Location used to move intro and event npcs
-const Movement::Location sealAttackLoc = { 1843.567017f, 804.288208f, 44.139091f, 0};
+const Movement::Location sealAttackLoc = { 1843.567017f, 804.288208f, 46.139091f, 0};
 
 const Movement::Location SinclariPositions[] =
 {
@@ -486,20 +486,21 @@ const Movement::Location CyanigosaJumpLocation  = { 1888.32f,  804.473f,  38.357
 
 // Waypoints used by portal summons
 // Portal near Erekem boss waypoints
-const uint8_t MaxFirstPortalWP = 6;
-const Movement::Location FirstPortalWPs[MaxFirstPortalWP] =
+const uint8_t MaxFirstPortalWPS = 7;
+const Movement::Location FirstPortalWPs[MaxFirstPortalWPS] =
 {
     {1877.670288f, 842.280273f, 43.333591f, 0},
     {1877.338867f, 834.615356f, 38.762287f, 0},
     {1872.161011f, 823.854309f, 38.645401f, 0},
     {1864.860474f, 815.787170f, 38.784843f, 0},
     {1858.953735f, 810.048950f, 44.008759f, 0},
-    {1843.707153f, 805.807739f, 44.135197f, 0}
-    //{1825.736084f, 807.305847f, 44.363785f}
+    {1843.707153f, 805.807739f, 44.135197f, 0},
+    //{1825.736084f, 807.305847f, 44.363785f},
+    {}
 };
 
 // Portal near Zuramat boss waypoints (left side)
-const uint8_t MaxSecondPortalLeftWPS = 9;
+const uint8_t MaxSecondPortalLeftWPS = 10;
 const Movement::Location SecondPortalFirstWPs[MaxSecondPortalLeftWPS] =
 {
     {1902.561401f, 853.334656f, 47.106117f, 0},
@@ -510,12 +511,13 @@ const Movement::Location SecondPortalFirstWPs[MaxSecondPortalLeftWPS] =
     {1872.161011f, 823.854309f, 38.645401f, 0},
     {1864.860474f, 815.787170f, 38.784843f, 0},
     {1858.953735f, 810.048950f, 44.008759f, 0},
-    {1843.707153f, 805.807739f, 44.135197f, 0}
-    //{1825.736084f, 807.305847f, 44.363785f}
+    {1843.707153f, 805.807739f, 44.135197f, 0},
+    //{1825.736084f, 807.305847f, 44.363785f},
+    {}
 };
 
 // Portal near Zuramat boss waypoints (right side)
-const uint8_t MaxSecondPortalRightWPS = 8;
+const uint8_t MaxSecondPortalRightWPS = 9;
 const Movement::Location SecondPortalSecondWPs[MaxSecondPortalRightWPS] =
 {
     {1929.392212f, 837.614990f, 47.136166f, 0},
@@ -525,12 +527,13 @@ const Movement::Location SecondPortalSecondWPs[MaxSecondPortalRightWPS] =
     {1886.810547f, 813.536621f, 38.490490f, 0},
     {1869.079712f, 808.701538f, 38.689003f, 0},
     {1860.843384f, 806.645020f, 44.008789f, 0},
-    {1843.707153f, 805.807739f, 44.135197f, 0}
-    //{1825.736084f, 807.305847f, 44.363785f}
+    {1843.707153f, 805.807739f, 44.135197f, 0},
+    //{1825.736084f, 807.305847f, 44.363785f},
+    {}
 };
 
 // Top edge portal waypoints
-const uint8_t MaxThirdPortalWPS = 8;
+const uint8_t MaxThirdPortalWPS = 9;
 const Movement::Location ThirdPortalWPs[MaxThirdPortalWPS] =
 {
     {1934.049438f, 815.778503f, 52.408699f, 0},
@@ -540,12 +543,13 @@ const Movement::Location ThirdPortalWPs[MaxThirdPortalWPS] =
     {1886.810547f, 813.536621f, 38.490490f, 0},
     {1869.079712f, 808.701538f, 38.689003f, 0},
     {1860.843384f, 806.645020f, 44.008789f, 0},
-    {1843.707153f, 805.807739f, 44.135197f, 0}
-    //{1825.736084f, 807.305847f, 44.363785f}
+    {1843.707153f, 805.807739f, 44.135197f, 0},
+    //{1825.736084f, 807.305847f, 44.363785f},
+    {}
 };
 
 // Squad group spawn location near Moragg boss
-const uint8_t MaxFourthPortalWPS = 9;
+const uint8_t MaxFourthPortalWPS = 10;
 const Movement::Location FourthPortalWPs[MaxFourthPortalWPS] =
 {
     {1921.658447f, 761.657043f, 50.866741f, 0},
@@ -556,12 +560,13 @@ const Movement::Location FourthPortalWPs[MaxFourthPortalWPS] =
     {1872.439087f, 782.568604f, 38.808292f, 0},
     {1863.573364f, 791.173584f, 38.743660f, 0},
     {1857.811890f, 796.765564f, 43.950329f, 0},
-    {1845.577759f, 800.681152f, 44.104248f, 0}
-    //{1827.100342f, 801.605957f, 44.363358f}
+    {1845.577759f, 800.681152f, 44.104248f, 0},
+    //{1827.100342f, 801.605957f, 44.363358f},
+    {}
 };
 
 // Portal near Moragg boss
-const uint8_t MaxFifthPortalWPS = 6;
+const uint8_t MaxFifthPortalWPS = 7;
 const Movement::Location FifthPortalWPs[MaxFifthPortalWPS] =
 {
     {1887.398804f, 763.633240f, 47.666851f, 0},
@@ -569,19 +574,138 @@ const Movement::Location FifthPortalWPs[MaxFifthPortalWPS] =
     {1872.439087f, 782.568604f, 38.808292f, 0},
     {1863.573364f, 791.173584f, 38.743660f, 0},
     {1857.811890f, 796.765564f, 43.950329f, 0},
-    {1845.577759f, 800.681152f, 44.104248f, 0}
-    //{1827.100342f, 801.605957f, 44.363358f}
+    {1845.577759f, 800.681152f, 44.104248f, 0},
+    //{1827.100342f, 801.605957f, 44.363358f},
+    {}
 };
 
 // Portal near Ichonor boss waypoints
-const uint8_t MaxSixhtPortalWPS = 4;
+const uint8_t MaxSixhtPortalWPS = 5;
 const Movement::Location SixthPoralWPs[MaxSixhtPortalWPS] =
 {
     {1888.861084f, 805.074768f, 38.375790f, 0},
     {1869.793823f, 804.135804f, 38.647018f, 0},
     {1861.541504f, 804.149780f, 43.968292f, 0},
-    {1843.567017f, 804.288208f, 44.139091f, 0}
-    //{1826.889648f, 803.929993f, 44.363239f}
+    {1843.567017f, 804.288208f, 44.139091f, 0},
+    //{1826.889648f, 803.929993f, 44.363239f},
+    {}
 };
 
 const Movement::Location DefaultPortalWPs = { 1843.567017f, 804.288208f, 44.139091f, 0 };
+
+class TheVioletHoldInstance : public InstanceScript
+{
+    uint32_t m_VHencounterData[INDEX_MAX];
+
+    // Achievements
+    bool m_isZuramatAchievFailed;
+    bool m_isDefAchievFailed;
+
+    // Low guids of gameobjects
+    uint32_t m_mainGatesGUID;
+    uint32_t m_MorrogCellGUID;
+    uint32_t m_IchnonorCellGUID;
+    uint32_t m_XevozzCellGUID;
+    uint32_t m_LavanthorCellGUID;
+    uint32_t m_ZuramatCellGUID;
+    uint32_t m_ErekemCellGUID;
+    uint32_t m_ErekemGuardCellGUID[2];
+
+    // Low guids of creatures
+    uint32_t m_sinclariGUID;
+
+    // Guid lists
+    std::list<uint32_t> m_guardsGuids;      // Guards at entrance guids
+    std::list<uint32_t> m_crystalGuids;     // Activation crystal guids
+    std::list<uint32_t> m_introSpawns;      // intro creatures guids
+    std::list<uint32_t> m_defenseTriggers;  // Used for visual effect in defense npc AI
+    std::list<uint32_t> m_eventSpawns;      // Portal event spawns (it won't contain main portal guardians)
+
+                                            // Portal summoning event
+    uint32_t m_portalSummonTimer;
+    VHPortalInfo m_activePortal;
+    uint32_t m_portalGUID;
+    uint32_t m_portalGuardianGUID;
+
+    // Booleans used to control sinclari reports about seal hp
+    bool emote75pct;
+    bool emote50pct;
+    bool emote5pct;
+
+    // Friend classes which will able to use private instance data
+    friend class VH_DefenseAI;
+    friend class TeleportationPortalAI;
+    friend class AzureSaboteurAI;
+
+public:
+
+    static InstanceScript* Create(MapMgr* pMapMgr) { return new TheVioletHoldInstance(pMapMgr); }
+    TheVioletHoldInstance(MapMgr* pMapMgr);
+
+    void SetCellForcedStates(float pMinX, float pMaxX, float pMinY, float pMaxY, bool pActivate);
+
+    //TODO: this should be redone by checking actual saved data for heroic mode
+    void ResetInstanceData();
+
+    void SetInstanceData(uint32_t /*pType*/, uint32_t pIndex, uint32_t pData);
+
+    uint32_t GetInstanceData(uint32_t /*pType*/, uint32_t pIndex);
+
+    void OnLoad();
+
+    void OnGameObjectPushToWorld(GameObject* pGo);
+
+    void OnGameObjectActivate(GameObject* pGo, Player* plr);
+
+
+    //void SaveInstanceData(uint32_t spawnId);
+
+    //Instance* GetSavedInstance();
+
+    void OnCreaturePushToWorld(Creature* pCreature);
+
+    void OnCreatureDeath(Creature* pCreature, Unit* pKiller);
+
+    void OnPlayerEnter(Player* plr);
+
+    void UpdateEvent();
+
+    // Generate very basic portal info
+    void GenerateRandomPortal(VHPortalInfo & newPortal);
+
+    // SpawnPortal
+    void SpawnPortal();
+    /////////////////////////////////////////////////////////
+    /// Helper functions
+    ///
+
+    void DoCrystalActivation();
+
+    void ResetIntro();
+
+    // Removes all dead intro npcs
+    void RemoveIntroNpcs(bool deadOnly);
+
+    void RemoveIntroNpcByGuid(uint32_t guid);
+
+    void UpdateWorldStates();
+
+    void UpdateInstanceWorldState(uint32_t field, uint32_t value);
+
+    // Spawn instance intro
+    void SpawnIntro();
+
+    // Resets activation crystals
+    void ResetCrystals(bool isSelectable);
+
+    /// Update achievement criteria for all players by id
+    void UpdateAchievCriteriaForPlayers(uint32_t id, uint32_t criteriaCount);
+
+    // Calls guards out
+    void CallGuardsOut();
+
+    // Huge HACK
+#ifdef ENABLE_VH_HACKS
+    void UpdateGuards();
+#endif //#ifdef ENABLE_VH_HACKS
+};
