@@ -247,12 +247,14 @@ const uint32_t VHIntroMobs[VHIntroMobCount] =
 // Location used to move intro and event npcs
 const Movement::Location sealAttackLoc = { 1843.567017f, 804.288208f, 44.139091f, 0};
 
-const Movement::Location SinclariPositions[] =
+const uint8_t MaxSinclariWps = 5;
+const Movement::Location SinclariWps[MaxSinclariWps] =
 {
     { 1829.142f, 798.219f,  44.36212f, 0.122173f }, // 0 - Crystal
     { 1820.12f,  803.916f,  44.36466f, 0.0f      }, // 1 - Outside (before closing doors)
     { 1816.185f, 804.0629f, 44.44799f, 3.176499f }, // 2 - Second Spawn Point (after closing doors)
-    { 1827.886f, 804.0555f, 44.36467f, 0.0f      }  // 3 - Outro (instance finish event)
+    { 1827.886f, 804.0555f, 44.36467f, 0.0f      },  // 3 - Outro (instance finish event)
+    {}
 };
 
 const uint32_t MaxPortalPositions = 8;

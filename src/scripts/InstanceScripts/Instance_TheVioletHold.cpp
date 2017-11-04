@@ -10,7 +10,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 // Helper functions
 
-uint32_t GenerateWaitTime(Creature* pCreature, float newX, float currentX, float newY, float currentY)
+uint32_t GenerateWaitTime(Creature* pCreature, float newX, float currentX, float newY, float currentY, Movement::WaypointMoveType moveType = Movement::WP_MOVE_TYPE_RUN)
 {
     if (!pCreature)
         return 0;
@@ -18,10 +18,11 @@ uint32_t GenerateWaitTime(Creature* pCreature, float newX, float currentX, float
     float distanceX = (newX - currentX) * (newX - currentX);
     float distanceY = (newY - currentY) * (newY - currentY);
     float distance = sqrt(distanceX + distanceY);
-    return  static_cast<uint32_t>((1000 * std::abs(distance / pCreature->GetCreatureProperties()->run_speed)) - 1000);
+    // we dont have flying creatures here, using only walk/run speeds
+    return  static_cast<uint32_t>((1000 * std::abs(distance / ((moveType == Movement::WP_MOVE_TYPE_RUN) ? pCreature->GetCreatureProperties()->run_speed : pCreature->GetCreatureProperties()->walk_speed))) - 1000);
 }
 
-Movement::WayPoint* CreateWaypoint(uint32_t pId, uint32_t waitTime, Movement::Location pCoords)
+Movement::WayPoint* CreateWaypoint(uint32_t pId, uint32_t waitTime, Movement::WaypointMoveType moveType, Movement::Location pCoords)
 {
     Movement::WayPoint* wp = new Movement::WayPoint();
     wp->id = pId;
@@ -30,7 +31,7 @@ Movement::WayPoint* CreateWaypoint(uint32_t pId, uint32_t waitTime, Movement::Lo
     wp->z = pCoords.z;
     wp->o = pCoords.o;
     wp->waittime = waitTime;
-    wp->flags = Movement::WP_MOVE_TYPE_RUN;
+    wp->flags = moveType;
     wp->forwardemoteoneshot = false;
     wp->forwardemoteid = 0;
     wp->backwardemoteoneshot = false;
@@ -49,13 +50,59 @@ class SinclariAI : public CreatureAIScript
         SinclariAI(Creature* pCreature) : CreatureAIScript(pCreature), m_Step(0)
         {
             VH_instance = static_cast<TheVioletHoldInstance*>(pCreature->GetMapMgr()->GetScript());
-            pCreature->GetAIInterface()->setWalkMode(WALKMODE_WALK);
+            for (uint8_t i = 0; i < MaxSinclariWps; i++)
+            {
+                uint32_t waitTime = 2000;
+                if (i == 0)
+                    waitTime += GenerateWaitTime(pCreature, SinclariWps[i].x, pCreature->GetPositionX(), SinclariWps[i].y, pCreature->GetPositionY(), Movement::WP_MOVE_TYPE_WALK);
+                else
+                    waitTime += GenerateWaitTime(pCreature, SinclariWps[i].x, FirstPortalWPs[i - 1].x, SinclariWps[i].y, SinclariWps[i - 1].y, Movement::WP_MOVE_TYPE_WALK);
+                pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_WALK, SinclariWps[i]));
+                pCreature->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
+            }
         }
 
         void StartEvent()
         {
             GetUnit()->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
-            RegisterAIUpdateEvent(1000);
+            GetUnit()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
+            GetUnit()->GetAIInterface()->setWayPointToMove(1);
+        }
+
+        void OnReachWP(uint32 iWaypointId, bool /*bForwards*/)
+        {
+            switch (iWaypointId)
+            {
+                // Handle emote and activate crystal (via instance script)
+                case 1:
+                {
+                    GetUnit()->EventAddEmote(EMOTE_ONESHOT_USESTANDING, 3000);
+                    if (VH_instance)
+                        VH_instance->SetInstanceData(0, INDEX_INSTANCE_PROGRESS, State_Performed);
+                    // After 6 seconds call AIUpdate event (its going to be step 0)
+                    RegisterAIUpdateEvent(6000);
+                }break;
+                // Say goodbye and call AIUpdate event (step 3)
+                case 2:
+                {
+                    GetUnit()->SetFacing(SinclariWps[1].o);
+                    RegisterAIUpdateEvent(3500);
+                    sendDBChatMessage(SAY_SINCLARI_CLOSING_GATES);
+                }break;
+                // Set instance data, update her unit_npc_flags and update facing
+                case 3:
+                {
+                    GetUnit()->SetFacing(SinclariWps[2].o);
+                    GetUnit()->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+                    if (VH_instance)
+                        VH_instance->SetInstanceData(0, INDEX_INSTANCE_PROGRESS, State_InProgress);
+                }break;
+                // Outro event
+                case 4:
+                {
+                    sendDBChatMessage(SAY_SINCLARI_INSTANCE_DONE);
+                }break;
+            }
         }
 
         void AIUpdate()
@@ -64,26 +111,14 @@ class SinclariAI : public CreatureAIScript
             {
                 switch(m_Step)
                 {
-                    // Walk to crystal
+                    // Face to guards and call them after 1 second
                     case 0:
                     {
-                        ModifyAIUpdateEvent(3000);
-                        moveTo(SinclariPositions[0].x, SinclariPositions[0].y, SinclariPositions[0].z, false);
-                    }break;
-                    // Do emote and spawn defense system
-                    case 1:
-                    {
-                        ModifyAIUpdateEvent(6000);
-                        GetUnit()->EventAddEmote(EMOTE_ONESHOT_USESTANDING, 3000);
-                        VH_instance->SetInstanceData(0, INDEX_INSTANCE_PROGRESS, State_Performed);
-                    }break;
-                    // Face to guards
-                    case 2:
-                    {
                         ModifyAIUpdateEvent(1000);
-                        GetUnit()->SetFacing(SinclariPositions[0].o);
+                        GetUnit()->SetFacing(SinclariWps[0].o);
                     }break;
-                    case 3:
+                    // Call guards and after 3 seconds start another waypoint movement
+                    case 1:
                     {
                         ModifyAIUpdateEvent(3000);
                         sendDBChatMessage(YELL_SINCLARI_LEAVING);
@@ -91,72 +126,35 @@ class SinclariAI : public CreatureAIScript
                         VH_instance->CallGuardsOut();
                     }break;
                     // Move her outside
-                    case 4:
+                    case 2:
                     {
-                        ModifyAIUpdateEvent(5500);
-                        moveTo(SinclariPositions[1].x, SinclariPositions[1].y, SinclariPositions[1].z, false);
-                    }break;
-                    // Face her to gates and say goodbye
-                    case 5:
-                    {
-                        GetUnit()->SetOrientation(SinclariPositions[1].o);
-                        ModifyAIUpdateEvent(3500);
-                        sendDBChatMessage(SAY_SINCLARI_CLOSING_GATES);
+                        GetUnit()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
+                        GetUnit()->GetAIInterface()->setWayPointToMove(2);
+                        RemoveAIUpdateEvent();
                     }break;
                     // Emote mimic
-                    case 6:
+                    case 3:
                     {
                         GetUnit()->EventAddEmote(EMOTE_ONESHOT_TALK, 2000);
                         ModifyAIUpdateEvent(3000);
                     }break;
                     // Close the gates
-                    case 7:
+                    case 4:
                     {
                         VH_instance->SetInstanceData(0, INDEX_INSTANCE_PROGRESS, State_PreProgress);
                         ModifyAIUpdateEvent(1000);
                     }break;
                     // Move her further
-                    case 8:
+                    case 5:
                     {
-                        ModifyAIUpdateEvent(1602);
-                        moveTo(SinclariPositions[2].x, SinclariPositions[2].y, SinclariPositions[2].z, false);
-                    }break;
-                    case 9:
-                    {
-                        GetUnit()->SetFacing(SinclariPositions[2].o);
-                        GetUnit()->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
-                        VH_instance->SetInstanceData(0, INDEX_INSTANCE_PROGRESS, State_InProgress);
+                        GetUnit()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
+                        GetUnit()->GetAIInterface()->setWayPointToMove(3);
                         RemoveAIUpdateEvent();
                     }break;
                     default:
                         break;
                 }
 
-                ++m_Step;
-            }
-
-            // Outro
-            if (VH_instance && VH_instance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_Finished)
-            {
-                switch(m_Step)
-                {
-                    case 10:
-                    {
-                        moveTo(SinclariPositions[3].x, SinclariPositions[3].y, SinclariPositions[3].z, false);
-                        ModifyAIUpdateEvent(4000);
-                    }break;
-                    case 11:
-                    {
-                        sendDBChatMessage(SAY_SINCLARI_INSTANCE_DONE);
-                        ModifyAIUpdateEvent(10000);
-                    }break;
-                    case 12:
-                    {
-                        GetUnit()->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
-                    }break;
-                    default:
-                        break;
-                }
                 ++m_Step;
             }
         }
@@ -286,7 +284,7 @@ class IntroPortalAI : public CreatureAIScript
                                 else
                                     waitTime += GenerateWaitTime(GetUnit(), FirstPortalWPs[i].x, FirstPortalWPs[i - 1].x, FirstPortalWPs[i].y, FirstPortalWPs[i - 1].y);
 
-                                pAttacker->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, FirstPortalWPs[i]));
+                                pAttacker->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_RUN, FirstPortalWPs[i]));
                             }
                         }break;
                         case 1: // right
@@ -299,7 +297,7 @@ class IntroPortalAI : public CreatureAIScript
                                 else
                                     waitTime += GenerateWaitTime(GetUnit(), FifthPortalWPs[i].x, FifthPortalWPs[i - 1].x, FifthPortalWPs[i].y, FifthPortalWPs[i - 1].y);
 
-                                pAttacker->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, FifthPortalWPs[i]));
+                                pAttacker->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_RUN, FifthPortalWPs[i]));
                             }
                         }break;
                         case 2: // middle
@@ -312,7 +310,7 @@ class IntroPortalAI : public CreatureAIScript
                                 else
                                     waitTime += GenerateWaitTime(GetUnit(), ThirdPortalWPs[i].x, ThirdPortalWPs[i - 1].x, ThirdPortalWPs[i].y, ThirdPortalWPs[i - 1].y);
 
-                                pAttacker->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, ThirdPortalWPs[i]));
+                                pAttacker->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_RUN, ThirdPortalWPs[i]));
                             }
                         }break;
                         default:
@@ -363,11 +361,6 @@ class VHAttackerAI : public CreatureAIScript
                     RegisterAIUpdateEvent(6000);
                     //GetUnit()->CastSpellAoF(pTriggerTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_DESTROY_DOOR_SEAL), false);
                 }
-                else
-                {
-                    printf("NO SEAL TRIGGER\n");
-                }
-
             }
         }
 
@@ -647,7 +640,7 @@ class TeleportationPortalAI : public CreatureAIScript
                             else
                                 waitTime += GenerateWaitTime(pCreature, FirstPortalWPs[i].x, FirstPortalWPs[i - 1].x, FirstPortalWPs[i].y, FirstPortalWPs[i - 1].y);
 
-                            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, FirstPortalWPs[i]));
+                            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_RUN, FirstPortalWPs[i]));
                         }
                     }break;
                     case 7: // Squad group near Zuramat
@@ -662,7 +655,7 @@ class TeleportationPortalAI : public CreatureAIScript
                                 else
                                     waitTime += GenerateWaitTime(pCreature, SecondPortalFirstWPs[i].x, SecondPortalFirstWPs[i - 1].x, SecondPortalFirstWPs[i].y, SecondPortalFirstWPs[i - 1].y);
 
-                                pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, SecondPortalFirstWPs[i]));
+                                pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_RUN, SecondPortalFirstWPs[i]));
                             }
                         }
                         else
@@ -675,7 +668,7 @@ class TeleportationPortalAI : public CreatureAIScript
                                 else
                                     waitTime += GenerateWaitTime(pCreature, SecondPortalSecondWPs[i].x, SecondPortalSecondWPs[i - 1].x, SecondPortalSecondWPs[i].y, SecondPortalSecondWPs[i - 1].y);
 
-                                pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, SecondPortalSecondWPs[i]));
+                                pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_RUN, SecondPortalSecondWPs[i]));
                             }
                         }
 
@@ -690,7 +683,7 @@ class TeleportationPortalAI : public CreatureAIScript
                             else
                                 waitTime += GenerateWaitTime(pCreature, ThirdPortalWPs[i].x, ThirdPortalWPs[i - 1].x, ThirdPortalWPs[i].y, ThirdPortalWPs[i - 1].y);
 
-                            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, ThirdPortalWPs[i]));
+                            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_RUN, ThirdPortalWPs[i]));
                         }
                     }break;
                     case 6: // near moragg squad location
@@ -703,7 +696,7 @@ class TeleportationPortalAI : public CreatureAIScript
                             else
                                 waitTime += GenerateWaitTime(pCreature, FourthPortalWPs[i].x, FourthPortalWPs[i - 1].x, FourthPortalWPs[i].y, FourthPortalWPs[i - 1].y);
 
-                            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, FourthPortalWPs[i]));
+                            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_RUN, FourthPortalWPs[i]));
                         }
                     }break;
                     case 4: // morag loc
@@ -716,7 +709,7 @@ class TeleportationPortalAI : public CreatureAIScript
                             else
                                 waitTime += GenerateWaitTime(pCreature, FifthPortalWPs[i].x, FifthPortalWPs[i - 1].x, FifthPortalWPs[i].y, FifthPortalWPs[i - 1].y);
 
-                            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, FifthPortalWPs[i]));
+                            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_RUN, FifthPortalWPs[i]));
                         }
                     }break;
                     case 5:
@@ -729,16 +722,16 @@ class TeleportationPortalAI : public CreatureAIScript
                             else
                                 waitTime += GenerateWaitTime(pCreature, SixthPoralWPs[i].x, SixthPoralWPs[i - 1].x, SixthPoralWPs[i].y, SixthPoralWPs[i - 1].y);
 
-                            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, SixthPoralWPs[i]));
+                            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_RUN, SixthPoralWPs[i]));
                         }
                     }break;
                     default:
                     {
                         uint32_t waitTime = 1000 + GenerateWaitTime(pCreature, DefaultPortalWPs.x, pCreature->GetPositionX(), DefaultPortalWPs.y, pCreature->GetPositionY());
-                        pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(1, waitTime, DefaultPortalWPs));
+                        pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(1, waitTime, Movement::WP_MOVE_TYPE_RUN, DefaultPortalWPs));
                         // Unused waypoint
                         Movement::Location emptyLoc = { 0, 0, 0, 0 };
-                        pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(2, waitTime, emptyLoc));
+                        pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(2, waitTime, Movement::WP_MOVE_TYPE_RUN, emptyLoc));
 
                     }break;
                 }
@@ -758,7 +751,7 @@ class TeleportationPortalAI : public CreatureAIScript
                             else
                                 waitTime += GenerateWaitTime(GetUnit(), SaboteurMoraggPath[i].x, SaboteurMoraggPath[i - 1].x, SaboteurMoraggPath[i].y, SaboteurMoraggPath[i - 1].y);
 
-                            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, SaboteurMoraggPath[i]));
+                            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_RUN, SaboteurMoraggPath[i]));
                         }
                     }break;
                     case CN_ICHORON:
@@ -772,7 +765,7 @@ class TeleportationPortalAI : public CreatureAIScript
                             else
                                 waitTime += GenerateWaitTime(GetUnit(), SaboteurIchoronPath[i].x, SaboteurIchoronPath[i - 1].x, SaboteurIchoronPath[i].y, SaboteurIchoronPath[i - 1].y);
 
-                            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, SaboteurIchoronPath[i]));
+                            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_RUN, SaboteurIchoronPath[i]));
                         }
                     }break;
                     case CN_XEVOZZ:
@@ -786,7 +779,7 @@ class TeleportationPortalAI : public CreatureAIScript
                             else
                                 waitTime += GenerateWaitTime(GetUnit(), SaboteurXevozzPath[i].x, SaboteurXevozzPath[i - 1].x, SaboteurXevozzPath[i].y, SaboteurXevozzPath[i - 1].y);
 
-                            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, SaboteurXevozzPath[i]));
+                            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_RUN, SaboteurXevozzPath[i]));
                         }
                     }break;
                     case CN_LAVANTHOR:
@@ -800,7 +793,7 @@ class TeleportationPortalAI : public CreatureAIScript
                             else
                                 waitTime += GenerateWaitTime(GetUnit(), SaboteurLavanthorPath[i].x, SaboteurLavanthorPath[i - 1].x, SaboteurLavanthorPath[i].y, SaboteurLavanthorPath[i - 1].y);
 
-                            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, SaboteurLavanthorPath[i]));
+                            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_RUN, SaboteurLavanthorPath[i]));
                         }
                     }break;
                     case CN_EREKEM:
@@ -814,7 +807,7 @@ class TeleportationPortalAI : public CreatureAIScript
                             else
                                 waitTime += GenerateWaitTime(GetUnit(), SaboteurErekemPath[i].x, SaboteurErekemPath[i - 1].x, SaboteurErekemPath[i].y, SaboteurErekemPath[i - 1].y);
 
-                            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, SaboteurErekemPath[i]));
+                            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_RUN, SaboteurErekemPath[i]));
                         }
                     }break;
                     case CN_ZURAMAT:
@@ -828,7 +821,7 @@ class TeleportationPortalAI : public CreatureAIScript
                             else
                                 waitTime += GenerateWaitTime(GetUnit(), SaboteurZuramatPath[i].x, SaboteurZuramatPath[i - 1].x, SaboteurZuramatPath[i].y, SaboteurZuramatPath[i - 1].y);
 
-                            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, SaboteurZuramatPath[i]));
+                            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_RUN, SaboteurZuramatPath[i]));
                         }
                     }break;
                     default:
@@ -1102,13 +1095,8 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t /*pType*/, uint32_t pIndex,
             }
 
             // Update crystals
-            for (std::list<uint32_t>::iterator itr = m_crystalGuids.begin(); itr != m_crystalGuids.end(); ++itr)
-            {
-                if (GameObject* pGO = GetInstance()->GetGameObject(*itr))
-                {
-                    pGO->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NONSELECTABLE);
-                }
-            }
+            ResetCrystals(true);
+
             // Set HP
             SetInstanceData(0, DATA_SEAL_HEALTH, 100);
         }
