@@ -340,18 +340,19 @@ class VHAttackerAI : public CreatureAIScript
 
         void OnLoad()
         {
-            RegisterAIUpdateEvent(2000);
+            RegisterAIUpdateEvent(1000);
         }
 
         void OnReachWP(uint32 iWaypointId, bool /*bForwards*/)
         {
-            if (iWaypointId + 1 <= GetUnit()->GetAIInterface()->getWayPointsCount())
+            if (iWaypointId < GetUnit()->GetAIInterface()->getWayPointsCount())
             {
                 GetUnit()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
                 GetUnit()->GetAIInterface()->setWayPointToMove(iWaypointId + 1);
             }
 
-            if (pInstance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress && iWaypointId == GetUnit()->GetAIInterface()->getWayPointsCount() - 1)
+            if (pInstance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) == State_InProgress && pInstance->GetInstanceData(0, DATA_SEAL_HEALTH) != 0 
+            && iWaypointId == GetUnit()->GetAIInterface()->getWayPointsCount() - 1)
             {
                 if (Creature* pTriggerTarget = getNearestCreature(1823.696045f, 803.604858f, 44.895786f, CN_DOOR_SEAL))
                 {
@@ -403,6 +404,13 @@ class VHAttackerAI : public CreatureAIScript
                 GetUnit()->GetAIInterface()->setWayPointToMove(1);
                 isMoveSet = true;
                 RemoveAIUpdateEvent();
+            }
+
+            // TODO: this should be handled by periodic aura
+            if (!GetUnit()->CombatStatus.IsInCombat() && GetUnit()->GetChannelSpellTargetGUID() != 0 && GetUnit()->GetChannelSpellId() != 0
+            && pInstance && pInstance->GetInstanceData(0, INDEX_INSTANCE_PROGRESS) && pInstance->GetInstanceData(0, DATA_SEAL_HEALTH) != 0)
+            {
+                pInstance->SetInstanceData(0, DATA_SEAL_HEALTH, pInstance->GetInstanceData(0, DATA_SEAL_HEALTH) - 1);
             }
         }
 
