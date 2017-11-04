@@ -245,7 +245,7 @@ const uint32_t VHIntroMobs[VHIntroMobCount] =
 };
 
 // Location used to move intro and event npcs
-const Movement::Location sealAttackLoc = { 1843.567017f, 804.288208f, 46.139091f, 0};
+const Movement::Location sealAttackLoc = { 1843.567017f, 804.288208f, 44.139091f, 0};
 
 const Movement::Location SinclariPositions[] =
 {
