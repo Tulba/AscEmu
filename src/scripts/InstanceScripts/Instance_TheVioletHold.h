@@ -656,8 +656,6 @@ public:
     static InstanceScript* Create(MapMgr* pMapMgr) { return new TheVioletHoldInstance(pMapMgr); }
     TheVioletHoldInstance(MapMgr* pMapMgr);
 
-    void SetCellForcedStates(float pMinX, float pMaxX, float pMinY, float pMaxY, bool pActivate);
-
     //TODO: this should be redone by checking actual saved data for heroic mode
     void ResetInstanceData();
 

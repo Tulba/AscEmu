@@ -258,11 +258,6 @@ class IntroPortalAI : public CreatureAIScript
             RegisterAIUpdateEvent(2000);
         }
 
-        void OnDied(Unit* pKiller)
-        {
-            despawn();
-        }
-
         void AIUpdate()
         {
             // Summon adds every 15 or 20 seconds
@@ -1252,42 +1247,6 @@ TheVioletHoldInstance::TheVioletHoldInstance(MapMgr* pMapMgr) :
     generateBossDataState();
 }
 
-void TheVioletHoldInstance::SetCellForcedStates(float pMinX, float pMaxX, float pMinY, float pMaxY, bool pActivate)
-{
-    if (pMinX == pMaxX || pMinY == pMaxY)
-        return;
-
-    float Y = pMinY;
-    while (pMinX < pMaxX)
-    {
-        while (pMinY < pMaxY)
-        {
-            MapCell* CurrentCell = mInstance->GetCellByCoords(pMinX, pMinY);
-            if (pActivate && CurrentCell == nullptr)
-            {
-                CurrentCell = mInstance->CreateByCoords(pMinX, pMinY);
-                if (CurrentCell != nullptr)
-                    CurrentCell->Init(mInstance->GetPosX(pMinX), mInstance->GetPosY(pMinY), mInstance);
-            }
-
-            if (CurrentCell != nullptr)
-            {
-                if (pActivate)
-                {
-                    mInstance->AddForcedCell(CurrentCell);
-                }
-                else
-                    mInstance->RemoveForcedCell(CurrentCell);
-            }
-
-            pMinY += 40.0f;
-        }
-
-        pMinY = Y;
-        pMinX += 40.0f;
-    }
-}
-
 //TODO: this should be redone by checking actual saved data for heroic mode
 void TheVioletHoldInstance::ResetInstanceData()
 {
@@ -1473,7 +1432,7 @@ void TheVioletHoldInstance::OnLoad()
     {
         ResetIntro();
     }
-    SetCellForcedStates(1700.0f, 2100.0f, 500.0f, 1000.0f, true);
+    setCellForcedStates(1700.0f, 2100.0f, 500.0f, 1000.0f, true);
     registerUpdateEvent();  // default timer is 1000 ms
 }
 
@@ -1681,7 +1640,11 @@ void TheVioletHoldInstance::OnCreatureDeath(Creature* pCreature, Unit* pKiller)
         //TODO: replace this with basic despawn
         if (pCreature->IsInWorld())
         {
-            pCreature->RemoveFromWorld(true);
+            pCreature->Despawn(0, 0);
+        }
+        else
+        {
+            printf("VH: creature %u is not in world\n", pCreature->GetEntry());
         }
     }break;
     case CN_CYANIGOSA:
