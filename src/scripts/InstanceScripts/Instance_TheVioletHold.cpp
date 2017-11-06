@@ -1423,6 +1423,15 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
                 {
                     pGates->SetState(GO_STATE_OPEN);
                 }
+                if (Creature* pMoragg = GetInstance()->GetCreature(m_MoraggGUID))
+                {
+                    if (pMoragg->isAlive())
+                    {
+                        pMoragg->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
+                        pMoragg->GetAIInterface()->setWayPointToMove(1);
+                    }
+                }
+                SetInstanceData(INDEX_MORAGG, State_PreProgress);
             }break;
             case State_Failed:
             {
