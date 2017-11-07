@@ -25,6 +25,10 @@ enum DataIndex : uint8_t
     INDEX_PORTAL_PROGRESS,          // This INDEX declares portal progress state
     DATA_ARE_SUMMONS_MADE,          // This INDEX identifies if portal summoned adds successfuly (0 - false, 1 - true)
 
+    // Achievements
+    INDEX_ACHIEV_DEFENSELESS,
+    INDEX_ACHIEV_VOID_DANCE,
+
     // BOSS DATA
     INDEX_MORAGG,
     INDEX_ICHONOR,
@@ -106,7 +110,7 @@ enum VHTimers : uint32_t
     VH_TIMER_SPAWN_INTRO_MOB_MAX    = 20000,
 
     // Every timer below contains strict values in seconds (not milliseconds)
-    VH_INITIAL_PORTAL_TIME          = 2,    // only used for first portal
+    VH_INITIAL_PORTAL_TIME          = 1,    // only used for first portal
     VH_NEXT_PORTAL_SPAWN_TIME       = 10
 };
 
@@ -676,7 +680,7 @@ public:
 
     void OnCreaturePushToWorld(Creature* pCreature);
 
-    void OnCreatureDeath(Creature* pCreature, Unit* pKiller);
+    //void OnCreatureDeath(Creature* pCreature, Unit* pKiller);
 
     void OnPlayerEnter(Player* plr);
 

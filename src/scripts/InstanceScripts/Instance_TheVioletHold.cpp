@@ -352,8 +352,7 @@ class VHAttackerAI : public CreatureAIScript
                 if (Creature* pTriggerTarget = getNearestCreature(1823.696045f, 803.604858f, 44.895786f, CN_DOOR_SEAL))
                 {
                     GetUnit()->GetAIInterface()->setFacing(M_PI_FLOAT);
-                    GetUnit()->SetChannelSpellId(SPELL_VH_DESTROY_DOOR_SEAL);
-                    GetUnit()->SetChannelSpellTargetGUID(pTriggerTarget->GetGUID());
+                    StartChanneling(pTriggerTarget->GetGUID());
                     RegisterAIUpdateEvent(6000);
                     //GetUnit()->CastSpellAoF(pTriggerTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_DESTROY_DOOR_SEAL), false);
                 }
@@ -373,20 +372,35 @@ class VHAttackerAI : public CreatureAIScript
             }
         }
 
+        void StartChanneling(uint64_t triggerGUID)
+        {
+            // Stop channelling
+            if (triggerGUID == 0)
+            {
+                if (GetUnit()->GetChannelSpellId() != 0)
+                    GetUnit()->SetChannelSpellId(0);
+
+                if (GetUnit()->GetChannelSpellTargetGUID() != 0)
+                    GetUnit()->SetChannelSpellTargetGUID(0);
+            }
+            else
+            {
+                GetUnit()->SetChannelSpellId(SPELL_VH_DESTROY_DOOR_SEAL);
+                GetUnit()->SetChannelSpellTargetGUID(triggerGUID);
+            }
+        }
+
         void OnDied(Unit* /*pKiller*/)
         {
-            // Stop channelling (this can happen if player will use crystal)
-            GetUnit()->SetChannelSpellId(0);
-            GetUnit()->SetChannelSpellTargetGUID(0);
-            RemoveAIUpdateEvent();
-            despawn();
+            // Stop channelling
+            StartChanneling(0);
+            despawn(2000, 0);
         }
 
         void OnCombatStart(Unit* /*pKiller*/)
         {
             // Stop channeling and fight...
-            GetUnit()->SetChannelSpellId(0);
-            GetUnit()->SetChannelSpellTargetGUID(0);
+            StartChanneling(0);
             RemoveAIUpdateEvent();  // Remove pervious event timer
             RegisterAIUpdateEvent(1000);
         }
@@ -1275,7 +1289,7 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
 
         if (pData == PreProgress)
         {
-            RemoveIntroNpcs(false);
+            //RemoveIntroNpcs(false);
             // Close the gates
             if (GameObject* pGO = GetInstance()->GetGameObject(m_mainGatesGUID))
             {
@@ -1614,7 +1628,7 @@ void TheVioletHoldInstance::OnCreaturePushToWorld(Creature* pCreature)
         break;
     }
 }
-
+/*
 void TheVioletHoldInstance::OnCreatureDeath(Creature* pCreature, Unit* pKiller)
 {
     switch (pCreature->GetEntry())
@@ -1642,10 +1656,6 @@ void TheVioletHoldInstance::OnCreatureDeath(Creature* pCreature, Unit* pKiller)
         {
             pCreature->Despawn(0, 0);
         }
-        else
-        {
-            printf("VH: creature %u is not in world\n", pCreature->GetEntry());
-        }
     }break;
     case CN_CYANIGOSA:
     {
@@ -1657,7 +1667,6 @@ void TheVioletHoldInstance::OnCreatureDeath(Creature* pCreature, Unit* pKiller)
     }break;
     case CN_VIOLET_HOLD_GUARD:
     {
-        pCreature->Despawn(0, 1000);
     }break;
     case CN_MORAGG:
     {
@@ -1714,7 +1723,7 @@ void TheVioletHoldInstance::OnCreatureDeath(Creature* pCreature, Unit* pKiller)
     }break;
     }
 }
-
+*/
 void TheVioletHoldInstance::OnPlayerEnter(Player* plr)
 {
     UpdateWorldStates();
@@ -1765,7 +1774,7 @@ void TheVioletHoldInstance::UpdateEvent()
             SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
         }
     }
-
+/*
     if (!m_eventSpawns.empty())
     {
         for (std::list<uint32_t>::iterator itr = m_eventSpawns.begin(); itr != m_eventSpawns.end();)
@@ -1781,6 +1790,7 @@ void TheVioletHoldInstance::UpdateEvent()
             ++itr;
         }
     }
+*/
 }
 
 // Generate very basic portal info
@@ -1840,10 +1850,10 @@ void TheVioletHoldInstance::SpawnPortal()
 
     ++portalCount;
 
-    GenerateRandomPortal(m_activePortal);
     float x, y, z, o;
     if (m_activePortal.type != VH_PORTAL_TYPE_BOSS)
     {
+        GenerateRandomPortal(m_activePortal);
         x = PortalPositions[m_activePortal.id].x;
         y = PortalPositions[m_activePortal.id].y;
         z = PortalPositions[m_activePortal.id].z;
