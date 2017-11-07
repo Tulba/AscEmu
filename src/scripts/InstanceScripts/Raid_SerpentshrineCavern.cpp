@@ -158,8 +158,6 @@ class HydrossTheUnstableAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             sendDBChatMessage(4757);     // You are the disease, not I..
-
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -230,22 +228,22 @@ class HydrossTheUnstableAI : public CreatureAIScript
                     float posy = _unit->GetPositionY();
                     float posz = _unit->GetPositionZ();
                     float orientation = _unit->GetOrientation();
-                    summon = _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_TAINTED_SPAWN_OF_HYDROSS,
-                             posx + 6.93f, posy - 11.25f, posz, orientation,
-                             true, false, 0, 0);
-                    if (summon) summon->SchoolImmunityList[SCHOOL_NATURE] = 1;
-                    summon = _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_TAINTED_SPAWN_OF_HYDROSS,
-                             posx - 6.93f, posy + 11.25f, posz, orientation,
-                             true, false, 0, 0);
-                    if (summon) summon->SchoolImmunityList[SCHOOL_NATURE] = 1;
-                    summon = _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_TAINTED_SPAWN_OF_HYDROSS,
-                             posx - 12.57f, posy - 4.72f, posz, orientation,
-                             true, false, 0, 0);
-                    if (summon) summon->SchoolImmunityList[SCHOOL_NATURE] = 1;
-                    summon = _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_TAINTED_SPAWN_OF_HYDROSS,
-                             posx + 12.57f, posy + 4.72f, posz, orientation,
-                             true, false, 0, 0);
-                    if (summon) summon->SchoolImmunityList[SCHOOL_NATURE] = 1;
+
+                    summon = spawnCreature(CN_TAINTED_SPAWN_OF_HYDROSS, posx + 6.93f, posy - 11.25f, posz, orientation);
+                    if (summon)
+                        summon->SchoolImmunityList[SCHOOL_NATURE] = 1;
+
+                    summon = spawnCreature(CN_TAINTED_SPAWN_OF_HYDROSS, posx - 6.93f, posy + 11.25f, posz, orientation);
+                    if (summon)
+                        summon->SchoolImmunityList[SCHOOL_NATURE] = 1;
+
+                    summon = spawnCreature(CN_TAINTED_SPAWN_OF_HYDROSS, posx - 12.57f, posy - 4.72f, posz, orientation);
+                    if (summon)
+                        summon->SchoolImmunityList[SCHOOL_NATURE] = 1;
+
+                    summon = spawnCreature(CN_TAINTED_SPAWN_OF_HYDROSS, posx + 12.57f, posy + 4.72f, posz, orientation);
+                    if (summon)
+                        summon->SchoolImmunityList[SCHOOL_NATURE] = 1;
                 }
             }
             else //poison form
@@ -314,22 +312,22 @@ class HydrossTheUnstableAI : public CreatureAIScript
                     float posy = _unit->GetPositionY();
                     float posz = _unit->GetPositionZ();
                     float orientation = _unit->GetOrientation();
-                    summon = _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_PURE_SPAWN_OF_HYDROSS,
-                             posx + 6.93f, posy - 11.25f, posz, orientation,
-                             true, false, 0, 0);
-                    if (summon) summon->SchoolImmunityList[SCHOOL_FROST] = 1;
-                    summon = _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_PURE_SPAWN_OF_HYDROSS,
-                             posx - 6.93f, posy + 11.25f, posz, orientation,
-                             true, false, 0, 0);
-                    if (summon) summon->SchoolImmunityList[SCHOOL_FROST] = 1;
-                    summon = _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_PURE_SPAWN_OF_HYDROSS,
-                             posx - 12.57f, posy - 4.72f, posz, orientation,
-                             true, false, 0, 0);
-                    if (summon) summon->SchoolImmunityList[SCHOOL_FROST] = 1;
-                    summon = _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_PURE_SPAWN_OF_HYDROSS,
-                             posx + 12.57f, posy + 4.72f, posz, orientation,
-                             true, false, 0, 0);
-                    if (summon) summon->SchoolImmunityList[SCHOOL_FROST] = 1;
+
+                    summon = spawnCreature(CN_PURE_SPAWN_OF_HYDROSS, posx + 6.93f, posy - 11.25f, posz, orientation);
+                    if (summon)
+                        summon->SchoolImmunityList[SCHOOL_FROST] = 1;
+
+                    summon = spawnCreature(CN_PURE_SPAWN_OF_HYDROSS, posx - 6.93f, posy + 11.25f, posz, orientation);
+                    if (summon)
+                        summon->SchoolImmunityList[SCHOOL_FROST] = 1;
+
+                    summon = spawnCreature(CN_PURE_SPAWN_OF_HYDROSS, posx - 12.57f, posy - 4.72f, posz, orientation);
+                    if (summon)
+                        summon->SchoolImmunityList[SCHOOL_FROST] = 1;
+
+                    summon = spawnCreature(CN_PURE_SPAWN_OF_HYDROSS, posx + 12.57f, posy + 4.72f, posz, orientation);
+                    if (summon)
+                        summon->SchoolImmunityList[SCHOOL_FROST] = 1;
                 }
             }
 
@@ -517,16 +515,6 @@ class LurkerAI : public CreatureAIScript
             RemoveAIUpdateEvent();
         }
 
-        void OnDied(Unit* mKiller)
-        {
-            RemoveAIUpdateEvent();
-        }
-
-        void OnTargetDied(Unit* mTarget)
-        {
-
-        }
-
         void AIUpdate()
         {
             float val = RandomFloat(100.0f);
@@ -680,7 +668,7 @@ class LeotherasAI : public CreatureAIScript
         {
             //despawn shadow of leotheras
             Creature* shadow = NULL;
-            shadow = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(_unit->GetPositionX(), _unit->GetPositionY(), _unit->GetPositionZ(), CN_SHADOW_OF_LEOTHERAS);
+            shadow = getNearestCreature(_unit->GetPositionX(), _unit->GetPositionY(), _unit->GetPositionZ(), CN_SHADOW_OF_LEOTHERAS);
             if (shadow)
             {
                 shadow->Despawn(0, 0);
@@ -732,7 +720,6 @@ class LeotherasAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             sendDBChatMessage(4783);     // You cannot kill me! Fools, I'll be back! I'll... aarghh...
-            RemoveAIUpdateEvent();
         }
 
         void SwitchToHumanForm()
@@ -820,10 +807,10 @@ class LeotherasAI : public CreatureAIScript
                             if (!FinalPhaseTimer)
                             {
                                 _unit->SetStandState(STANDSTATE_STAND);
-                                shadow = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(_unit->GetPositionX(), _unit->GetPositionY(), _unit->GetPositionZ(), CN_SHADOW_OF_LEOTHERAS);
+                                shadow = getNearestCreature(_unit->GetPositionX(), _unit->GetPositionY(), _unit->GetPositionZ(), CN_SHADOW_OF_LEOTHERAS);
 
                                 if (shadow == NULL)
-                                    shadow = _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_SHADOW_OF_LEOTHERAS, _unit->GetPositionX(), _unit->GetPositionY(), _unit->GetPositionZ(), _unit->GetOrientation(), true, false, 0, 0);
+                                    shadow = spawnCreature(CN_SHADOW_OF_LEOTHERAS, _unit->GetPosition());
 
                                 FinalPhaseTimer = 5;
                                 FinalPhaseSubphase++;
@@ -974,7 +961,7 @@ class GreyheartSpellbinderAI : public CreatureAIScript
             m_spellcheck[0] = false;
 
             Unit* Leotheras = NULL;
-            Leotheras = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(376.543f, -438.631f, 29.7083f, CN_LEOTHERAS_THE_BLIND);
+            Leotheras = getNearestCreature(376.543f, -438.631f, 29.7083f, CN_LEOTHERAS_THE_BLIND);
             if (Leotheras)
             {
                 _unit->SetChannelSpellTargetGUID(Leotheras->GetGUID());
@@ -1012,7 +999,7 @@ class GreyheartSpellbinderAI : public CreatureAIScript
             if (LeotherasEventGreyheartToKill[_unit->GetInstanceID()] == 0)
             {
                 Unit* Leotheras = NULL;
-                Leotheras = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(376.543f, -438.631f, 29.7083f, CN_LEOTHERAS_THE_BLIND);
+                Leotheras = getNearestCreature(376.543f, -438.631f, 29.7083f, CN_LEOTHERAS_THE_BLIND);
                 if (Leotheras)
                 {
                     //remove banish & blocks
@@ -1226,11 +1213,10 @@ class KarathressAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             sendDBChatMessage(4748);     // Her ... excellency ... awaits!
-            RemoveAIUpdateEvent();
 
             //spawn seer olum and despawn him in 3 minutes
             Creature* olum = NULL;
-            olum = _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_SEER_OLUM, 451.099f, -544.984f, -7.36327f, 0.174533f, true, false, 0, 0);
+            olum = spawnCreature(CN_SEER_OLUM, 451.099f, -544.984f, -7.36327f, 0.174533f);
             if (olum)
                 olum->Despawn(180000, 0);
         }
@@ -1337,7 +1323,7 @@ class FathomGuardSharkissAI : public MoonScriptCreatureAI
 
         void OnDied(Unit* pKiller)
         {
-            Creature* FLK = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(_unit->GetPositionX(), _unit->GetPositionY(), _unit->GetPositionZ(), CN_FATHOM_LORD_KARATHRESS);
+            Creature* FLK = getNearestCreature(_unit->GetPositionX(), _unit->GetPositionY(), _unit->GetPositionZ(), CN_FATHOM_LORD_KARATHRESS);
             if (FLK)
             {
                 FLK->CastSpell(FLK, sSpellCustomizations.GetSpellInfo(38455), true); //Power of Sharkkis
@@ -1361,10 +1347,10 @@ class FathomGuardSharkissAI : public MoonScriptCreatureAI
                     switch (RandomUInt(1))
                     {
                         case 0:
-                            CurrentPet = _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_FATHOM_LURKER, _unit->GetPositionX(), _unit->GetPositionY(), _unit->GetPositionZ(), 0, true, false, 0, 0);
+                            CurrentPet = spawnCreature(CN_FATHOM_LURKER, _unit->GetPosition());
                             break;
                         case 1:
-                            CurrentPet = _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_FATHOM_SPOREBAT, _unit->GetPositionX(), _unit->GetPositionY(), _unit->GetPositionZ(), 0, true, false, 0, 0);
+                            CurrentPet = spawnCreature(CN_FATHOM_SPOREBAT, _unit->GetPosition());
                             break;
                     }
 
@@ -1404,7 +1390,7 @@ class FathomGuardTidalvessAI : public MoonScriptCreatureAI
 
         void OnDied(Unit* pKiller)
         {
-            Creature* FLK = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(_unit->GetPositionX(), _unit->GetPositionY(), _unit->GetPositionZ(), CN_FATHOM_LORD_KARATHRESS);
+            Creature* FLK = getNearestCreature(_unit->GetPositionX(), _unit->GetPositionY(), _unit->GetPositionZ(), CN_FATHOM_LORD_KARATHRESS);
             if (FLK)
             {
                 FLK->CastSpell(FLK, sSpellCustomizations.GetSpellInfo(38452), true); //Power of Tidalvess
@@ -1461,7 +1447,7 @@ class FathomGuardCaribdisAI : public MoonScriptCreatureAI
 
         void OnDied(Unit* pKiller)
         {
-            Creature* FLK = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(_unit->GetPositionX(), _unit->GetPositionY(), _unit->GetPositionZ(), CN_FATHOM_LORD_KARATHRESS);
+            Creature* FLK = getNearestCreature(_unit->GetPositionX(), _unit->GetPositionY(), _unit->GetPositionZ(), CN_FATHOM_LORD_KARATHRESS);
             if (FLK)
             {
                 FLK->CastSpell(FLK, sSpellCustomizations.GetSpellInfo(38451), true); //Power of Caribdis
@@ -1532,8 +1518,6 @@ class MorogrimAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             sendDBChatMessage(4792);     // Great... currents of... Ageon.
-
-            RemoveAIUpdateEvent();
         }
 
         void OnTargetDied(Unit* mTarget)
@@ -1587,10 +1571,10 @@ class MorogrimAI : public CreatureAIScript
                     _unit->CastSpell(_unit, spells[1].info, spells[1].instant);
 
                     for (uint8 i = 0; i < 6; i++)
-                        _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_TIDEWALKER_LURKER, 370.82f, -723.93f, -13.9f, 0, true, false, 0, 0);
+                        spawnCreature(CN_TIDEWALKER_LURKER, 370.82f, -723.93f, -13.9f, 0);
 
                     for (uint8 i = 0; i < 6; i++)
-                        _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_TIDEWALKER_LURKER, 527.90f, -721.88f, -7.14f, 0, true, false, 0, 0);
+                        spawnCreature(CN_TIDEWALKER_LURKER, 527.90f, -721.88f, -7.14f, 0);
 
                     spells[1].casttime = t + spells[1].cooldown;
                     return;
@@ -1727,7 +1711,7 @@ class EnchantedElementalAI : public CreatureAIScript
             _unit->GetAIInterface()->SetAllowedToEnterCombat(false);
 
             Unit* Vashj = NULL;
-            Vashj = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(29.798161f, -923.358276f, 42.900517f, CN_LADY_VASHJ);
+            Vashj = getNearestCreature(29.798161f, -923.358276f, 42.900517f, CN_LADY_VASHJ);
             if (Vashj)
             {
                 _unit->GetAIInterface()->setAiState(AI_STATE_SCRIPTMOVE);
@@ -1747,7 +1731,7 @@ class EnchantedElementalAI : public CreatureAIScript
 
                 case 2:
                     Unit* Vashj = NULL;
-                    Vashj = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(29.798161f, -923.358276f, 42.900517f, CN_LADY_VASHJ);
+                    Vashj = getNearestCreature(29.798161f, -923.358276f, 42.900517f, CN_LADY_VASHJ);
                     if (Vashj)
                     {
                         //Increase Lady Vashj attack by 5%
@@ -1903,7 +1887,6 @@ class VashjAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             sendDBChatMessage(4771);     // Lord Illidan, I... I am... sorry.
-            RemoveAIUpdateEvent();
         }
 
         void OnTargetDied(Unit* mTarget)
@@ -1991,7 +1974,7 @@ class VashjAI : public CreatureAIScript
             {
                 uint32 pos = RandomUInt(7);
                 Creature* elemental = NULL;
-                elemental = _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_ENCHANTED_ELEMENTAL, ElementalSpawnPoints[pos].x, ElementalSpawnPoints[pos].y, ElementalSpawnPoints[pos].z, ElementalSpawnPoints[pos].o, true, false, 0, 0);
+                elemental = spawnCreature(CN_ENCHANTED_ELEMENTAL, ElementalSpawnPoints[pos].x, ElementalSpawnPoints[pos].y, ElementalSpawnPoints[pos].z, ElementalSpawnPoints[pos].o);
                 if (elemental)
                 {
                     Movement::WayPoint* wp = _unit->CreateWaypointStruct();
@@ -2032,7 +2015,7 @@ class VashjAI : public CreatureAIScript
             if (!CoilfangStriderTimer)
             {
                 Creature* summoned = NULL;
-                summoned = _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_COILFANG_STRIDER, -29.761278f, -980.252930f, 41.097122f, 0.0f, true, false, 0, 0);
+                summoned = spawnCreature(CN_COILFANG_STRIDER, -29.761278f, -980.252930f, 41.097122f, 0.0f);
                 if (summoned)
                 {
                     //attack nearest target
@@ -2056,7 +2039,7 @@ class VashjAI : public CreatureAIScript
             {
                 uint32 pos = RandomUInt(3);
                 Creature* summoned = NULL;
-                summoned = _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_COILFANG_ELITE, CoilfangEliteSpawnPoints[pos].x, CoilfangEliteSpawnPoints[pos].y, CoilfangEliteSpawnPoints[pos].z, CoilfangEliteSpawnPoints[pos].o, true, false, 0, 0);
+                summoned = spawnCreature(CN_COILFANG_ELITE, CoilfangEliteSpawnPoints[pos].x, CoilfangEliteSpawnPoints[pos].y, CoilfangEliteSpawnPoints[pos].z, CoilfangEliteSpawnPoints[pos].o);
                 if (summoned)
                 {
                     //attack nearest target
@@ -2079,7 +2062,7 @@ class VashjAI : public CreatureAIScript
             if (!TaintedElementalTimer)
             {
                 uint32 pos = RandomUInt(7);
-                _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_TAINTED_ELEMENTAL, ElementalSpawnPoints[pos].x, ElementalSpawnPoints[pos].y, ElementalSpawnPoints[pos].z, ElementalSpawnPoints[pos].o, true, false, 0, 0);
+                spawnCreature(CN_TAINTED_ELEMENTAL, ElementalSpawnPoints[pos].x, ElementalSpawnPoints[pos].y, ElementalSpawnPoints[pos].z, ElementalSpawnPoints[pos].o);
                 TaintedElementalTimer = 120;
             }
 
@@ -2143,7 +2126,7 @@ class VashjAI : public CreatureAIScript
                     Creature* channel = NULL;
                     for (uint8 i = 0; i < 4; i++)
                     {
-                        channel = _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_SHIELD_GENERATOR_CHANNEL, ShieldGeneratorCoords[i][0],  ShieldGeneratorCoords[i][1],  ShieldGeneratorCoords[i][2], 0, true, false, 0, 0);
+                        channel = spawnCreature(CN_SHIELD_GENERATOR_CHANNEL, ShieldGeneratorCoords[i][0],  ShieldGeneratorCoords[i][1],  ShieldGeneratorCoords[i][2], 0);
                         if (channel)
                         {
                             channel->setUInt64Value(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
@@ -2300,7 +2283,7 @@ class TaintedElementalAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             Creature* Vashj = NULL;
-            Vashj = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(_unit->GetPositionX(), _unit->GetPositionY(), _unit->GetPositionZ(), CN_LADY_VASHJ);
+            Vashj = getNearestCreature(_unit->GetPositionX(), _unit->GetPositionY(), _unit->GetPositionZ(), CN_LADY_VASHJ);
             if (Vashj)
             {
                 if (static_cast< VashjAI* >(Vashj->GetScript())->TaintedElementalTimer > 50)
@@ -2367,21 +2350,10 @@ class ToxicSporeBatAI : public CreatureAIScript
         {
             // Waypoints
             m_entry = pCreature->GetEntry();
-            _unit->GetAIInterface()->addWayPoint(CreateWaypoint(0, 0, Movement::WP_MOVE_TYPE_FLY));
-            _unit->GetAIInterface()->addWayPoint(CreateWaypoint(1, 0, Movement::WP_MOVE_TYPE_FLY));
-            _unit->GetAIInterface()->addWayPoint(CreateWaypoint(2, 0, Movement::WP_MOVE_TYPE_FLY));
-            _unit->GetAIInterface()->addWayPoint(CreateWaypoint(3, 0, Movement::WP_MOVE_TYPE_FLY));
-            _unit->GetAIInterface()->addWayPoint(CreateWaypoint(4, 0, Movement::WP_MOVE_TYPE_FLY));
-            _unit->GetAIInterface()->addWayPoint(CreateWaypoint(5, 0, Movement::WP_MOVE_TYPE_FLY));
-            _unit->GetAIInterface()->addWayPoint(CreateWaypoint(6, 0, Movement::WP_MOVE_TYPE_FLY));
-            _unit->GetAIInterface()->addWayPoint(CreateWaypoint(7, 0, Movement::WP_MOVE_TYPE_FLY));
-            _unit->GetAIInterface()->addWayPoint(CreateWaypoint(8, 0, Movement::WP_MOVE_TYPE_FLY));
-            _unit->GetAIInterface()->addWayPoint(CreateWaypoint(9, 0, Movement::WP_MOVE_TYPE_FLY));
-            _unit->GetAIInterface()->addWayPoint(CreateWaypoint(10, 0, Movement::WP_MOVE_TYPE_FLY));
-            _unit->GetAIInterface()->addWayPoint(CreateWaypoint(11, 0, Movement::WP_MOVE_TYPE_FLY));
+            for (uint8_t i = 0; i < 12; i++)
+                AddWaypoint(CreateWaypoint(i, 0, Movement::WP_MOVE_TYPE_FLY, fly[i]));
 
             // Spells
-
             nrspells = 1;
             for (uint8 i = 0; i < nrspells; i++)
             {
@@ -2473,7 +2445,6 @@ class ToxicSporeBatAI : public CreatureAIScript
             PositionChange = RandomUInt(15, 23);
             PhoenixSummon = RandomUInt(17, 23);
             CastTime();
-            //RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -2747,26 +2718,6 @@ class ToxicSporeBatAI : public CreatureAIScript
             }
         }
 
-        inline Movement::WayPoint* CreateWaypoint(int id, uint32 waittime, uint32 flags)
-        {
-            Movement::WayPoint* wp = _unit->CreateWaypointStruct();
-            wp->id = id;
-            wp->x = fly[id].x;
-            wp->y = fly[id].y;
-            wp->z = fly[id].z;
-            wp->o = fly[id].o;
-            wp->waittime = waittime;
-            wp->flags = flags;
-            wp->forwardemoteoneshot = false;
-            wp->forwardemoteid = 0;
-            wp->backwardemoteoneshot = false;
-            wp->backwardemoteid = 0;
-            wp->forwardskinid = 0;
-            wp->backwardskinid = 0;
-            return wp;
-        }
-
-
     protected:
         bool FlameQuills;
         uint32 QuillsCount;
@@ -2888,8 +2839,8 @@ class UnderbogColossusAI : public MoonScriptCreatureAI
                     break;
                 case 1:
                     //spawn two colossus lurkers
-                    _unit->GetMapMgr()->GetInterface()->SpawnCreature(22347, _unit->GetPositionX(), _unit->GetPositionY(), _unit->GetPositionZ(), 0, true, false, 0, 0);
-                    _unit->GetMapMgr()->GetInterface()->SpawnCreature(22347, _unit->GetPositionX(), _unit->GetPositionY(), _unit->GetPositionZ(), 0, true, false, 0, 0);
+                    spawnCreature(22347, _unit->GetPosition());
+                    spawnCreature(22347, _unit->GetPosition());
                     break;
                 default:
                     break;

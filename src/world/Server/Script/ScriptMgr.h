@@ -340,6 +340,11 @@ class SERVER_DECL CreatureAIScript
 
         // MIT start
         //////////////////////////////////////////////////////////////////////////////////////////
+        // Event default management
+        //\NOTE: These functions are called internal for script events. Do NOT use them in your scripts!
+        void _internalOnDiedCleanup();
+
+        //////////////////////////////////////////////////////////////////////////////////////////
         // player
         Player* getNearestPlayer();
 
@@ -350,6 +355,7 @@ class SERVER_DECL CreatureAIScript
 
         float getRangeToObject(Object* object);
 
+        Creature* spawnCreature(uint32_t entry, LocationVector pos, uint32_t factionId = 0);
         Creature* spawnCreature(uint32_t entry, float posX, float posY, float posZ, float posO, uint32_t factionId = 0);
         void despawn(uint32_t delay = 2000, uint32_t respawnTime = 0);
 
@@ -373,7 +379,6 @@ class SERVER_DECL CreatureAIScript
 
         // wp movement
         Movement::WayPoint* CreateWaypoint(int pId, uint32 pWaittime, uint32 pMoveFlag, Movement::Location pCoords);
-        Movement::WayPoint* CreateWaypoint(int pId, uint32 pWaittime, Movement::LocationWithFlag wp_info);
         void AddWaypoint(Movement::WayPoint* pWayPoint);
         void ForceWaypointMove(uint32 pWaypointId);
         void SetWaypointToMove(uint32 pWaypointId);

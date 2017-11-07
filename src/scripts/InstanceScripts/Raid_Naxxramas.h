@@ -1274,11 +1274,6 @@ class StickedSpewerAI : public CreatureAIScript
         RemoveAIUpdateEvent();
     }
 
-    void OnDied(Unit* mKiller)
-    {
-        RemoveAIUpdateEvent();
-    }
-
     void AIUpdate()
     {
         float val = RandomFloat(100.0f);
@@ -1374,11 +1369,6 @@ class SurgicalAssistantAI : public CreatureAIScript
     {
         setAIAgent(AGENT_NULL);
         _unit->GetAIInterface()->setAiState(AI_STATE_IDLE);
-        RemoveAIUpdateEvent();
-    }
-
-    void OnDied(Unit* mKiller)
-    {
         RemoveAIUpdateEvent();
     }
 
@@ -1483,11 +1473,6 @@ class SludgeBelcherAI : public CreatureAIScript
     {
         setAIAgent(AGENT_NULL);
         _unit->GetAIInterface()->setAiState(AI_STATE_IDLE);
-        RemoveAIUpdateEvent();
-    }
-
-    void OnDied(Unit* mKiller)
-    {
         RemoveAIUpdateEvent();
     }
 
@@ -1599,11 +1584,6 @@ class GrobbulusAI : public CreatureAIScript
     {
         setAIAgent(AGENT_NULL);
         _unit->GetAIInterface()->setAiState(AI_STATE_IDLE);
-        RemoveAIUpdateEvent();
-    }
-
-    void OnDied(Unit* mKiller)
-    {
         RemoveAIUpdateEvent();
     }
 
@@ -1723,11 +1703,6 @@ class GluthAI : public CreatureAIScript
     {
     }
 
-    void OnDied(Unit* mKiller)
-    {
-        RemoveAIUpdateEvent();
-    }
-
     void AIUpdate()
     {
         float val = RandomFloat(100.0f);
@@ -1827,11 +1802,6 @@ class BonyConstructAI : public CreatureAIScript
         RemoveAIUpdateEvent();
     }
 
-    void OnDied(Unit* mKiller)
-    {
-        RemoveAIUpdateEvent();
-    }
-
     void AIUpdate()
     {
         float val = RandomFloat(100.0f);
@@ -1927,11 +1897,6 @@ class DeathLordAI : public CreatureAIScript
     {
         setAIAgent(AGENT_NULL);
         _unit->GetAIInterface()->setAiState(AI_STATE_IDLE);
-        RemoveAIUpdateEvent();
-    }
-
-    void OnDied(Unit* mKiller)
-    {
         RemoveAIUpdateEvent();
     }
 
@@ -2056,7 +2021,6 @@ class RazuviousAI : public CreatureAIScript
     {
         _unit->SendChatMessage(CHAT_MSG_MONSTER_YELL, LANG_UNIVERSAL, "An honorable... death...");
         _unit->PlaySoundToSet(8860);
-        RemoveAIUpdateEvent();
     }
 
     void AIUpdate()
@@ -2180,7 +2144,6 @@ class KorthazzAI : public CreatureAIScript
     {
         sendDBChatMessage(4248);     // What a bloody waste this is!
         _unit->CastSpell(_unit, spells[1].info, spells[1].instant);
-        RemoveAIUpdateEvent();
     }
 
     void AIUpdate()
@@ -2358,7 +2321,6 @@ class BlaumeuxAI : public CreatureAIScript
     {
         sendDBChatMessage(4255);     // Touche...
         _unit->CastSpell(_unit, spells[1].info, spells[1].instant);
-        RemoveAIUpdateEvent();
     }
 
     void AIUpdate()
@@ -2531,7 +2493,6 @@ class ZeliekAI : public CreatureAIScript
     {
         sendDBChatMessage(4272);     // It is... as it should be.
         _unit->CastSpell(_unit, spells[1].info, spells[1].instant);
-        RemoveAIUpdateEvent();
     }
 
     void AIUpdate()
@@ -2696,11 +2657,6 @@ class FrostBreathTriggerAI : public CreatureAIScript
         _unit->GetAIInterface()->setAiState(AI_STATE_IDLE);
     }
 
-    void OnDied(Unit* mKiller)
-    {
-        RemoveAIUpdateEvent();
-    }
-
     void AIUpdate()
     {
         _unit->CastSpell(_unit, FROST_BREATH_EFFECT, true);
@@ -2742,11 +2698,6 @@ class FrostBreathTrigger2AI : public CreatureAIScript
         setAIAgent(AGENT_NULL);
         _unit->GetAIInterface()->setAiState(AI_STATE_IDLE);
     }
-
-    void OnDied(Unit* mKiller)
-    {
-        RemoveAIUpdateEvent();
-    }
 };
 
 class FrostBreathTrigger3AI : public CreatureAIScript
@@ -2769,11 +2720,6 @@ class FrostBreathTrigger3AI : public CreatureAIScript
     {
         setAIAgent(AGENT_NULL);
         _unit->GetAIInterface()->setAiState(AI_STATE_IDLE);
-    }
-
-    void OnDied(Unit* mKiller)
-    {
-        RemoveAIUpdateEvent();
     }
 
     void AIUpdate()
@@ -2844,7 +2790,8 @@ class SapphironAI : public CreatureAIScript
 
     SapphironAI(Creature* pCreature) : CreatureAIScript(pCreature)
     {
-        _unit->GetAIInterface()->addWayPoint(CreateWaypoint(1, 3000, Movement::WP_MOVE_TYPE_RUN));
+        SetWaypointMoveType(Movement::WP_MOVEMENT_SCRIPT_NONE);
+        AddWaypoint(CreateWaypoint(1, 3000, Movement::WP_MOVE_TYPE_RUN, PhaseTwoWP[1]));
 
         nrspells = 2;
         for (uint8 i = 0; i < nrspells; i++)
@@ -2889,7 +2836,6 @@ class SapphironAI : public CreatureAIScript
         spells[3].cooldown = 900;
         spells[3].attackstoptimer = 1000;
 
-        _unit->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
         _unit->GetAIInterface()->SetAllowedToEnterCombat(true);
         _unit->GetAIInterface()->unsetSplineFlying();
         _unit->GetAIInterface()->m_canMove = true;
@@ -2936,7 +2882,7 @@ class SapphironAI : public CreatureAIScript
     void OnCombatStop(Unit* mTarget)
     {
         Creature* BreathTrigger = NULL;
-        BreathTrigger = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(PhaseTwoWP[1].x, PhaseTwoWP[1].y, PhaseTwoWP[1].z, CN_FROST_BREATH_TRIGGER3);
+        BreathTrigger = getNearestCreature(PhaseTwoWP[1].x, PhaseTwoWP[1].y, PhaseTwoWP[1].z, CN_FROST_BREATH_TRIGGER3);
         if (BreathTrigger != NULL)
             BreathTrigger->Despawn(0, 0);
 
@@ -2975,8 +2921,6 @@ class SapphironAI : public CreatureAIScript
     void OnDied(Unit* mKiller)
     {
         _unit->CastSpell(_unit, SAPPHIRON_DIES, true);
-
-        RemoveAIUpdateEvent();
     }
 
     void AIUpdate()
@@ -3033,7 +2977,7 @@ class SapphironAI : public CreatureAIScript
             ChillCounter--;
             if (ChillTarget != NULL)
             {
-                _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_CHILL_TRIGGER, ChillTarget->GetPositionX(), ChillTarget->GetPositionY(), ChillTarget->GetPositionZ(), ChillTarget->GetOrientation(), true, false, 0, 0);
+                spawnCreature(CN_CHILL_TRIGGER, ChillTarget->GetPosition());
             }
 
             if (ChillCounter == 0)
@@ -3140,19 +3084,19 @@ class SapphironAI : public CreatureAIScript
             if (FlightActions == 5)
             {
                 Unit* FlyingFrostBreath = NULL;
-                FlyingFrostBreath = _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_FROST_BREATH_TRIGGER, PhaseTwoWP[1].x, PhaseTwoWP[1].y, PhaseTwoWP[1].z + 18.0f, _unit->GetOrientation(), true, false, 0, 0);
+                FlyingFrostBreath = spawnCreature(CN_FROST_BREATH_TRIGGER, PhaseTwoWP[1].x, PhaseTwoWP[1].y, PhaseTwoWP[1].z + 18.0f, _unit->GetOrientation());
                 if (FlyingFrostBreath != NULL)
                 {
                     FlyingFrostBreath->GetAIInterface()->MoveTo(PhaseTwoWP[1].x, PhaseTwoWP[1].y, PhaseTwoWP[1].z);
                 }
 
-                _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_FROST_BREATH_TRIGGER2, PhaseTwoWP[1].x, PhaseTwoWP[1].y, PhaseTwoWP[1].z, _unit->GetOrientation(), true, false, 0, 0);
+                spawnCreature(CN_FROST_BREATH_TRIGGER2, PhaseTwoWP[1].x, PhaseTwoWP[1].y, PhaseTwoWP[1].z, _unit->GetOrientation());
 
                 RemoveAIUpdateEvent();
                 RegisterAIUpdateEvent(10000);
 
                 Creature* BreathTrigger = NULL;
-                BreathTrigger = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(PhaseTwoWP[1].x, PhaseTwoWP[1].y, PhaseTwoWP[1].z, CN_FROST_BREATH_TRIGGER3);
+                BreathTrigger = getNearestCreature(PhaseTwoWP[1].x, PhaseTwoWP[1].y, PhaseTwoWP[1].z, CN_FROST_BREATH_TRIGGER3);
                 if (BreathTrigger != NULL)
                     BreathTrigger->Despawn(0, 0);
             }
@@ -3313,7 +3257,7 @@ class SapphironAI : public CreatureAIScript
     {
         if (iWaypointId == 1)
         {
-            _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_FROST_BREATH_TRIGGER3, PhaseTwoWP[1].x, PhaseTwoWP[1].y, PhaseTwoWP[1].z, _unit->GetOrientation(), true, false, 0, 0);
+            spawnCreature(CN_FROST_BREATH_TRIGGER3, PhaseTwoWP[1].x, PhaseTwoWP[1].y, PhaseTwoWP[1].z, _unit->GetOrientation());
             _unit->GetAIInterface()->setSplineFlying();
             _unit->Emote(EMOTE_ONESHOT_LIFTOFF);
 
@@ -3327,25 +3271,6 @@ class SapphironAI : public CreatureAIScript
             ChillCounter = 0;
             m_phase = 2;
         }
-    }
-
-    inline Movement::WayPoint* CreateWaypoint(int id, uint32 waittime, uint32 flags)
-    {
-        Movement::WayPoint* wp = _unit->CreateWaypointStruct();
-        wp->id = id;
-        wp->x = PhaseTwoWP[id].x;
-        wp->y = PhaseTwoWP[id].y;
-        wp->z = PhaseTwoWP[id].z;
-        wp->o = PhaseTwoWP[id].o;
-        wp->waittime = waittime;
-        wp->flags = flags;
-        wp->forwardemoteoneshot = false;
-        wp->forwardemoteid = 0;
-        wp->backwardemoteoneshot = false;
-        wp->backwardemoteid = 0;
-        wp->forwardskinid = 0;
-        wp->backwardskinid = 0;
-        return wp;
     }
 
     protected:
@@ -3636,7 +3561,7 @@ class KelthuzadAI : public CreatureAIScript
         _unit->PlaySoundToSet(8819);
 
         Unit* TheLichKing = NULL;
-        TheLichKing = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(3767.58f, -5117.15f, 174.49f, CN_THE_LICH_KING);
+        TheLichKing = getNearestCreature(3767.58f, -5117.15f, 174.49f, CN_THE_LICH_KING);
         if (TheLichKing != NULL)
         {
             _unit->SetChannelSpellTargetGUID(TheLichKing->GetGUID());
@@ -3738,7 +3663,6 @@ class KelthuzadAI : public CreatureAIScript
         _setMeleeDisabled(false);
         _unit->setUInt64Value(UNIT_FIELD_FLAGS, 0);
         _unit->GetAIInterface()->m_canMove = true;
-        RemoveAIUpdateEvent();
 
         EventStart = false;
         SpawnCounter = 0;
@@ -3785,7 +3709,7 @@ class KelthuzadAI : public CreatureAIScript
                             for (uint8 x = 0; x < 10; x++)
                             {
                                 uint32 SpawnID = 10 * i + x;
-                                _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_SOLDIER_OF_THE_FROZEN_WASTES, SFrozenWastes[SpawnID].x, SFrozenWastes[SpawnID].y, SFrozenWastes[SpawnID].z, SFrozenWastes[SpawnID].o, true, false, 0, 0);
+                                spawnCreature(CN_SOLDIER_OF_THE_FROZEN_WASTES, SFrozenWastes[SpawnID].x, SFrozenWastes[SpawnID].y, SFrozenWastes[SpawnID].z, SFrozenWastes[SpawnID].o);
                             }
 
                             FrozenWastes[i] = true;
@@ -3797,7 +3721,7 @@ class KelthuzadAI : public CreatureAIScript
                             for (uint8 x = 0; x < 3; x++)
                             {
                                 uint32 SpawnID = 3 * i + x;
-                                _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_UNSTOPPABLE_ABOMINATION, Abomination[SpawnID].x, Abomination[SpawnID].y, Abomination[SpawnID].z, Abomination[SpawnID].o, true, false, 0, 0);
+                                spawnCreature(CN_UNSTOPPABLE_ABOMINATION, Abomination[SpawnID].x, Abomination[SpawnID].y, Abomination[SpawnID].z, Abomination[SpawnID].o);
                             }
 
                             Abominations[i] = true;
@@ -3807,7 +3731,7 @@ class KelthuzadAI : public CreatureAIScript
                         if (SoulWeavers[i] == false && ((RandomUInt(3) == 0 && Counter < 2) || Counter == 0 || SpawnCounter > 0))
                         {
                             uint32 SpawnID = i;
-                            _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_SOUL_WEAVER, SoulWeaver[SpawnID].x, SoulWeaver[SpawnID].y, SoulWeaver[SpawnID].z, SoulWeaver[SpawnID].o, true, false, 0, 0);
+                            spawnCreature(CN_SOUL_WEAVER, SoulWeaver[SpawnID].x, SoulWeaver[SpawnID].y, SoulWeaver[SpawnID].z, SoulWeaver[SpawnID].o);
 
                             SoulWeavers[i] = true;
                             Counter++;
@@ -3916,7 +3840,7 @@ class KelthuzadAI : public CreatureAIScript
                     }
                 }
 
-                _unit->GetMapMgr()->GetInterface()->SpawnCreature(UnitType, Waves[SpawnPoint].x, Waves[SpawnPoint].y, Waves[SpawnPoint].z, Waves[SpawnPoint].o, true, false, 0, 0);
+                spawnCreature(UnitType, Waves[SpawnPoint].x, Waves[SpawnPoint].y, Waves[SpawnPoint].z, Waves[SpawnPoint].o);
                 WaveTimer = RandomUInt(11, 20);
             }
         }
@@ -3936,7 +3860,7 @@ class KelthuzadAI : public CreatureAIScript
             if (HelpDialog == 4)
             {
                 Unit* TheLichKing = NULL;
-                TheLichKing = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(3767.58f, -5117.15f, 174.49f, CN_THE_LICH_KING);
+                TheLichKing = getNearestCreature(3767.58f, -5117.15f, 174.49f, CN_THE_LICH_KING);
                 if (TheLichKing != NULL)
                 {
                     TheLichKing->SendChatMessage(CHAT_MSG_MONSTER_YELL, LANG_UNIVERSAL, "Very well... warriors of the frozen wastes, rise up, I command you to fight, kill, and die for your master. Let none survive...");
@@ -3961,7 +3885,7 @@ class KelthuzadAI : public CreatureAIScript
             {
                 Unit* Guardian = NULL;
                 uint32 i = RandomUInt(3);
-                Guardian = _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_GUARDIAN_OF_ICECROWN, Guardians[i].x, Guardians[i].y, Guardians[i].z, Guardians[i].o, true, false, 0, 0);
+                Guardian = spawnCreature(CN_GUARDIAN_OF_ICECROWN, Guardians[i].x, Guardians[i].y, Guardians[i].z, Guardians[i].o);
                 if (Guardian != NULL)
                 {
                     if (Guardian->GetAIInterface()->getNextTarget() != NULL)
@@ -4168,27 +4092,18 @@ class SoldierOfTheFrozenWastesAI : public CreatureAIScript
         LastPosX = _unit->GetPositionX();
         LastPosY = _unit->GetPositionY();
         LastPosZ = _unit->GetPositionZ();
-
-        //RegisterAIUpdateEvent(_unit->GetBaseAttackTime(MELEE));
     }
 
     void OnCombatStop(Unit* mTarget)
     {
         setAIAgent(AGENT_NULL);
         _unit->GetAIInterface()->setAiState(AI_STATE_IDLE);
-
-        //RemoveAIUpdateEvent();
-    }
-
-    void OnDied(Unit* mKiller)
-    {
-        RemoveAIUpdateEvent();
     }
 
     void AIUpdate()
     {
         Creature* Kelthuzad = NULL;
-        Kelthuzad = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(3749.950195f, -5113.451660f, 141.288635f, 15990);
+        Kelthuzad = getNearestCreature(3749.950195f, -5113.451660f, 141.288635f, 15990);
         if (Kelthuzad == NULL || !Kelthuzad->isAlive())
         {
             _unit->Despawn(0, 0);
@@ -4295,8 +4210,6 @@ class UnstoppableAbominationAI : public CreatureAIScript
         LastPosY = _unit->GetPositionY();
         LastPosZ = _unit->GetPositionZ();
 
-        //RegisterAIUpdateEvent(_unit->GetBaseAttackTime(MELEE));
-
         for (uint8 i = 0; i < nrspells; i++)
             spells[i].casttime = 0;
     }
@@ -4305,19 +4218,12 @@ class UnstoppableAbominationAI : public CreatureAIScript
     {
         setAIAgent(AGENT_NULL);
         _unit->GetAIInterface()->setAiState(AI_STATE_IDLE);
-
-        //RemoveAIUpdateEvent();
-    }
-
-    void OnDied(Unit* mKiller)
-    {
-        RemoveAIUpdateEvent();
     }
 
     void AIUpdate()
     {
         Creature* Kelthuzad = NULL;
-        Kelthuzad = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(3749.950195f, -5113.451660f, 141.288635f, 15990);
+        Kelthuzad = getNearestCreature(3749.950195f, -5113.451660f, 141.288635f, 15990);
         if (Kelthuzad == NULL || !Kelthuzad->isAlive())
         {
             _unit->Despawn(0, 0);
@@ -4477,19 +4383,12 @@ class SoulWeaverAI : public CreatureAIScript
     {
         setAIAgent(AGENT_NULL);
         _unit->GetAIInterface()->setAiState(AI_STATE_IDLE);
-
-        //RemoveAIUpdateEvent();
-    }
-
-    void OnDied(Unit* mKiller)
-    {
-        RemoveAIUpdateEvent();
     }
 
     void AIUpdate()
     {
         Creature* Kelthuzad = NULL;
-        Kelthuzad = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(3749.950195f, -5113.451660f, 141.288635f, 15990);
+        Kelthuzad = getNearestCreature(3749.950195f, -5113.451660f, 141.288635f, 15990);
         if (Kelthuzad == NULL || !Kelthuzad->isAlive())
         {
             _unit->Despawn(0, 0);
@@ -4642,27 +4541,18 @@ class GuardianOfIcecrownAI : public CreatureAIScript
         LastPosX = _unit->GetPositionX();
         LastPosY = _unit->GetPositionY();
         LastPosZ = _unit->GetPositionZ();
-
-        //RegisterAIUpdateEvent(_unit->GetBaseAttackTime(MELEE));
     }
 
     void OnCombatStop(Unit* mTarget)
     {
         setAIAgent(AGENT_NULL);
         _unit->GetAIInterface()->setAiState(AI_STATE_IDLE);
-
-        //RemoveAIUpdateEvent();
-    }
-
-    void OnDied(Unit* mKiller)
-    {
-        RemoveAIUpdateEvent();
     }
 
     void AIUpdate()
     {
         Unit* Kelthuzad = NULL;
-        Kelthuzad = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(3715.950195f, -5106.451660f, 141.288635f, 15990);
+        Kelthuzad = getNearestCreature(3715.950195f, -5106.451660f, 141.288635f, 15990);
         if (Kelthuzad && !Kelthuzad->isAlive())
         {
             _unit->Despawn(0, 0);

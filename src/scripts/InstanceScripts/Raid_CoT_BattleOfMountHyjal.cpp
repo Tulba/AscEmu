@@ -295,7 +295,6 @@ class RageWinterchillAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             sendDBChatMessage(1583);     // You have won this battle, but not... the...war
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -516,7 +515,6 @@ class AnetheronAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             sendDBChatMessage(1559);     // The clock... is still...ticking.
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -743,8 +741,6 @@ class KazrogalAI : public CreatureAIScript
             ///\todo move this to db
             _unit->SendChatMessage(CHAT_MSG_MONSTER_YELL, LANG_UNIVERSAL, "hahahahaa aahaah");
             _unit->PlaySoundToSet(11018);
-
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -982,7 +978,6 @@ class AzgalorAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             sendDBChatMessage(1570);     // Your time is almost... up!
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -1128,7 +1123,7 @@ class ArchimondeTriggerAI : public CreatureAIScript
             _unit->GetAIInterface()->SetAllowedToEnterCombat(false);
             _unit->m_noRespawn = true;
 
-            Unit* Archimonde = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(5598.629883f, -3447.719971f, 1576.650024f, 17968);
+            Unit* Archimonde = getNearestCreature(5598.629883f, -3447.719971f, 1576.650024f, 17968);
             if (Archimonde)
             {
                 _unit->SetChannelSpellTargetGUID(Archimonde->GetGUID());
@@ -1346,7 +1341,7 @@ class ArchimondeAI : public CreatureAIScript
             spells[6].instant = false;
             spells[6].cooldown = 10;
 
-            Trigger = _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_ARCHIMONDE_CHANNEL_TRIGGER, 5501.476563f, -3524.868408f, 1604.188965f, 0.393633f, true, false, 0, 0);
+            Trigger = spawnCreature(CN_ARCHIMONDE_CHANNEL_TRIGGER, 5501.476563f, -3524.868408f, 1604.188965f, 0.393633f);
 
             if (Trigger && Trigger->IsInWorld())
             {
@@ -1404,7 +1399,7 @@ class ArchimondeAI : public CreatureAIScript
                 }
 
                 uint32 t = (uint32)time(NULL);
-                if (mTarget->IsPlayer() && _unit->isAlive() && !_unit->GetCurrentSpell() && t > spells[6].casttime)
+                if (mTarget->IsPlayer() && isAlive() && !_unit->GetCurrentSpell() && t > spells[6].casttime)
                 {
                     uint32 SpellID = 0;
                     if (mTarget->getClass() == WARRIOR || mTarget->getClass() == ROGUE || mTarget->getClass() == MAGE)
@@ -1426,7 +1421,7 @@ class ArchimondeAI : public CreatureAIScript
             setAIAgent(AGENT_NULL);
             _unit->GetAIInterface()->setAiState(AI_STATE_IDLE);
 
-            if (Trigger && Trigger->IsInWorld() && _unit->isAlive())
+            if (Trigger && Trigger->IsInWorld() && isAlive())
             {
                 Trigger->SetChannelSpellTargetGUID(_unit->GetGUID());
                 Trigger->SetChannelSpellId(DRAIN_WORLD_TREE_VISUAL2);
@@ -1441,7 +1436,6 @@ class ArchimondeAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             sendDBChatMessage(1600);     // No, it cannot be! Nooo!
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()

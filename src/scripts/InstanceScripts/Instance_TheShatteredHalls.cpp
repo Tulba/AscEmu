@@ -83,7 +83,6 @@ class FelOrcConvertAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             CastTime();
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -202,7 +201,6 @@ class ShatteredHandHeathenAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             CastTime();
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -326,7 +324,6 @@ class ShatteredHandLegionnaireAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             CastTime();
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -451,7 +448,6 @@ class ShatteredHandSavageAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             CastTime();
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -588,7 +584,6 @@ class ShadowmoonAcolyteAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             CastTime();
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -718,7 +713,6 @@ class ShatteredHandAssassinAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             CastTime();
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -828,7 +822,6 @@ class ShatteredHandGladiatorAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             CastTime();
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -939,7 +932,6 @@ class ShatteredHandHoundmasterAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             CastTime();
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -1066,7 +1058,6 @@ class ShatteredHandReaverAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             CastTime();
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -1183,7 +1174,6 @@ class ShatteredHandSentryAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             CastTime();
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -1314,11 +1304,6 @@ class ShatteredHandSharpshooterAI : public CreatureAIScript
             RemoveAIUpdateEvent();
         }
 
-        void OnDied(Unit* mKiller)
-        {
-            RemoveAIUpdateEvent();
-        }
-
         void AIUpdate()
         {
             setAIAgent(AGENT_NULL);
@@ -1418,7 +1403,6 @@ class ShatteredHandBrawlerAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             CastTime();
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -1500,7 +1484,7 @@ class ShadowmoonDarkcasterAI : public CreatureAIScript
         ShadowmoonDarkcasterAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             Unit* GrandWarlock = NULL;
-            GrandWarlock = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(178.811996f, 292.377991f, -8.190210f, CN_GRAND_WARLOCK_NETHEKURSE);
+            GrandWarlock = getNearestCreature(178.811996f, 292.377991f, -8.190210f, CN_GRAND_WARLOCK_NETHEKURSE);
             if (GrandWarlock)
             {
                 GrandWarlock->setUInt64Value(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9);
@@ -1511,7 +1495,7 @@ class ShadowmoonDarkcasterAI : public CreatureAIScript
         void OnCombatStart(Creature* mTarget)
         {
             Creature* GrandWarlock = NULL;
-            GrandWarlock = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(178.811996f, 292.377991f, -8.190210f, CN_GRAND_WARLOCK_NETHEKURSE);
+            GrandWarlock = getNearestCreature(178.811996f, 292.377991f, -8.190210f, CN_GRAND_WARLOCK_NETHEKURSE);
             if (GrandWarlock)
             {
                 switch (RandomUInt(3))        // must be verified + emotes?
@@ -1541,14 +1525,14 @@ class ShadowmoonDarkcasterAI : public CreatureAIScript
         void OnDied(Creature* mKiller)
         {
             Creature* GrandWarlock = NULL;
-            GrandWarlock = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(178.811996f, 292.377991f, -8.190210f, CN_GRAND_WARLOCK_NETHEKURSE);
+            GrandWarlock = getNearestCreature(178.811996f, 292.377991f, -8.190210f, CN_GRAND_WARLOCK_NETHEKURSE);
             if (GrandWarlock)    // any emotes needed?
             {
                 uint32 Counter = 0;
                 for (uint8 i = 0; i < 3; i++)
                 {
                     Creature* Servant = NULL;
-                    Servant = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(Darkcasters[i].x, Darkcasters[i].y, Darkcasters[i].z, CN_SHADOWMOON_DARKCASTER);
+                    Servant = getNearestCreature(Darkcasters[i].x, Darkcasters[i].y, Darkcasters[i].z, CN_SHADOWMOON_DARKCASTER);
                     if (!Servant)
                         continue;
                     if (!Servant->isAlive())
@@ -1680,7 +1664,6 @@ class GrandWarlockNethekurseAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             sendDBChatMessage(SAY_GRAND_WARLOCK_18);
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -1917,7 +1900,6 @@ class BloodGuardPorungAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             CastTime();
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -2316,7 +2298,6 @@ class WarchiefKargathBladefistAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             sendDBChatMessage(SAY_WARCHIEF_KARGATH_06);
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()

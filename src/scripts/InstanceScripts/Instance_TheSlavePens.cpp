@@ -79,7 +79,6 @@ class CoilfangChampionAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             CastTime();
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -194,7 +193,6 @@ class CoilfangObserverAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             CastTime();
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -313,7 +311,6 @@ class CoilfangDefenderAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             CastTime();
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -446,7 +443,6 @@ class CoilfangScaleHealerAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             CastTime();
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -562,7 +558,6 @@ class CoilfangSoothsayerAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             CastTime();
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -686,7 +681,6 @@ class CoilfangTechnicianAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             CastTime();
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -801,7 +795,6 @@ class CoilfangRayAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             CastTime();
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -911,12 +904,6 @@ class TotemsAI : public CreatureAIScript
             _unit->m_noRespawn = true;
 
             _unit->CastSpell(_unit, SpellID, true);
-        }
-
-        void OnDied(Unit* mKiller)
-        {
-            if (_unit->GetEntry() != CN_CORRUPTED_NOVA_TOTEM)
-                RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -1045,7 +1032,6 @@ class MennuTheBetrayerAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             sendDBChatMessage(SAY_MENNU_BETRAYER_06);
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -1126,7 +1112,7 @@ class MennuTheBetrayerAI : public CreatureAIScript
                     {
                         if (!SummonedTotems[i])
                         {
-                            _unit->GetMapMgr()->GetInterface()->SpawnCreature(Totems[i], _unit->GetPositionX(), _unit->GetPositionY(), _unit->GetPositionZ(), _unit->GetOrientation(), true, false, 0, 0);
+                            spawnCreature(Totems[i], _unit->GetPosition());
                             _unit->CastSpell(_unit, spells[i + 1].info, spells[i + 1].instant);
 
                             SummonedTotems[i] = true;
@@ -1143,7 +1129,7 @@ class MennuTheBetrayerAI : public CreatureAIScript
                     Counter++;
                 else
                 {
-                    _unit->GetMapMgr()->GetInterface()->SpawnCreature(Totems[i], _unit->GetPositionX(), _unit->GetPositionY(), _unit->GetPositionZ(), _unit->GetOrientation(), true, false, 0, 0);
+                    spawnCreature(Totems[i], _unit->GetPosition());
                     _unit->CastSpell(_unit, spells[i + 1].info, spells[i + 1].instant);
 
                     SummonedTotems[i] = true;
@@ -1232,11 +1218,6 @@ class RokmarTheCracklerAI : public CreatureAIScript
             setAIAgent(AGENT_NULL);
             _unit->GetAIInterface()->setAiState(AI_STATE_IDLE);
 
-            RemoveAIUpdateEvent();
-        }
-
-        void OnDied(Unit* mKiller)
-        {
             RemoveAIUpdateEvent();
         }
 
@@ -1417,11 +1398,6 @@ class QuagmirranAI : public CreatureAIScript
             setAIAgent(AGENT_NULL);
             _unit->GetAIInterface()->setAiState(AI_STATE_IDLE);
 
-            RemoveAIUpdateEvent();
-        }
-
-        void OnDied(Unit* mKiller)
-        {
             RemoveAIUpdateEvent();
         }
 

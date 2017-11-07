@@ -533,6 +533,20 @@ CreatureAIScript::~CreatureAIScript()
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
+// Event default management
+void CreatureAIScript::_internalOnDiedCleanup()
+{
+    LogDebugFlag(LF_SCRIPT_MGR, "CreatureAIScript::_internalOnDiedCleanup() called");
+
+    _cancelAllTimers();
+    _removeAllAuras();
+    RemoveAIUpdateEvent();
+
+    if (_isDespawnWhenInactiveSet())
+        despawn(DEFAULT_DESPAWN_TIMER);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
 // player
 Player* CreatureAIScript::getNearestPlayer()
 {
@@ -554,6 +568,11 @@ Creature* CreatureAIScript::getNearestCreature(float posX, float posY, float pos
 float CreatureAIScript::getRangeToObject(Object* object)
 {
     return _unit->CalcDistance(object);
+}
+
+Creature* CreatureAIScript::spawnCreature(uint32_t entry, LocationVector pos, uint32_t factionId /*= 0*/)
+{
+    return spawnCreature(entry, pos.x, pos.y, pos.z, pos.o, factionId);
 }
 
 Creature* CreatureAIScript::spawnCreature(uint32_t entry, float posX, float posY, float posZ, float posO, uint32_t factionId /* = 0*/)
@@ -660,25 +679,6 @@ Movement::WayPoint* CreatureAIScript::CreateWaypoint(int pId, uint32 pWaittime, 
     wp->o = pCoords.o;
     wp->waittime = pWaittime;
     wp->flags = pMoveFlag;
-    wp->forwardemoteoneshot = false;
-    wp->forwardemoteid = 0;
-    wp->backwardemoteoneshot = false;
-    wp->backwardemoteid = 0;
-    wp->forwardskinid = 0;
-    wp->backwardskinid = 0;
-    return wp;
-}
-
-Movement::WayPoint* CreatureAIScript::CreateWaypoint(int pId, uint32 pWaittime, Movement::LocationWithFlag wp_info)
-{
-    Movement::WayPoint* wp = _unit->CreateWaypointStruct();
-    wp->id = pId;
-    wp->x = wp_info.wp_location.x;
-    wp->y = wp_info.wp_location.y;
-    wp->z = wp_info.wp_location.z;
-    wp->o = wp_info.wp_location.o;
-    wp->waittime = pWaittime;
-    wp->flags = wp_info.wp_flag;
     wp->forwardemoteoneshot = false;
     wp->forwardemoteid = 0;
     wp->backwardemoteoneshot = false;
@@ -884,10 +884,10 @@ void CreatureAIScript::_removeTimer(uint32_t& timerId)
 {
     if (InstanceScript* inScript = getInstanceScript())
     {
-        uint32_t timerId = timerId;
+        uint32_t mTimerId = timerId;
         inScript->removeTimer(timerId);
         if (timerId == 0)
-            mCreatureTimerIds.remove(timerId);
+            mCreatureTimerIds.remove(mTimerId);
     }
 }
 

@@ -1052,11 +1052,11 @@ void SpellFunc_RaiseDead(SpellDesc* pThis, MoonScriptCreatureAI* pCreatureAI, Un
     if (pDeathshaper != NULL)
     {
         pDeathshaper->CastSpellNowNoScheduling(pDeathshaper->mRaiseDead);
-        MoonScriptCreatureAI* pAI = pDeathshaper->SpawnCreature(23371, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ(), pTarget->GetOrientation());
+        Creature* pAI = pDeathshaper->spawnCreature(23371, pTarget->GetPosition());
         if (pAI != NULL)
         {
-            pAI->GetUnit()->GetAIInterface()->StopMovement(2500);
-            pAI->_delayNextAttack(2500);
+            pAI->GetAIInterface()->StopMovement(2500);
+            pAI->setAttackTimer(2500, false);
         }
 
         static_cast<Creature*>(pTarget)->Despawn(3000, 0);
@@ -1539,8 +1539,6 @@ class NajentusAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             sendDBChatMessage(4710);     // Lord Illidan will... crush you!
-
-            RemoveAIUpdateEvent();
         }
 
         void OnTargetDied(Unit* mTarget)
@@ -1738,7 +1736,6 @@ class SupremusAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             sendDBChatMessage(5042);     // I am merely one of... infinite multitudes.
-            RemoveAIUpdateEvent();
         }
 
         void OnTargetDied(Unit* mTarget)
@@ -2022,7 +2019,7 @@ class GurtoggAI : public CreatureAIScript
             setAIAgent(AGENT_NULL);
             _unit->GetAIInterface()->setAiState(AI_STATE_IDLE);
 
-            if (_unit->isAlive())
+            if (isAlive())
                 sendDBChatMessage(4648);     //I'll rip the meat from your bones!
 
             RemoveAIUpdateEvent();
@@ -2035,8 +2032,6 @@ class GurtoggAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             sendDBChatMessage(4649);     // Aaaahrg...
-
-            RemoveAIUpdateEvent();
         }
 
         void OnTargetDied(Unit* mTarget)
@@ -2561,7 +2556,7 @@ class ReliquaryOfSoulsAI : public MoonScriptCreatureAI
                         mEoS = GetNearestCreature(CN_ESSENCEOFSUFFERING);
                         if (mEoS && mEoS->GetUnit() && mEoS->isAlive())
                         {
-                            Creature* pEoS = static_cast<Creature*>(mEoS->GetUnit());
+                            Creature* pEoS = mEoS->GetUnit();
                             if (pEoS->GetHealthPct() <= 1 && pEoS->CalcDistance(_unit) <= 3)
                             {
                                 _unit->Emote(EMOTE_STATE_STAND);
@@ -2590,7 +2585,7 @@ class ReliquaryOfSoulsAI : public MoonScriptCreatureAI
                         mEoD = GetNearestCreature(CN_ESSENCEOFDESIRE);
                         if (mEoD && mEoD->GetUnit() && mEoD->isAlive())
                         {
-                            Creature* pEoD = static_cast<Creature*>(mEoD->GetUnit());
+                            Creature* pEoD = mEoD->GetUnit();
                             if (pEoD->GetHealthPct() <= 1 && pEoD->CalcDistance(_unit) <= 3)
                             {
                                 _unit->Emote(EMOTE_STATE_STAND);
@@ -2796,7 +2791,6 @@ class ShahrazAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             sendDBChatMessage(4660);     // I wasn't finished.
-            RemoveAIUpdateEvent();
         }
 
         void OnTargetDied(Unit* mTarget)
@@ -3290,7 +3284,6 @@ class TeronGorefiendAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             sendDBChatMessage(4700);     // The wheel...spins...again....
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -3488,12 +3481,7 @@ class ShadeofakamaAI : public CreatureAIScript
             Creature* cre = NULL;
             _unit->SendChatMessage(CHAT_MSG_MONSTER_YELL, LANG_UNIVERSAL, "I don't want to go back!");
             _unit->PlaySoundToSet(11420);
-            cre = _unit->GetMapMgr()->GetInterface()->SpawnCreature(22990,
-                    643.741f, 305.852f,
-                    271.689f, 0.00628f,
-                    true, false, 0, 0);
-            //cre->GetAIInterface()->setOutOfCombatRange(30000);
-            RemoveAIUpdateEvent();
+            cre = spawnCreature(22990, 643.741f, 305.852f, 271.689f, 0.00628f);
         }
 
         void AIUpdate()
@@ -3503,10 +3491,7 @@ class ShadeofakamaAI : public CreatureAIScript
                 Creature* cre = NULL;
                 for (uint8 i = 0; i < 2; i++)
                 {
-                    cre = _unit->GetMapMgr()->GetInterface()->SpawnCreature(23421,
-                            _unit->GetPositionX(), _unit->GetPositionY(),
-                            _unit->GetPositionZ(), _unit->GetOrientation(),
-                            true, false, 0, 0);
+                    cre = spawnCreature(23421, _unit->GetPosition());
                     if (cre)
                         cre->GetAIInterface()->setOutOfCombatRange(30000);
                 }
@@ -3519,10 +3504,7 @@ class ShadeofakamaAI : public CreatureAIScript
                 Creature* cre = NULL;
                 for (uint8 i = 0; i < 2; i++)
                 {
-                    cre = _unit->GetMapMgr()->GetInterface()->SpawnCreature(23215,
-                            _unit->GetPositionX(), _unit->GetPositionY(),
-                            _unit->GetPositionZ(), _unit->GetOrientation(),
-                            true, false, 0, 0);
+                    cre = spawnCreature(23215, _unit->GetPosition());
                     if (cre)
                         cre->GetAIInterface()->setOutOfCombatRange(30000);
                 }
@@ -3535,10 +3517,7 @@ class ShadeofakamaAI : public CreatureAIScript
                 Creature* cre = NULL;
                 for (uint8 i = 0; i < 2; i++)
                 {
-                    cre = _unit->GetMapMgr()->GetInterface()->SpawnCreature(23216,
-                            _unit->GetPositionX(), _unit->GetPositionY(),
-                            _unit->GetPositionZ(), _unit->GetOrientation(),
-                            true, false, 0, 0);
+                    cre = spawnCreature(23216, _unit->GetPosition());
                     if (cre)
                         cre->GetAIInterface()->setOutOfCombatRange(30000);
                 }
@@ -3551,10 +3530,7 @@ class ShadeofakamaAI : public CreatureAIScript
                 Creature* cre = NULL;
                 for (uint8 i = 0; i < 2; i++)
                 {
-                    cre = _unit->GetMapMgr()->GetInterface()->SpawnCreature(23523,
-                            _unit->GetPositionX(), _unit->GetPositionY(),
-                            _unit->GetPositionZ(), _unit->GetOrientation(),
-                            true, false, 0, 0);
+                    cre = spawnCreature(23523, _unit->GetPosition());
                     if (cre)
                         cre->GetAIInterface()->setOutOfCombatRange(30000);
                 }
@@ -3567,10 +3543,7 @@ class ShadeofakamaAI : public CreatureAIScript
                 Creature* cre = NULL;
                 for (uint8 i = 0; i < 5; i++)
                 {
-                    cre = _unit->GetMapMgr()->GetInterface()->SpawnCreature(23318,
-                            _unit->GetPositionX(), _unit->GetPositionY(),
-                            _unit->GetPositionZ(), _unit->GetOrientation(),
-                            true, false, 0, 0);
+                    cre = spawnCreature(23318, _unit->GetPosition());
                     if (cre)
                         cre->GetAIInterface()->setOutOfCombatRange(30000);
                 }
@@ -3583,10 +3556,7 @@ class ShadeofakamaAI : public CreatureAIScript
                 Creature* cre = NULL;
                 for (uint8 i = 0; i < 5; i++)
                 {
-                    cre = _unit->GetMapMgr()->GetInterface()->SpawnCreature(23524,
-                            _unit->GetPositionX(), _unit->GetPositionY(),
-                            _unit->GetPositionZ(), _unit->GetOrientation(),
-                            true, false, 0, 0);
+                    cre = spawnCreature(23524, _unit->GetPosition());
                     if (cre)
                         cre->GetAIInterface()->setOutOfCombatRange(30000);
                 }
@@ -4210,8 +4180,8 @@ void SpellFunc_Parasitic(SpellDesc* pThis, MoonScriptCreatureAI* pCreatureAI, Un
         if (pTarget != NULL)                        // not sure if target is really added here
         {
             // Workaround - we will spawn 2 Parasitic Shadowfiends on that player place
-            Parasitic->SpawnCreature(CN_PARASITIC_SHADOWFIEND, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ(), pTarget->GetOrientation(), false);
-            Parasitic->SpawnCreature(CN_PARASITIC_SHADOWFIEND, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ(), pTarget->GetOrientation(), false);
+            Parasitic->spawnCreature(CN_PARASITIC_SHADOWFIEND, pTarget->GetPosition());
+            Parasitic->spawnCreature(CN_PARASITIC_SHADOWFIEND, pTarget->GetPosition());
         }
     }
 }
@@ -5539,12 +5509,12 @@ class IllidanStormrageAI : public MoonScriptBossAI
             }
             if (_unit->GetAIInterface()->isFlying())
             {
-                MoonScriptCreatureAI* pAI = SpawnCreature(CN_FACE_TRIGGER, 677.399963f, 305.545044f, 353.192169f, false);
+                Creature* pAI = spawnCreature(CN_FACE_TRIGGER, 677.399963f, 305.545044f, 353.192169f, 0.0f);
                 if (pAI != NULL)
                 {
-                    pAI->GetUnit()->m_noRespawn = true;
+                    pAI->m_noRespawn = true;
 
-                    _unit->GetAIInterface()->setNextTarget(pAI->GetUnit());
+                    _unit->GetAIInterface()->setNextTarget(pAI);
                 }
 
                 SetPhase(2);
@@ -5628,7 +5598,7 @@ class IllidanStormrageAI : public MoonScriptBossAI
                     case 2:
                         for (uint8 i = 0; i < 2; ++i)
                         {
-                            Creature* pBlade = _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_BLADE_OF_AZZINOTH, UnitPos[i].x, UnitPos[i].y, UnitPos[i].z, UnitPos[i].o, true, false, 0, 0);
+                            Creature* pBlade = spawnCreature(CN_BLADE_OF_AZZINOTH, UnitPos[i].x, UnitPos[i].y, UnitPos[i].z, UnitPos[i].o);
                             if (pBlade != NULL)
                             {
                                 pBlade->setUInt64Value(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
@@ -5650,7 +5620,7 @@ class IllidanStormrageAI : public MoonScriptBossAI
                         }
                         if (mFoA2 != NULL)
                         {
-                            Unit* pBlade = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(UnitPos[1].x, UnitPos[1].y, UnitPos[1].z, CN_BLADE_OF_AZZINOTH);
+                            Unit* pBlade = getNearestCreature(UnitPos[1].x, UnitPos[1].y, UnitPos[1].z, CN_BLADE_OF_AZZINOTH);
                             if (pBlade != NULL)
                             {
                                 pBlade->SetChannelSpellTargetGUID(mFoA2->GetUnit()->GetGUID());
@@ -5811,7 +5781,7 @@ class IllidanStormrageAI : public MoonScriptBossAI
                             FireWall = RandomUInt(7);
                         }
 
-                        Creature* pTrigger = _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_EYE_BEAM_TRIGGER, EyeBeamPaths[FireWall].x, EyeBeamPaths[FireWall].y, EyeBeamPaths[FireWall].z, EyeBeamPaths[FireWall].o, true, false, 0, 0);
+                        Creature* pTrigger = spawnCreature(CN_EYE_BEAM_TRIGGER, EyeBeamPaths[FireWall].x, EyeBeamPaths[FireWall].y, EyeBeamPaths[FireWall].z, EyeBeamPaths[FireWall].o);
                         if (pTrigger != NULL && pTrigger->GetScript() != NULL)
                         {
                             sendChatMessage(CHAT_MSG_MONSTER_YELL, 11481, "Stare into the eyes of the Betrayer!");
@@ -6505,10 +6475,10 @@ class CageTrapTriggerAI : public MoonScriptCreatureAI
 
         void AIUpdate()
         {
-            Unit* pIllidan = getNearestCreature(22917);
+            Creature* pIllidan = getNearestCreature(22917);
             if (pIllidan != NULL)
             {
-                IllidanStormrageAI* pAI = static_cast< IllidanStormrageAI* >(static_cast<Creature*>(pIllidan)->GetScript());
+                IllidanStormrageAI* pAI = static_cast< IllidanStormrageAI* >(pIllidan->GetScript());
                 if (pAI->mMiscEventPart != 0 && mTriggerAIList.size() == 0)
                 {
                     GameObject* pGameObject = getNearestGameObject(_unit->GetPositionX(), _unit->GetPositionY(), _unit->GetPositionZ(), GO_CAGE_TRAP);

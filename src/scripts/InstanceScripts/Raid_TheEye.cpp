@@ -87,7 +87,6 @@ class AStarScryerAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             CastTime();
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -251,7 +250,6 @@ class StarScryerAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             CastTime();
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -481,7 +479,6 @@ class AstromancerLordAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             CastTime();
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -653,7 +650,6 @@ class BloodVindicatorAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             CastTime();
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -825,7 +821,6 @@ class BloodLegionnareAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             CastTime();
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -997,7 +992,6 @@ class BloodMarshalAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             CastTime();
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -1171,7 +1165,6 @@ class PhoenixHawkAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             CastTime();
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -1343,7 +1336,6 @@ class CrystalSentinelAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             CastTime();
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -1508,7 +1500,6 @@ class CrystalMechanicAI : public CreatureAIScript
         void OnDied(Unit* mKiller)
         {
             CastTime();
-            RemoveAIUpdateEvent();
         }
 
         void AIUpdate()
@@ -1947,12 +1938,9 @@ class AlarAI : public CreatureAIScript
         {
             // Waypoints
             for (uint8 i = 1; i < 12; i++)
-            {
-                _unit->GetAIInterface()->addWayPoint(CreateWaypoint(i, 0, Movement::WP_MOVE_TYPE_FLY));
-            }
+                AddWaypoint(CreateWaypoint(i, 0, Movement::WP_MOVE_TYPE_FLY, fly[i]));
 
             // Spells
-
             nrspells = 7;
             for (uint8 i = 0; i < nrspells; i++)
             {
@@ -2106,7 +2094,6 @@ class AlarAI : public CreatureAIScript
             FlameQuills = false;
             Meteor = false;
             CastTime();
-            RemoveAIUpdateEvent();
         }
 
         bool HostileInMeleeRange()
@@ -2180,7 +2167,7 @@ class AlarAI : public CreatureAIScript
             }
             else if (lasttime + 35 == timer)
             {
-                _unit->GetMapMgr()->GetInterface()->SpawnCreature(19551, _unit->GetPositionX(), _unit->GetPositionY(), _unit->GetPositionZ(), 0, true, false, 0, 0);
+                spawnCreature(19551, _unit->GetPosition());
                 //_unit->CastSpell(_unit, spells[2].info, spells[2].instant);
                 lasttime = timer + RandomUInt(9);
                 _unit->GetAIInterface()->SetAllowedToEnterCombat(false);
@@ -2209,11 +2196,12 @@ class AlarAI : public CreatureAIScript
                 if (target != NULL)
                 {
                     auto pos = target->GetPosition();
-                    patch = _unit->GetMapMgr()->GetInterface()->SpawnCreature(20602, pos.x, pos.y, pos.z, 0, true, false, _unit->GetFaction(), 0);
+                    patch = spawnCreature(20602, pos.x, pos.y, pos.z, 0);
                     if (patch != NULL)
                     {
                         patch->SetDisplayId(16946);
                         patch->SetNativeDisplayId(16946);
+                        patch->SetFaction(_unit->GetFaction());
                     }
                 }
             }
@@ -2222,8 +2210,8 @@ class AlarAI : public CreatureAIScript
             }
             if (lasttime + 35 == timer)
             {
-                _unit->GetMapMgr()->GetInterface()->SpawnCreature(19551, _unit->GetPositionX(), _unit->GetPositionY(), _unit->GetPositionZ(), 0, true, false, 0, 0);
-                _unit->GetMapMgr()->GetInterface()->SpawnCreature(19551, _unit->GetPositionX(), _unit->GetPositionY(), _unit->GetPositionZ(), 0, true, false, 0, 0);
+                spawnCreature(19551, _unit->GetPosition());
+                spawnCreature(19551, _unit->GetPosition());
                 lasttime = timer;
             }
         }
@@ -2341,30 +2329,9 @@ class AlarAI : public CreatureAIScript
 
                     }
                     break;
-
                 default:
-                    {
-                    }
+                    break;
             }
-        }
-
-        inline Movement::WayPoint* CreateWaypoint(int id, uint32 waittime, uint32 flags)
-        {
-            Movement::WayPoint* wp = _unit->CreateWaypointStruct();
-            wp->id = id;
-            wp->x = fly[id].x;
-            wp->y = fly[id].y;
-            wp->z = fly[id].z;
-            wp->o = fly[id].o;
-            wp->waittime = waittime;
-            wp->flags = flags;
-            wp->forwardemoteoneshot = false;
-            wp->forwardemoteid = 0;
-            wp->backwardemoteoneshot = false;
-            wp->backwardemoteid = 0;
-            wp->forwardskinid = 0;
-            wp->backwardskinid = 0;
-            return wp;
         }
 
     protected:
@@ -2454,7 +2421,7 @@ class EmberAlarAI : public CreatureAIScript
             CastTime();
 
             Unit* Alar = NULL;
-            //Alar=_unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(_unit->GetPositionX(), _unit->GetPositionY(), _unit->GetPositionZ(), 19514);
+            //Alar=getNearestCreature(_unit->GetPositionX(), _unit->GetPositionY(), _unit->GetPositionZ(), 19514);
 
             Alar = GetAlar();
             if (Alar == NULL)
@@ -3046,7 +3013,7 @@ class KaelThasAI : public MoonScriptBossAI
         {
             for (uint8 i = 1; i < 4; ++i)
             {
-                AddWaypoint(CreateWaypoint(1, 0, Waypoints[i]));
+                AddWaypoint(CreateWaypoint(1, 0, Waypoints[i].wp_flag, Waypoints[i].wp_location));
             }
 
             setCanEnterCombat(true);
@@ -3420,13 +3387,13 @@ void SpellFunc_KaelThasFlameStrike(SpellDesc* pThis, MoonScriptCreatureAI* pCrea
         if (pTarget != NULL)
         {
             KaelThas->GetUnit()->CastSpell(pTarget, KAELTHAS_FLAME_STRIKE_SUMMON, true);
-            Creature* pFriendlyTrigger = static_cast<Creature*>(KaelThas->getNearestCreature(CN_FLAME_STRIKE_TRIGGER));
+            Creature* pFriendlyTrigger = KaelThas->getNearestCreature(CN_FLAME_STRIKE_TRIGGER);
             if (pFriendlyTrigger != NULL && pFriendlyTrigger->IsPet())
             {
                 pFriendlyTrigger->Despawn(0, 0);
             }
 
-            KaelThas->SpawnCreature(CN_FLAME_STRIKE_TRIGGER, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ(), pTarget->GetOrientation());
+            KaelThas->spawnCreature(CN_FLAME_STRIKE_TRIGGER, pTarget->GetPosition());
             uint32 TimerAdd = (3 + RandomUInt(5)) * 1000;
             KaelThas->mPhoenixTimer = KaelThas->_addTimer(TimerAdd);
             KaelThas->_resetTimer(KaelThas->mFlameStrikeTimer, TimerAdd + 40000);

@@ -397,7 +397,6 @@ public:
         ///\todo not in db
         _unit->PlaySoundToSet(9275);
         _unit->SendChatMessage(CHAT_MSG_MONSTER_YELL, LANG_UNIVERSAL, "Aarrhhh.");
-        RemoveAIUpdateEvent();
 
         GameObject* DoorLeftO = getNearestGameObject(-10917.1445f, -1774.05f, 90.478f, 184279);
         GameObject* DoorRightO = getNearestGameObject(-10872.195f, -1779.42f, 90.45f, 184278);
@@ -609,7 +608,6 @@ public:
         CastTime();
         _unit->PlaySoundToSet(9275);
         _unit->SendChatMessage(CHAT_MSG_MONSTER_YELL, LANG_UNIVERSAL, "AArrhhh.");
-        RemoveAIUpdateEvent();
     }
 
     void OnTargetDied(Unit* mTarget)
@@ -749,9 +747,9 @@ public:
             case 1:
             {
                 static_cast<Creature*>(pObject)->Despawn(100, 0);
-                Creature* pop = pObject->GetMapMgr()->GetInterface()->SpawnCreature(17521, pObject->GetPositionX(), pObject->GetPositionY(),
-                    pObject->GetPositionZ(), 0, true, true, 0, 0);
-                pop->GetAIInterface()->AttackReaction(Plr, 1, 0);
+                Creature* pop = pObject->GetMapMgr()->GetInterface()->SpawnCreature(17521, pObject->GetPositionX(), pObject->GetPositionY(), pObject->GetPositionZ(), 0, true, true, 0, 0);
+                if (pop)
+                    pop->GetAIInterface()->AttackReaction(Plr, 1, 0);
                 break;
             }
         }
@@ -774,12 +772,12 @@ public:
 
     BarnesAI(Creature* pCreature) : CreatureAIScript(pCreature)
     {
-        _unit->GetAIInterface()->addWayPoint(CreateWaypoint(1, 0, 0));
-        _unit->GetAIInterface()->addWayPoint(CreateWaypoint(2, 43000, 0));
-        _unit->GetAIInterface()->addWayPoint(CreateWaypoint(3, 0, 0));
-        _unit->GetAIInterface()->addWayPoint(CreateWaypoint(4, 0, 0));
+        SetWaypointMoveType(Movement::WP_MOVEMENT_SCRIPT_NONE);
+        AddWaypoint(CreateWaypoint(1, 0, Movement::WP_MOVE_TYPE_WALK, Barnes[1]));
+        AddWaypoint(CreateWaypoint(2, 43000, Movement::WP_MOVE_TYPE_WALK, Barnes[2]));
+        AddWaypoint(CreateWaypoint(3, 0, Movement::WP_MOVE_TYPE_WALK, Barnes[3]));
+        AddWaypoint(CreateWaypoint(4, 0, Movement::WP_MOVE_TYPE_WALK, Barnes[4]));
 
-        _unit->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
         _unit->GetAIInterface()->SetAllowedToEnterCombat(false);
         setAIAgent(AGENT_NULL);
         _unit->GetAIInterface()->setAiState(AI_STATE_IDLE);
@@ -806,15 +804,18 @@ public:
         switch (iWaypointId)
         {
             case 0:
+            {
                 _unit->GetAIInterface()->setWayPointToMove(1);
                 WayStartBBW[_unit->GetInstanceID()] = 3;
-                break;
-            case 1:
-                break;
+            } break;
             case 2:
+            {
                 cleanStage();
                 WayStartBBW[_unit->GetInstanceID()] = 4;
-                _unit->GetMapMgr()->GetInterface()->SpawnCreature(19525, Barnes[2].x, Barnes[2].y, Barnes[2].z, Barnes[2].o, true, false, 0, 0)->Despawn(43000, 0);
+                Creature* spotlight = spawnCreature(19525, Barnes[2].x, Barnes[2].y, Barnes[2].z, Barnes[2].o);
+                if (spotlight)
+                    spotlight->Despawn(43000, 0);
+
                 _unit->SetFacing(4.5f);
                 switch (eventRand)
                 {
@@ -828,8 +829,9 @@ public:
                         BarnesSpeakWOZ();
                         break;
                 }
-                break;
+            } break;
             case 3:
+            {
                 switch (eventRand)
                 {
                     case 0:
@@ -844,6 +846,8 @@ public:
                 }
                 _unit->setUInt32Value(UNIT_FIELD_FLAGS, 1);
                 WayStartBBW[_unit->GetInstanceID()] = 5;
+            } break;
+            default:
                 break;
         }
     }
@@ -863,15 +867,15 @@ public:
         if (Curtain)
             Curtain->SetState(GO_STATE_CLOSED);
 
-        Creature* Julianne = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(-10883.0f, -1751.81f, 90.4765f, 17534);
-        Creature* Romulo = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(-10883.0f, -1751.81f, 90.4765f, 17533);
-        Creature* BigBadWolf = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(-10883.0f, -1751.81f, 90.4765f, 17521);
-        Creature* Grandma = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(-10883.0f, -1751.81f, 90.4765f, 17603);
+        Creature* Julianne = getNearestCreature(-10883.0f, -1751.81f, 90.4765f, 17534);
+        Creature* Romulo = getNearestCreature(-10883.0f, -1751.81f, 90.4765f, 17533);
+        Creature* BigBadWolf = getNearestCreature(-10883.0f, -1751.81f, 90.4765f, 17521);
+        Creature* Grandma = getNearestCreature(-10883.0f, -1751.81f, 90.4765f, 17603);
 
-        Creature* Dorothee = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(-10897.650f, -1755.8311f, 90.476f, 17535); //Dorothee
-        Creature* Strawman = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(-10904.088f, -1754.8988f, 90.476f, 17543); //Strawman
-        Creature* Roar = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(-10891.115f, -1756.4898f, 90.476f, 17546);//Roar
-        Creature* Tinman = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(-10884.501f, -1757.3249f, 90.476f, 17547); //Tinman
+        Creature* Dorothee = getNearestCreature(-10897.650f, -1755.8311f, 90.476f, 17535); //Dorothee
+        Creature* Strawman = getNearestCreature(-10904.088f, -1754.8988f, 90.476f, 17543); //Strawman
+        Creature* Roar = getNearestCreature(-10891.115f, -1756.4898f, 90.476f, 17546);//Roar
+        Creature* Tinman = getNearestCreature(-10884.501f, -1757.3249f, 90.476f, 17547); //Tinman
 
         GameObject* House = getNearestGameObject(-10883.0f, -1751.81f, 90.4765f, 183493);
         GameObject* Tree = getNearestGameObject(-10877.7f, -1763.18f, 90.4771f, 183492);
@@ -941,10 +945,10 @@ public:
 
         _unit->SetDisplayId(16616);
 
-        _unit->GetMapMgr()->GetInterface()->SpawnCreature(17535, -10897.650f, -1755.8311f, 90.476f, 4.61f, true, true, 0, 0); //Dorothee
-        _unit->GetMapMgr()->GetInterface()->SpawnCreature(17543, -10904.088f, -1754.8988f, 90.476f, 4.61f, true, true, 0, 0); //Strawman
-        _unit->GetMapMgr()->GetInterface()->SpawnCreature(17546, -10891.115f, -1756.4898f, 90.476f, 4.61f, true, true, 0, 0);//Roar
-        _unit->GetMapMgr()->GetInterface()->SpawnCreature(17547, -10884.501f, -1757.3249f, 90.476f, 4.61f, true, true, 0, 0); //Tinman
+        spawnCreature(17535, -10897.650f, -1755.8311f, 90.476f, 4.61f); //Dorothee
+        spawnCreature(17543, -10904.088f, -1754.8988f, 90.476f, 4.61f); //Strawman
+        spawnCreature(17546, -10891.115f, -1756.4898f, 90.476f, 4.61f);//Roar
+        spawnCreature(17547, -10884.501f, -1757.3249f, 90.476f, 4.61f); //Tinman
     }
 
     void BarnesSpeakRJ()
@@ -977,7 +981,7 @@ public:
             Curtain->SetState(GO_STATE_OPEN);
 
         _unit->SetDisplayId(16616);
-        _unit->GetMapMgr()->GetInterface()->SpawnCreature(17534, -10891.582f, -1755.5177f, 90.476f, 4.61f, true, true, 0, 0); //Spawn Julianne
+        spawnCreature(17534, -10891.582f, -1755.5177f, 90.476f, 4.61f); //Spawn Julianne
     }
 
     void BarnesSpeakRed()
@@ -1052,27 +1056,8 @@ public:
         }*/
 
         _unit->SetDisplayId(16616);
-        _unit->GetMapMgr()->GetInterface()->SpawnCreature(17603, -10891.582f, -1755.5177f, 90.476f, 4.61f, true, true, 0, 0);
+        spawnCreature(17603, -10891.582f, -1755.5177f, 90.476f, 4.61f);
 
-    }
-
-    inline Movement::WayPoint* CreateWaypoint(int id, uint32 waittime, uint32 flags)
-    {
-        Movement::WayPoint* wp = _unit->CreateWaypointStruct();
-        wp->id = id;
-        wp->x = Barnes[id].x;
-        wp->y = Barnes[id].y;
-        wp->z = Barnes[id].z;
-        wp->o = Barnes[id].o;
-        wp->waittime = waittime;
-        wp->flags = flags;
-        wp->forwardemoteoneshot = false;
-        wp->forwardemoteid = 0;
-        wp->backwardemoteoneshot = false;
-        wp->backwardemoteid = 0;
-        wp->forwardskinid = 0;
-        wp->backwardskinid = 0;
-        return wp;
     }
 
 protected:
@@ -1169,7 +1154,6 @@ public:
     void OnDied(Unit* mKiller)
     {
         sendDBChatMessage(2069);     // This Curator is no longer op... er... ation... al.
-        RemoveAIUpdateEvent();
     }
 
     void OnTargetDied(Unit* mTarget)
@@ -1273,32 +1257,28 @@ public:
         {
             case 0:
             {
-                AstralFlare = _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_ASTRALFLARE, dX + 3,
-                    dY + 3, _unit->GetPositionZ(), 0, true, false, 0, 0);
+                AstralFlare = spawnCreature(CN_ASTRALFLARE, dX + 3, dY + 3, _unit->GetPositionZ(), 0);
                 AstralFlare->GetAIInterface()->AttackReaction(random_target, 1, 0);
                 AstralFlare = NULL;
             }
             break;
             case 1:
             {
-                AstralFlare = _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_ASTRALFLARE, dX + 3,
-                    dY - 3, _unit->GetPositionZ(), 0, true, false, 0, 0);
+                AstralFlare = spawnCreature(CN_ASTRALFLARE, dX + 3, dY - 3, _unit->GetPositionZ(), 0);
                 AstralFlare->GetAIInterface()->AttackReaction(random_target, 1, 0);
                 AstralFlare = NULL;
             }
             break;
             case 2:
             {
-                AstralFlare = _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_ASTRALFLARE, dX - 3,
-                    dY - 3, _unit->GetPositionZ(), 0, true, false, 0, 0);
+                AstralFlare = spawnCreature(CN_ASTRALFLARE, dX - 3, dY - 3, _unit->GetPositionZ(), 0);
                 AstralFlare->GetAIInterface()->AttackReaction(random_target, 1, 0);
                 AstralFlare = NULL;
             }
             break;
             case 3:
             {
-                AstralFlare = _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_ASTRALFLARE, dX - 3,
-                    dY + 3, _unit->GetPositionZ(), 0, true, false, 0, 0);
+                AstralFlare = spawnCreature(CN_ASTRALFLARE, dX - 3, dY + 3, _unit->GetPositionZ(), 0);
                 AstralFlare->GetAIInterface()->AttackReaction(random_target, 1, 0);
                 AstralFlare = NULL;
             }
@@ -1539,7 +1519,6 @@ public:
         CastTime();
         sendDBChatMessage(2045);     // At last... The nightmare is.. over...
 
-        RemoveAIUpdateEvent();
         // Door opening
         GameObject* SDoor = getNearestGameObject(-11190.012f, -1881.016f, 231.95f, 184517);
         if (SDoor)
@@ -1654,7 +1633,7 @@ public:
 
             for (uint8 i = 0; i < 4; i++)
             {
-                _unit->GetMapMgr()->GetInterface()->SpawnCreature(SHADOWOFARAN, ERX, ERY, ERZ, 0, true, false, 0, 0);
+                spawnCreature(SHADOWOFARAN, ERX, ERY, ERZ, 0);
             }
             ERX = 0;
             ERY = 0;
@@ -1950,7 +1929,6 @@ public:
 
     void OnDied(Unit* mKiller)
     {
-        RemoveAIUpdateEvent();
         _unit->Despawn(20000, 0);
     }
 
@@ -1996,7 +1974,6 @@ public:
 
     void OnDied(Unit* mKiller)
     {
-        RemoveAIUpdateEvent();
         _unit->Despawn(5000, 0);
     }
 
@@ -2110,13 +2087,12 @@ public:
     {
         clean();
         sendDBChatMessage(2049);     // My life, is yours. Oh great one.
-        RemoveAIUpdateEvent();
     }
 
     void clean()
     {
-        Creature* portal = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(-11249.51f, -1702.182f, 179.237f, CN_FPORTAL);
-        Creature* portal2 = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(-11239.534f, -1715.338f, 179.237f, CN_FPORTAL);
+        Creature* portal = getNearestCreature(-11249.51f, -1702.182f, 179.237f, CN_FPORTAL);
+        Creature* portal2 = getNearestCreature(-11239.534f, -1715.338f, 179.237f, CN_FPORTAL);
 
         if (portal != NULL)
             portal->Despawn(0, 0);
@@ -2181,8 +2157,8 @@ public:
                 break;
         }
 
-        _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_FPORTAL, -11249.51f, -1702.182f, 179.237f, 0, true, false, 0, 0);
-        _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_FPORTAL, -11239.534f, -1715.338f, 179.237f, 0, true, false, 0, 0);
+        spawnCreature(CN_FPORTAL, -11249.51f, -1702.182f, 179.237f, 0);
+        spawnCreature(CN_FPORTAL, -11239.534f, -1715.338f, 179.237f, 0);
     }
 
     void PlrSacrifice()
@@ -2226,7 +2202,7 @@ public:
         float dcX = -11234.7f;
         float dcY = -1698.73f;
         float dcZ = 179.24f;
-        _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_DEMONCHAINS, dcX, dcY, dcZ, 0, true, false, 0, 0);
+        spawnCreature(CN_DEMONCHAINS, dcX, dcY, dcZ, 0);
     }
 
     void SpellCast(float val)
@@ -2325,9 +2301,7 @@ public:
 
     void OnDied(Unit* mKiller)
     {
-        RemoveAIUpdateEvent();
-
-        Unit* Illhoof = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(_unit->GetPositionX(), _unit->GetPositionY(), _unit->GetPositionZ(), 15688);
+        Unit* Illhoof = getNearestCreature(_unit->GetPositionX(), _unit->GetPositionY(), _unit->GetPositionZ(), 15688);
         if (Illhoof != NULL && Illhoof->isAlive())
             Illhoof->CastSpell(Illhoof, spells[1].info, spells[1].instant);
     }
@@ -2489,7 +2463,6 @@ public:
 
     void OnDied(Unit* mKiller)
     {
-        RemoveAIUpdateEvent();
         _unit->Despawn(1, 0);
     }
 
@@ -2622,7 +2595,7 @@ public:
 
     void OnDied(Unit* mKiller)
     {
-        Unit* uIllhoof = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(_unit->GetPositionX(), _unit->GetPositionY(),
+        Unit* uIllhoof = getNearestCreature(_unit->GetPositionX(), _unit->GetPositionY(),
             _unit->GetPositionZ(), CN_ILLHOOF);
         if (uIllhoof != NULL && uIllhoof->isAlive())
             uIllhoof->RemoveAura(SACRIFICE);
@@ -2649,9 +2622,7 @@ public:
 
     void AIUpdate()
     {
-        _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_FIENDISH_IMP, _unit->GetPositionX(), _unit->GetPositionY(),
-            _unit->GetPositionZ(), 0, true, false, 0, 0);
-
+        spawnCreature(CN_FIENDISH_IMP, _unit->GetPosition());
     }
 
 };
@@ -2839,7 +2810,7 @@ public:
             MDoor->SetState(GO_STATE_OPEN);
 
         Creature* MAxes = NULL;
-        MAxes = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(_unit->GetPositionX(), _unit->GetPositionY(), _unit->GetPositionZ(), CN_AXES);
+        MAxes = getNearestCreature(_unit->GetPositionX(), _unit->GetPositionY(), _unit->GetPositionZ(), CN_AXES);
         if (MAxes != NULL)
             MAxes->Despawn(1000, 0);
     }
@@ -2848,13 +2819,11 @@ public:
     {
         sendDBChatMessage(2030);     // I refuse to concede defeat. I am a prince of the Eredar! I am...
 
-        RemoveAIUpdateEvent();
-
         if (GetLinkedCreature() != NULL)
             GetLinkedCreature()->GetUnit()->Despawn(10000, 0);
 
         Creature* MAxes = NULL;
-        MAxes = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(_unit->GetPositionX(), _unit->GetPositionY(),
+        MAxes = getNearestCreature(_unit->GetPositionX(), _unit->GetPositionY(),
             _unit->GetPositionZ(), CN_AXES);
         if (MAxes)
             MAxes->Despawn(1000, 0);
@@ -2910,7 +2879,7 @@ public:
         }
         else if (t > m_spawn_infernal && m_infernal == true && _unit->GetAIInterface()->getNextTarget())
         {
-            _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_INFERNAL, ranX, ranY, 276.0f, 0, true, false, 0, 0);
+            spawnCreature(CN_INFERNAL, ranX, ranY, 276.0f, 0);
             m_spawn_infernal = 0;
             m_infernal = false;
         }
@@ -3220,28 +3189,16 @@ public:
     ADD_CREATURE_FACTORY_FUNCTION(InfernalDummyAI);
     InfernalDummyAI(Creature* pCreature) : CreatureAIScript(pCreature)
     {
-        _unit->GetAIInterface()->addWayPoint(CreateWaypoint(1, 0, 768));
-    }
+        SetWaypointMoveType(Movement::WP_MOVEMENT_SCRIPT_NONE);
 
-    inline Movement::WayPoint* CreateWaypoint(int id, uint32 waittime, uint32 flags)
-    {
-        Movement::WayPoint* wp = _unit->CreateWaypointStruct();
-        wp->id = id;
-        wp->x = -10938.56f;
-        wp->y = -2041.26f;
-        wp->z = 305.132f;
-        wp->o = 0;
-        wp->waittime = waittime;
-        wp->flags = flags;
-        wp->forwardemoteoneshot = false;
-        wp->forwardemoteid = 0;
-        wp->backwardemoteoneshot = false;
-        wp->backwardemoteid = 0;
-        wp->forwardskinid = 0;
-        wp->backwardskinid = 0;
-        return wp;
-    }
+        Movement::Location loc;
+        loc.x = -10938.56f;
+        loc.y = -2041.26f;
+        loc.z = 305.132f;
+        loc.o = 0;
 
+        AddWaypoint(CreateWaypoint(1, 0, Movement::WP_MOVE_TYPE_FLY, loc));
+    }
 };
 
 class MAxesAI : public CreatureAIScript
@@ -3295,11 +3252,6 @@ public:
     {
         setAIAgent(AGENT_NULL);
         _unit->GetAIInterface()->setAiState(AI_STATE_IDLE);
-        RemoveAIUpdateEvent();
-    }
-
-    void OnDied(Unit* mKiller)
-    {
         RemoveAIUpdateEvent();
     }
 
@@ -3396,8 +3348,6 @@ public:
 
     void OnDied(Unit* mKiller)
     {
-        RemoveAIUpdateEvent();
-
         GameObject* NDoor = getNearestGameObject(-11186.2f, -1665.14f, 281.398f, 185521);
         if (NDoor)
             NDoor->SetState(GO_STATE_OPEN);
@@ -3431,7 +3381,7 @@ public:
             float vzX = 5 * cos(RandomFloat(6.28f)) + random_target->GetPositionX();
             float vzY = 5 * cos(RandomFloat(6.28f)) + random_target->GetPositionY();
             float vzZ = random_target->GetPositionZ();
-            _unit->GetMapMgr()->GetInterface()->SpawnCreature(CN_VOIDZONE, vzX, vzY, vzZ, 0, true, false, 0, 0);
+            spawnCreature(CN_VOIDZONE, vzX, vzY, vzZ, 0);
             TargetTable.clear();
         }
 
@@ -3613,11 +3563,11 @@ public:
         spells[4].perctrigger = 0.0f;
         spells[4].attackstoptimer = 1000;
 
-        _unit->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
+        SetWaypointMoveType(Movement::WP_MOVEMENT_SCRIPT_NONE);
 
         for (uint8 i = 1; i < 5; i++)
         {
-            _unit->GetAIInterface()->addWayPoint(CreateWaypoint(i, 0, Movement::WP_MOVE_TYPE_FLY));
+            AddWaypoint(CreateWaypoint(i, 0, Movement::WP_MOVE_TYPE_FLY, coords[i]));
         }
 
         m_phase = 0;
@@ -3645,11 +3595,6 @@ public:
         _unit->GetAIInterface()->SetAllowedToEnterCombat(true);
         _unit->GetAIInterface()->unsetSplineFlying();
         _unit->GetAIInterface()->m_canMove = true;
-        RemoveAIUpdateEvent();
-    }
-
-    void OnDied(Unit* mKiller)
-    {
         RemoveAIUpdateEvent();
     }
 
@@ -3806,25 +3751,6 @@ public:
 
         float val = RandomFloat(100.0f);
         SpellCast(val);
-    }
-
-    inline Movement::WayPoint* CreateWaypoint(int id, uint32 waittime, uint32 flags)
-    {
-        Movement::WayPoint* wp = _unit->CreateWaypointStruct();
-        wp->id = id;
-        wp->x = coords[id].x;
-        wp->y = coords[id].y;
-        wp->z = coords[id].z;
-        wp->o = coords[id].o;
-        wp->waittime = waittime;
-        wp->flags = flags;
-        wp->forwardemoteoneshot = false;
-        wp->forwardemoteid = 0;
-        wp->backwardemoteoneshot = false;
-        wp->backwardemoteid = 0;
-        wp->forwardskinid = 0;
-        wp->backwardskinid = 0;
-        return wp;
     }
 
     void Fly()
@@ -4015,18 +3941,17 @@ public:
         sendDBChatMessage(1975);     // Oh at last, at last I can go home!
 
         //Check to see if we can spawn The Crone now
-        Creature* Dorothee = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(-10897.650f, -1755.8311f, 90.476f, 17535); //Dorothee
-        Creature* Strawman = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(-10904.088f, -1754.8988f, 90.476f, 17543); //Strawman
-        Creature* Roar = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(-10891.115f, -1756.4898f, 90.476f, 17546);//Roar
-        Creature* Tinman = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(-10884.501f, -1757.3249f, 90.476f, 17547); //Tinman
+        Creature* Dorothee = getNearestCreature(-10897.650f, -1755.8311f, 90.476f, 17535); //Dorothee
+        Creature* Strawman = getNearestCreature(-10904.088f, -1754.8988f, 90.476f, 17543); //Strawman
+        Creature* Roar = getNearestCreature(-10891.115f, -1756.4898f, 90.476f, 17546);//Roar
+        Creature* Tinman = getNearestCreature(-10884.501f, -1757.3249f, 90.476f, 17547); //Tinman
 
         if ((Dorothee == NULL || Dorothee->IsDead()) && (Strawman == NULL || Strawman->IsDead()) && (Roar == NULL || Roar->IsDead()) && (Tinman == NULL || Tinman->IsDead()))
         {
-            _unit->GetMapMgr()->GetInterface()->SpawnCreature(18168, -10884.501f, -1757.3249f, 90.476f, 0.0f, true, true, 0, 0);
+            spawnCreature(18168, -10884.501f, -1757.3249f, 90.476f, 0.0f);
         }
 
         CastTime();
-        RemoveAIUpdateEvent();
     }
 
     void OnTargetDied(Unit* mTarget)
@@ -4047,7 +3972,7 @@ public:
         float newposx = _unit->GetPositionX() + xchange;
         float newposy = _unit->GetPositionY() + ychange;
 
-        tito = _unit->GetMapMgr()->GetInterface()->SpawnCreature(17548, newposx, newposy, _unit->GetPositionZ() + 0.5f, 2.177125f, true, false, 0, 0);
+        tito = spawnCreature(17548, newposx, newposy, _unit->GetPositionZ() + 0.5f, 2.177125f);
     }
     void AIUpdate()
     {
@@ -4230,7 +4155,6 @@ public:
     void OnDied(Unit* mKiller)
     {
         CastTime();
-        RemoveAIUpdateEvent();
     }
 
     void AIUpdate()
@@ -4355,18 +4279,17 @@ public:
         sendDBChatMessage(1983);     // Don't let them make... a mattress outta' me.
 
         //Check to see if we can spawn The Crone now
-        Creature* Dorothee = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(-10897.650f, -1755.8311f, 90.476f, 17535);    //Dorothee
-        Creature* Strawman = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(-10904.088f, -1754.8988f, 90.476f, 17543);    //Strawman
-        Creature* Roar = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(-10891.115f, -1756.4898f, 90.476f, 17546);    //Roar
-        Creature* Tinman = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(-10884.501f, -1757.3249f, 90.476f, 17547);    //Tinman
+        Creature* Dorothee = getNearestCreature(-10897.650f, -1755.8311f, 90.476f, 17535);    //Dorothee
+        Creature* Strawman = getNearestCreature(-10904.088f, -1754.8988f, 90.476f, 17543);    //Strawman
+        Creature* Roar = getNearestCreature(-10891.115f, -1756.4898f, 90.476f, 17546);    //Roar
+        Creature* Tinman = getNearestCreature(-10884.501f, -1757.3249f, 90.476f, 17547);    //Tinman
 
         if ((Dorothee == NULL || Dorothee->IsDead()) && (Strawman == NULL || Strawman->IsDead()) && (Roar == NULL || Roar->IsDead()) && (Tinman == NULL || Tinman->IsDead()))
         {
-            _unit->GetMapMgr()->GetInterface()->SpawnCreature(18168, -10884.501f, -1757.3249f, 90.476f, 0.0f, true, true, 0, 0);
+            spawnCreature(18168, -10884.501f, -1757.3249f, 90.476f, 0.0f);
         }
 
         CastTime();
-        RemoveAIUpdateEvent();
     }
 
     void OnTargetDied(Unit* mTarget)
@@ -4496,18 +4419,17 @@ public:
         sendDBChatMessage(1986);     // Back to being an old rust bucket.
 
         //Check to see if we can spawn The Crone now
-        Creature* Dorothee = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(-10897.650f, -1755.8311f, 90.476f, 17535);    //Dorothee
-        Creature* Strawman = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(-10904.088f, -1754.8988f, 90.476f, 17543);    //Strawman
-        Creature* Roar = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(-10891.115f, -1756.4898f, 90.476f, 17546);    //Roar
-        Creature* Tinman = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(-10884.501f, -1757.3249f, 90.476f, 17547);    //Tinman
+        Creature* Dorothee = getNearestCreature(-10897.650f, -1755.8311f, 90.476f, 17535);    //Dorothee
+        Creature* Strawman = getNearestCreature(-10904.088f, -1754.8988f, 90.476f, 17543);    //Strawman
+        Creature* Roar = getNearestCreature(-10891.115f, -1756.4898f, 90.476f, 17546);    //Roar
+        Creature* Tinman = getNearestCreature(-10884.501f, -1757.3249f, 90.476f, 17547);    //Tinman
 
         if ((Dorothee == NULL || Dorothee->IsDead()) && (Strawman == NULL || Strawman->IsDead()) && (Roar == NULL || Roar->IsDead()) && (Tinman == NULL || Tinman->IsDead()))
         {
-            _unit->GetMapMgr()->GetInterface()->SpawnCreature(18168, -10884.501f, -1757.3249f, 90.476f, 0.0f, true, true, 0, 0);
+            spawnCreature(18168, -10884.501f, -1757.3249f, 90.476f, 0.0f);
         }
 
         CastTime();
-        RemoveAIUpdateEvent();
     }
 
     void OnTargetDied(Unit* mTarget)
@@ -4605,14 +4527,14 @@ public:
         sendDBChatMessage(1980);     // You didn't have to go and do that!
 
         //Check to see if we can spawn The Crone now
-        Creature* Dorothee = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(-10897.650f, -1755.8311f, 90.476f, 17535); //Dorothee
-        Creature* Strawman = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(-10904.088f, -1754.8988f, 90.476f, 17543); //Strawman
-        Creature* Roar = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(-10891.115f, -1756.4898f, 90.476f, 17546);//Roar
-        Creature* Tinman = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(-10884.501f, -1757.3249f, 90.476f, 17547); //Tinman
+        Creature* Dorothee = getNearestCreature(-10897.650f, -1755.8311f, 90.476f, 17535); //Dorothee
+        Creature* Strawman = getNearestCreature(-10904.088f, -1754.8988f, 90.476f, 17543); //Strawman
+        Creature* Roar = getNearestCreature(-10891.115f, -1756.4898f, 90.476f, 17546);//Roar
+        Creature* Tinman = getNearestCreature(-10884.501f, -1757.3249f, 90.476f, 17547); //Tinman
 
         if ((Dorothee == NULL || Dorothee->IsDead()) && (Strawman == NULL || Strawman->IsDead()) && (Roar == NULL || Roar->IsDead()) && (Tinman == NULL || Tinman->IsDead()))
         {
-            _unit->GetMapMgr()->GetInterface()->SpawnCreature(18168, -10884.501f, -1757.3249f, 90.476f, 0.0f, true, true, 0, 0);
+            spawnCreature(18168, -10884.501f, -1757.3249f, 90.476f, 0.0f);
         }
     }
 
@@ -4704,7 +4626,6 @@ public:
             Curtain->SetState(GO_STATE_OPEN);
 
         CastTime();
-        RemoveAIUpdateEvent();
     }
 
     void OnTargetDied(Unit* mTarget)
@@ -4799,11 +4720,6 @@ public:
     }
 
     void OnCombatStop(Unit* mTarget)
-    {
-        RemoveAIUpdateEvent();
-    }
-
-    void OnDied(Unit* mKiller)
     {
         RemoveAIUpdateEvent();
     }
@@ -4929,7 +4845,6 @@ public:
             Curtain->SetState(GO_STATE_OPEN);
 
         CastTime();
-        RemoveAIUpdateEvent();
     }
 
     void OnTargetDied(Unit* mTarget)
@@ -5103,11 +5018,10 @@ public:
         //_unit->RemoveAllAuras();
         //_unit->setEmoteState(EMOTE_ONESHOT_EAT);
         //_unit->SetUInt32Value(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-        _unit->GetMapMgr()->GetInterface()->SpawnCreature(17533, -10891.582f, -1755.5177f, 90.476f, 4.61f, true, true, 0, 0);
+        spawnCreature(17533, -10891.582f, -1755.5177f, 90.476f, 4.61f);
         //_unit->setEmoteState(EMOTE_STATE_DEAD);
 
         CastTime();
-        RemoveAIUpdateEvent();
     }
 
     void OnTargetDied(Unit* mTarget)
