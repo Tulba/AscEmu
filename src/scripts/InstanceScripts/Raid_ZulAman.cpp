@@ -26,10 +26,10 @@
 ///\todo move AddEmote to database
 
 //NalorakkAI
-class NalorakkAI : public MoonScriptBossAI
+class NalorakkAI : public MoonScriptCreatureAI
 {
-        MOONSCRIPT_FACTORY_FUNCTION(NalorakkAI, MoonScriptBossAI);
-        NalorakkAI(Creature* pCreature) : MoonScriptBossAI(pCreature)
+        MOONSCRIPT_FACTORY_FUNCTION(NalorakkAI, MoonScriptCreatureAI);
+        NalorakkAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
         {
             AddPhaseSpell(1, AddSpell(NALORAKK_BRUTAL_SWIPE, Target_Current, 2, 0, 35));
             AddPhaseSpell(1, AddSpell(NALORAKK_MANGLE, Target_Current, 12, 0, 20));
@@ -109,10 +109,10 @@ class NalorakkAI : public MoonScriptBossAI
 };
 
 //Akil'zon <Eagle Avatar>
-class AkilzonAI : public MoonScriptBossAI
+class AkilzonAI : public MoonScriptCreatureAI
 {
-        MOONSCRIPT_FACTORY_FUNCTION(AkilzonAI, MoonScriptBossAI);
-        AkilzonAI(Creature* pCreature) : MoonScriptBossAI(pCreature)
+        MOONSCRIPT_FACTORY_FUNCTION(AkilzonAI, MoonScriptCreatureAI);
+        AkilzonAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
         {
             AddSpell(AKILZON_STATIC_DISRUPTION, Target_Self, 2, 0, 60);
             AddSpell(AKILZON_CALL_LIGHTING, Target_Current, 2, 0, 0);
@@ -145,8 +145,8 @@ class AkilzonAI : public MoonScriptBossAI
                 // Spawn 3 Soaring Eagles
                 for (uint8 x = 0; x < 3; x++)
                 {
-                    Eagle = SpawnCreature(CN_SOARING_EAGLE, (_unit->GetPositionX() + RandomFloat(12) - 10), (_unit->GetPositionY() + RandomFloat(12) - 15),
-                                          _unit->GetPositionZ(), _unit->GetOrientation(), true);
+                    Eagle = SpawnCreature(CN_SOARING_EAGLE, (getCreature()->GetPositionX() + RandomFloat(12) - 10), (getCreature()->GetPositionY() + RandomFloat(12) - 15),
+                                          getCreature()->GetPositionZ(), getCreature()->GetOrientation(), true);
                     if (Eagle)
                     {
                         Eagle->AggroNearestUnit();
@@ -170,16 +170,16 @@ class SoaringEagleAI : public MoonScriptCreatureAI
         SoaringEagleAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
         {
             AddSpell(EAGLE_SWOOP, Target_Destination, 5, 0, 0);
-            GetUnit()->m_noRespawn = true;
+            getCreature()->m_noRespawn = true;
         }
 };
 
 
 //Halazzi <Lynx Avatar>
-class HalazziAI : public MoonScriptBossAI
+class HalazziAI : public MoonScriptCreatureAI
 {
-        MOONSCRIPT_FACTORY_FUNCTION(HalazziAI, MoonScriptBossAI);
-        HalazziAI(Creature* pCreature) : MoonScriptBossAI(pCreature)
+        MOONSCRIPT_FACTORY_FUNCTION(HalazziAI, MoonScriptCreatureAI);
+        HalazziAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
         {
             AddPhaseSpell(1, AddSpell(HALAZZI_SABER_LASH, Target_Destination, 0.5, 0, 0, 0, 0, false, "Me gonna carve ya now!", CHAT_MSG_MONSTER_YELL, 12023));
 
@@ -210,7 +210,7 @@ class HalazziAI : public MoonScriptBossAI
         {
             mTotemTimer = _addTimer(5000); // Just to make the Timer ID
             SplitCount = 1;
-            MaxHealth = _unit->getUInt32Value(UNIT_FIELD_MAXHEALTH);
+            MaxHealth = getCreature()->getUInt32Value(UNIT_FIELD_MAXHEALTH);
             mLynx = NULL;
 
             ParentClass::OnCombatStart(pTarget);
@@ -245,7 +245,7 @@ class HalazziAI : public MoonScriptBossAI
                 if (_isTimerFinished(mTotemTimer))
                 {
                     MoonScriptCreatureAI* Totem = NULL;
-                    Totem = SpawnCreature(CN_TOTEM, (_unit->GetPositionX() + RandomFloat(3) - 3), (_unit->GetPositionY() + RandomFloat(3) - 3), _unit->GetPositionZ(), 0, true);
+                    Totem = SpawnCreature(CN_TOTEM, (getCreature()->GetPositionX() + RandomFloat(3) - 3), (getCreature()->GetPositionY() + RandomFloat(3) - 3), getCreature()->GetPositionZ(), 0, true);
                     if (Totem)
                     {
                         Totem->despawn(60000); // Despawn in 60 seconds
@@ -267,15 +267,15 @@ class HalazziAI : public MoonScriptBossAI
 
         void Split()
         {
-            CurrentHealth = GetUnit()->getUInt32Value(UNIT_FIELD_HEALTH);
+            CurrentHealth = getCreature()->getUInt32Value(UNIT_FIELD_HEALTH);
             _setDisplayId(24144);
-            _unit->SetHealth(240000);
-            _unit->setUInt32Value(UNIT_FIELD_MAXHEALTH, 240000);
+            getCreature()->SetHealth(240000);
+            getCreature()->setUInt32Value(UNIT_FIELD_MAXHEALTH, 240000);
 
-            mLynx = GetUnit()->GetMapMgr()->GetInterface()->SpawnCreature(CN_LYNX_SPIRIT, GetUnit()->GetPositionX(), GetUnit()->GetPositionY(), GetUnit()->GetPositionZ(), GetUnit()->GetOrientation(), true, false, 0, 0);
+            mLynx = getCreature()->GetMapMgr()->GetInterface()->SpawnCreature(CN_LYNX_SPIRIT, getCreature()->GetPositionX(), getCreature()->GetPositionY(), getCreature()->GetPositionZ(), getCreature()->GetOrientation(), true, false, 0, 0);
             if (mLynx)
             {
-                mLynx->GetAIInterface()->AttackReaction(GetUnit()->GetAIInterface()->getNextTarget(), 1);
+                mLynx->GetAIInterface()->AttackReaction(getCreature()->GetAIInterface()->getNextTarget(), 1);
                 mLynx->m_noRespawn = true;
             }
 
@@ -292,9 +292,9 @@ class HalazziAI : public MoonScriptBossAI
             }
 
             if (CurrentHealth)
-                _unit->SetHealth(CurrentHealth);
+                getCreature()->SetHealth(CurrentHealth);
             if (MaxHealth)
-                _unit->setUInt32Value(UNIT_FIELD_MAXHEALTH, MaxHealth);
+                getCreature()->setUInt32Value(UNIT_FIELD_MAXHEALTH, MaxHealth);
             _setDisplayId(21632);
 
             SplitCount++;

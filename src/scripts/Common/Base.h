@@ -136,8 +136,7 @@ enum RangeStatus
 class TargetType;
 class SpellDesc;
 class MoonScriptCreatureAI;
-class MoonScriptBossAI;
-struct EventStruct;
+class MoonScriptCreatureAI;
 class Unit;
 struct SpellEntry;
 
@@ -152,30 +151,6 @@ typedef std::pair<int32, SpellDesc*> PhaseSpellPair;
 typedef std::vector<PhaseSpellPair> PhaseSpellArray;
 typedef std::vector<LootDesc> LootTable;
 typedef std::pair<RangeStatus, float> RangeStatusPair;
-typedef std::vector<EventStruct*> EventArray;
-
-
-struct EventStruct
-{
-    EventStruct(int32 pEventId, int32 pEventTimer, EventFunc pEvent, bool pRepeatable, bool pFinished, int32 pEventTimerConst, int32 pMiscVal = 0)
-    {
-        mEventId = pEventId;
-        mEventTimer = pEventTimer;
-        mEvent = pEvent;
-        mRepeatable = pRepeatable;
-        mFinished = pFinished;
-        mEventTimerConst = pEventTimerConst;
-        mMiscVal = pMiscVal;
-    }
-
-    int32 mEventId;
-    int32 mEventTimer;
-    EventFunc mEvent;
-    bool mRepeatable;
-    bool mFinished;
-    int32 mEventTimerConst;
-    int32 mMiscVal;
-};
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -295,13 +270,6 @@ class MoonScriptCreatureAI : public CreatureAIScript
 
         void Announce(const char* pText);
 
-        int32 AddEvent(uint32 pEventId, int32 pTriggerTimer, EventFunc pEvent, int32 pMiscVal = 0, bool pRepeatable = false);
-        void ResetEvent(uint32 pEventId, int32 pNewTriggerTimer, bool pRepeatable = false);
-        void RemoveEvent(uint32 pEventId);
-        void RemoveAllEvents();
-        bool HasEvents() { return mEventCount > 0 ? true : false; }
-        uint32 GetEventCount() { return mEventCount; }
-
         //Others
         void SetTargetToChannel(Unit* pTarget, uint32 pSpellId);
         Unit* GetTargetToChannel();
@@ -351,32 +319,18 @@ class MoonScriptCreatureAI : public CreatureAIScript
         EmoteArray mOnDiedEmotes;
         EmoteArray mOnTauntEmotes;
 
-        uint32 mEventCount;
         uint32 mAIUpdateFrequency;
         uint32 mBaseAttackTime;
-        EventArray mEvents;
-};
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-//Class MoonScriptBossAI
-class MoonScriptBossAI : public MoonScriptCreatureAI
-{
+        //////////////////////////////////////////////////////////////////////////////////////////
+        //MoonScriptBossAI
     public:
-
-        MoonScriptBossAI(Creature* pCreature);
-        virtual ~MoonScriptBossAI();
 
         //Basic Interface
         SpellDesc* AddPhaseSpell(int32 pPhase, SpellDesc* pSpell);
         int32 GetPhase();
         void SetPhase(int32 pPhase, SpellDesc* pPhaseChangeSpell = NULL);
         void SetEnrageInfo(SpellDesc* pSpell, int32 pTriggerMilliseconds);
-
-        //Reimplemented Events
-        virtual void OnCombatStart(Unit* pTarget);
-        virtual void OnCombatStop(Unit* pTarget);
-        virtual void AIUpdate();
 
     protected:
 
