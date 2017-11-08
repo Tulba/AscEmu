@@ -394,7 +394,7 @@ class VHAttackerAI : public CreatureAIScript
         {
             // Stop channelling
             StartChanneling(0);
-            despawn(2000, 0);
+            GetUnit()->Despawn(0, 0);
         }
 
         void OnCombatStart(Unit* /*pKiller*/)
@@ -459,7 +459,6 @@ class VH_DefenseAI : public CreatureAIScript
                                 // HACK
                                 GetUnit()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_LIGHTNING_INTRO), true);
                                 pTarget->Die(pTarget, pTarget->GetHealth(), 0);
-                                pTarget->Despawn(1000, 0);
                             }
                         }
                         else
@@ -1257,7 +1256,7 @@ TheVioletHoldInstance::TheVioletHoldInstance(MapMgr* pMapMgr) :
     emote5pct(false)
 {
     ResetInstanceData();
-    pMapMgr->pInstance = sInstanceMgr.GetInstanceByIds(MAP_VIOLET_HOLD, pMapMgr->GetInstanceID());
+    //pMapMgr->pInstance = sInstanceMgr.GetInstanceByIds(MAP_VIOLET_HOLD, pMapMgr->GetInstanceID());
     generateBossDataState();
 }
 
