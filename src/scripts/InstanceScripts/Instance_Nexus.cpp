@@ -87,10 +87,10 @@ class AnomalusAI : public MoonScriptCreatureAI
             if (!bToCharge)
                 sendDBChatMessage(4319);     // Reality... unwoven.
 
-            Announce("Anomalus opens a Chaotic Rift!");
+            sendAnnouncement("Anomalus opens a Chaotic Rift!");
             //we are linked with CN_CHAOTIC_RIFT.
-            CreatureAIScript* chaoticRift = SpawnCreature(CN_CHAOTIC_RIFT, getCreature()->GetPositionX() + 13.5f, getCreature()->GetPositionY(), getCreature()->GetPositionZ(), getCreature()->GetOrientation(), false);
-            if (chaoticRift != NULL)
+            CreatureAIScript* chaoticRift = spawnCreatureAndGetAIScript(CN_CHAOTIC_RIFT, getCreature()->GetPositionX() + 13.5f, getCreature()->GetPositionY(), getCreature()->GetPositionZ(), getCreature()->GetOrientation());
+            if (chaoticRift != nullptr)
             {
                 SetLinkedCreature(chaoticRift);
                 chaoticRift->SetLinkedCreature(this);
@@ -101,7 +101,7 @@ class AnomalusAI : public MoonScriptCreatureAI
         {
             SummonRift(true);
             sendDBChatMessage(4320);     // Indestructible.
-            Announce("Anomalus shields himself and diverts his power to the rifts!");
+            sendAnnouncement("Anomalus shields himself and diverts his power to the rifts!");
             _applyAura(47748);   // me immune
             setRooted(true);
 
@@ -244,7 +244,7 @@ class TelestraBossAI : public MoonScriptCreatureAI
 
         void AIUpdate()
         {
-            if (GetPhase() == 1 && _getHealthPercent() <= (mPhaseRepeat * 25))
+            if (isScriptPhase(1) && _getHealthPercent() <= (mPhaseRepeat * 25))
             {
                 switch (RandomUInt(1))
                 {
@@ -256,7 +256,7 @@ class TelestraBossAI : public MoonScriptCreatureAI
                         break;
                 }
 
-                SetPhase(2);
+                setScriptPhase(2);
                 setRooted(true);
                 _setRangedDisabled(true);
                 _setCastDisabled(true);
@@ -272,7 +272,7 @@ class TelestraBossAI : public MoonScriptCreatureAI
 
             }
 
-            if (GetPhase() == 2)
+            if (isScriptPhase(2))
             {
                 for (uint8 i = 0; i < 3; ++i)
                 {
@@ -292,7 +292,7 @@ class TelestraBossAI : public MoonScriptCreatureAI
                 _removeAura(60191);
                 setRooted(false);
                 mPhaseRepeat = 1;
-                SetPhase(_isHeroic() ? 1 : 3);   //3 disables p2
+                setScriptPhase(_isHeroic() ? 1 : 3);   //3 disables p2
             }
 
             ParentClass::AIUpdate();
@@ -471,7 +471,7 @@ class OrmorokAI : public MoonScriptCreatureAI
         if (_getHealthPercent() <= 25 && mEnraged == false)
         {
             _applyAura(FRENZY);
-            Announce("Ormorok the Tree-Shaper goes into a frenzy!");
+            sendAnnouncement("Ormorok the Tree-Shaper goes into a frenzy!");
             mEnraged = true;
         }
 

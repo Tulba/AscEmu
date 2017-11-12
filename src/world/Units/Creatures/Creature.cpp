@@ -141,25 +141,32 @@ void Creature::Update(unsigned long time_passed)
 
     if (m_corpseEvent)
     {
-        sEventMgr.RemoveEvents(this);
+        sEventMgr.RemoveEvents(this, EVENT_CREATURE_REMOVE_CORPSE);
 
-        switch (this->creature_properties->Rank)
+        if (loot.gold > 0 || !loot.items.empty())
         {
-            case ELITE_ELITE:
-                sEventMgr.AddEvent(this, &Creature::OnRemoveCorpse, EVENT_CREATURE_REMOVE_CORPSE, worldConfig.corpseDecay.eliteTimeInSeconds, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
-                break;
-            case ELITE_RAREELITE:
-                sEventMgr.AddEvent(this, &Creature::OnRemoveCorpse, EVENT_CREATURE_REMOVE_CORPSE, worldConfig.corpseDecay.rareEliteTimeInSeconds, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
-                break;
-            case ELITE_WORLDBOSS:
-                sEventMgr.AddEvent(this, &Creature::OnRemoveCorpse, EVENT_CREATURE_REMOVE_CORPSE, worldConfig.corpseDecay.worldbossTimeInSeconds, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
-                break;
-            case ELITE_RARE:
-                sEventMgr.AddEvent(this, &Creature::OnRemoveCorpse, EVENT_CREATURE_REMOVE_CORPSE, worldConfig.corpseDecay.rareTimeInSeconds, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
-                break;
-            default:
-                sEventMgr.AddEvent(this, &Creature::OnRemoveCorpse, EVENT_CREATURE_REMOVE_CORPSE, worldConfig.corpseDecay.normalTimeInSeconds, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
-                break;
+            switch (this->creature_properties->Rank)
+            {
+                case ELITE_ELITE:
+                    sEventMgr.AddEvent(this, &Creature::OnRemoveCorpse, EVENT_CREATURE_REMOVE_CORPSE, worldConfig.corpseDecay.eliteTimeInSeconds, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
+                    break;
+                case ELITE_RAREELITE:
+                    sEventMgr.AddEvent(this, &Creature::OnRemoveCorpse, EVENT_CREATURE_REMOVE_CORPSE, worldConfig.corpseDecay.rareEliteTimeInSeconds, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
+                    break;
+                case ELITE_WORLDBOSS:
+                    sEventMgr.AddEvent(this, &Creature::OnRemoveCorpse, EVENT_CREATURE_REMOVE_CORPSE, worldConfig.corpseDecay.worldbossTimeInSeconds, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
+                    break;
+                case ELITE_RARE:
+                    sEventMgr.AddEvent(this, &Creature::OnRemoveCorpse, EVENT_CREATURE_REMOVE_CORPSE, worldConfig.corpseDecay.rareTimeInSeconds, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
+                    break;
+                default:
+                    sEventMgr.AddEvent(this, &Creature::OnRemoveCorpse, EVENT_CREATURE_REMOVE_CORPSE, worldConfig.corpseDecay.normalTimeInSeconds, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
+                    break;
+            }
+        }
+        else
+        {
+            sEventMgr.AddEvent(this, &Creature::OnRemoveCorpse, EVENT_CREATURE_REMOVE_CORPSE, worldConfig.corpseDecay.normalTimeInSeconds, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
         }
 
         m_corpseEvent = false;
@@ -1122,6 +1129,7 @@ void Creature::CallScriptUpdate()
     if (!IsInWorld())
         return;
 
+    _myScriptClass->_internalAIUpdate();
     _myScriptClass->AIUpdate();
 }
 
@@ -2424,7 +2432,9 @@ void Creature::Die(Unit* pAttacker, uint32 damage, uint32 spellid)
 
     RemoveAllNonPersistentAuras();
 
+    CALL_SCRIPT_EVENT(pAttacker, _internalOnTargetDied)();
     CALL_SCRIPT_EVENT(pAttacker, OnTargetDied)(this);
+
     pAttacker->smsg_AttackStop(this);
 
     GetAIInterface()->OnDeath(pAttacker);

@@ -360,46 +360,57 @@ class DofNaralexAI : public MoonScriptCreatureAI
         void OnReachWP(uint32 iWaypointId, bool bForwards)
         {
             ForceWaypointMove(iWaypointId + 1);
-            if (GetPhase() == 1 && GetCurrentWaypoint() == 39)
-            {
-                getCreature()->Emote(EMOTE_ONESHOT_TALK);
-                SetPhase(2, Awakening);
-                SpawnTimer = _addTimer(100000);
-            }
+            if (isScriptPhase(1) && GetCurrentWaypoint() == 39)
+                setScriptPhase(2);
+
             ParentClass::OnReachWP(iWaypointId, bForwards);
+        }
+
+        void OnScriptPhaseChange(uint32_t phaseId)
+        {
+            switch (phaseId)
+            {
+                case 2:
+                    getCreature()->Emote(EMOTE_ONESHOT_TALK);
+                    CastSpellNowNoScheduling(Awakening);
+                    SpawnTimer = _addTimer(100000);
+                    break;
+                default:
+                    break;
+            }
         }
 
         void AIUpdate()
         {
             if (SpawnTimer && _isTimerFinished(SpawnTimer))
             {
-                switch (GetPhase())
+                switch (getScriptPhase())
                 {
                     case 2:
                     {
                         Moccasin();
                         _resetTimer(SpawnTimer, 100000);
-                        SetPhase(3);
+                        setScriptPhase(3);
                     } break;
                     case 3:
                     {
                         Ectoplasm();
                         _resetTimer(SpawnTimer, 100000);
-                        SetPhase(4);
+                        setScriptPhase(4);
                     } break;
                     case 4:
                     {
                         BMutanus();
                         _resetTimer(SpawnTimer, 100000);
-                        SetPhase(5);
+                        setScriptPhase(5);
                     } break;
                     default:
                         break;
                 }
             }
-            if (GetPhase() == 5 && (!Mutanus || !Mutanus->isAlive()))
+            if (isScriptPhase(5) && (!Mutanus || !Mutanus->isAlive()))
             {
-                MoonScriptCreatureAI* Naralex = GetNearestCreature(3679);
+                CreatureAIScript* Naralex = getNearestCreatureAI(3679);
                 if (Naralex && Naralex->isAlive())
                 {
                     _setDisplayId(17089);
@@ -411,7 +422,7 @@ class DofNaralexAI : public MoonScriptCreatureAI
                     moveTo(-6.704030f, 200.308838f, -26.938824f);
                     Naralex->moveTo(-6.704030f, 200.308838f, -26.938824f);
                 }
-                SetPhase(6);
+                setScriptPhase(6);
             }
             ParentClass::AIUpdate();
         }

@@ -1082,10 +1082,7 @@ class ArugalBossAI : public MoonScriptCreatureAI
     public:
 
         MOONSCRIPT_FACTORY_FUNCTION(ArugalBossAI, MoonScriptCreatureAI);
-        ArugalBossAI(Creature* pCreature) :
-            MoonScriptCreatureAI(pCreature),
-            stage(0),
-            arugalPosition(ARUGAL_LOC_LEDGE)
+        ArugalBossAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature), stage(0), arugalPosition(ARUGAL_LOC_LEDGE)
         {
             SFK_instance = static_cast<ShadowfangKeepInstance*>(pCreature->GetMapMgr()->GetScript());
 
@@ -1093,9 +1090,9 @@ class ArugalBossAI : public MoonScriptCreatureAI
             AddSpell(SPELL_THUNDER_SHOCK, Target_Self, 10.0f, 0, 0, 0, 5.0f);
             AddSpell(SPELL_ARUGALS_CURSE, Target_RandomPlayer, 5.0f, 0, 0);
 
-            AddEmote(Event_OnCombatStart, YELL_ARUGAL_AGROO);
-            AddEmote(Event_OnTargetDied, YELL_ARUGAL_ENEMY_DEATH);
-            AddEmote(Event_OnTaunt, YELL_ARUGAL_COMBAT);
+            addEmoteForEvent(Event_OnCombatStart, YELL_ARUGAL_AGROO);
+            addEmoteForEvent(Event_OnTargetDied, YELL_ARUGAL_ENEMY_DEATH);
+            addEmoteForEvent(Event_OnTaunt, YELL_ARUGAL_COMBAT);
             setAIAgent(AGENT_SPELL);
 
             aiUpdateOriginal = GetAIUpdateFreq();
@@ -1156,10 +1153,10 @@ class ArugalBossAI : public MoonScriptCreatureAI
                     // Spawn Arugal's Voidwalkers
                     for (uint8 x = 0; x < ArugalVoidCount; x++)
                     {
-                        if (MoonScriptCreatureAI* voidwalker = SpawnCreature(CN_VOIDWALKER, voidwalkerSpawns[x].x, voidwalkerSpawns[x].y, voidwalkerSpawns[x].z, voidwalkerSpawns[x].o))
+                        if (CreatureAIScript* voidwalker = spawnCreatureAndGetAIScript(CN_VOIDWALKER, voidwalkerSpawns[x].x, voidwalkerSpawns[x].y, voidwalkerSpawns[x].z, voidwalkerSpawns[x].o))
                         {
                             voidwalker->despawn(4 * 60 * 1000); // Despawn in 4 mins
-                            voidwalker->AggroNearestPlayer();
+                            static_cast<MoonScriptCreatureAI*>(voidwalker)->AggroNearestPlayer();
                         }
                     }
                     getCreature()->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9);

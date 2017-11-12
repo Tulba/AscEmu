@@ -658,7 +658,7 @@ class FireswornAI : public MoonScriptCreatureAI
         MOONSCRIPT_FACTORY_FUNCTION(FireswornAI, MoonScriptCreatureAI);
         FireswornAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
         {
-            mGarr = NULL;
+            mGarr = nullptr;
 
             //Spells
             AddSpell(FIRESWORN_IMMOLATE, Target_Current, 10, 0, 0, 0, 40);
@@ -668,7 +668,7 @@ class FireswornAI : public MoonScriptCreatureAI
 
         void OnCombatStart(Unit* pTarget)
         {
-            mGarr = static_cast< MoonScriptCreatureAI* >(GetNearestCreature(CN_GARR));
+            mGarr = getNearestCreatureAI(CN_GARR);
             ParentClass::OnCombatStart(pTarget);
         }
 
@@ -689,7 +689,7 @@ class FireswornAI : public MoonScriptCreatureAI
 
         SpellDesc* mEruption;
         SpellDesc* mSeparationAnxiety;
-        MoonScriptCreatureAI* mGarr;
+        CreatureAIScript* mGarr;
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -719,7 +719,7 @@ const uint32 SHAZZRAH_MAGIC_GROUNDING = 19714;
 const uint32 SHAZZRAH_COUNTERSPELL = 19715;
 const uint32 SHAZZRAH_BLINK = 29883;    //dummy spell, need to be coded in core
 
-void SpellFunc_ShazzrahBlinkArcaneExplosions(SpellDesc* pThis, MoonScriptCreatureAI* pCreatureAI, Unit* pTarget, TargetType pType);
+void SpellFunc_ShazzrahBlinkArcaneExplosions(SpellDesc* pThis, CreatureAIScript* pCreatureAI, Unit* pTarget, TargetType pType);
 
 class ShazzrahAI : public MoonScriptCreatureAI
 {
@@ -739,7 +739,7 @@ class ShazzrahAI : public MoonScriptCreatureAI
         SpellDesc* mArcaneExplosion;
 };
 
-void SpellFunc_ShazzrahBlinkArcaneExplosions(SpellDesc* pThis, MoonScriptCreatureAI* pCreatureAI, Unit* pTarget, TargetType pType)
+void SpellFunc_ShazzrahBlinkArcaneExplosions(SpellDesc* pThis, CreatureAIScript* pCreatureAI, Unit* pTarget, TargetType pType)
 {
     ShazzrahAI* Shazzrah = (pCreatureAI) ? static_cast< ShazzrahAI* >(pCreatureAI) : NULL;
     if (Shazzrah)

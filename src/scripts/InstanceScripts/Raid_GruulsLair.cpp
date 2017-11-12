@@ -26,7 +26,7 @@ const uint32 LAIR_BRUTE_MORTALSTRIKE = 39171;
 const uint32 LAIR_BRUTE_CLEAVE = 39174;
 const uint32 LAIR_BRUTE_CHARGE = 24193;
 
-void SpellFunc_LairBrute_Charge(SpellDesc* pThis, MoonScriptCreatureAI* pCreatureAI, Unit* pTarget, TargetType pType);
+void SpellFunc_LairBrute_Charge(SpellDesc* pThis, CreatureAIScript* pCreatureAI, Unit* pTarget, TargetType pType);
 
 class LairBruteAI : public MoonScriptCreatureAI
 {
@@ -42,7 +42,7 @@ class LairBruteAI : public MoonScriptCreatureAI
         SpellDesc* mCharge;
 };
 
-void SpellFunc_LairBrute_Charge(SpellDesc* pThis, MoonScriptCreatureAI* pCreatureAI, Unit* pTarget, TargetType pType)
+void SpellFunc_LairBrute_Charge(SpellDesc* pThis, CreatureAIScript* pCreatureAI, Unit* pTarget, TargetType pType)
 {
     LairBruteAI* pBruteAI = (pCreatureAI != NULL) ? static_cast< LairBruteAI* >(pCreatureAI) : NULL;
     if (pBruteAI != NULL)
@@ -85,7 +85,7 @@ const uint32 HIGH_KING_MAULGAR_ARCING_SMASH2 = 39144;
 const uint32 HIGH_KING_MAULGAR_WHIRLWIND = 33238;
 const uint32 HIGH_KING_MAULGAR_WHIRLWIND2 = 33239;
 
-void SpellFunc_Maulgar_Enrage(SpellDesc* pThis, MoonScriptCreatureAI* pCreatureAI, Unit* pTarget, TargetType pType);
+void SpellFunc_Maulgar_Enrage(SpellDesc* pThis, CreatureAIScript* pCreatureAI, Unit* pTarget, TargetType pType);
 // 4th unit sometimes cannot be found - blame cell system
 uint32 Adds[4] = { 18832, 18834, 18836, 18835 };
 
@@ -101,11 +101,12 @@ class HighKingMaulgarAI : public MoonScriptCreatureAI
             AddSpell(HIGH_KING_MAULGAR_MIGHTY_BLOW, Target_Current, 7, 0, 20, 0, 5);
             mEnrage = AddSpellFunc(&SpellFunc_Maulgar_Enrage, Target_Self, 0, 0, 0);
             mEnrage->AddEmote("You will not defeat the hand of Gruul!", CHAT_MSG_MONSTER_YELL, 11368);
-            AddEmote(Event_OnCombatStart, "Gronn are the real power in Outland!", CHAT_MSG_MONSTER_YELL, 11367);
-            AddEmote(Event_OnTargetDied, "You not so tough after all!", CHAT_MSG_MONSTER_YELL, 11373);
-            AddEmote(Event_OnTargetDied, "Maulgar is king!", CHAT_MSG_MONSTER_YELL, 11375);
-            AddEmote(Event_OnTargetDied, "", CHAT_MSG_MONSTER_YELL, 11374);
-            AddEmote(Event_OnDied, "Grull... will crush you!", CHAT_MSG_MONSTER_YELL, 11376);
+
+            addEmoteForEvent(Event_OnCombatStart, 8806);
+            addEmoteForEvent(Event_OnTargetDied, 8807);
+            addEmoteForEvent(Event_OnTargetDied, 8808);
+            addEmoteForEvent(Event_OnTargetDied, 8809);
+            addEmoteForEvent(Event_OnDied, 8810);
 
             mLastYell = -1;
             mAliveAdds = 0;
@@ -162,12 +163,22 @@ class HighKingMaulgarAI : public MoonScriptCreatureAI
             if (mAliveAdds > 1)
                 return;
 
-            if (GetPhase() == 1 && _getHealthPercent() <= 50)
-            {
-                SetPhase(2, mEnrage);
-            }
+            if (isScriptPhase(1) && _getHealthPercent() <= 50)
+                setScriptPhase(2);
 
             ParentClass::AIUpdate();
+        }
+
+        void OnScriptPhaseChange(uint32_t phaseId)
+        {
+            switch (phaseId)
+            {
+                case 2:
+                    CastSpellNowNoScheduling(mEnrage);
+                    break;
+                default:
+                    break;
+            }
         }
 
         void OnAddDied()
@@ -210,7 +221,7 @@ class HighKingMaulgarAI : public MoonScriptCreatureAI
         SpellDesc* mEnrage;
 };
 
-void SpellFunc_Maulgar_Enrage(SpellDesc* pThis, MoonScriptCreatureAI* pCreatureAI, Unit* pTarget, TargetType pType)
+void SpellFunc_Maulgar_Enrage(SpellDesc* pThis, CreatureAIScript* pCreatureAI, Unit* pTarget, TargetType pType)
 {
     HighKingMaulgarAI* pMaulgarAI = (pCreatureAI != NULL) ? static_cast< HighKingMaulgarAI* >(pCreatureAI) : NULL;
     if (pMaulgarAI != NULL)
@@ -432,9 +443,9 @@ const uint32 GRUUL_THE_DRAGONKILLER_REVERBERATION = 36297;    // +
 const uint32 GRUUL_THE_DRAGONKILLER_STONED = 33652;    // +
 const uint32 GRUUL_THE_DRAGONKILLER_GRONN_LORDS_GRASP = 33572;    // Should be used only after Ground Slam
 
-void SpellFunc_Gruul_GroundSlam(SpellDesc* pThis, MoonScriptCreatureAI* pCreatureAI, Unit* pTarget, TargetType pType);
-void SpellFunc_Gruul_Stoned(SpellDesc* pThis, MoonScriptCreatureAI* pCreatureAI, Unit* pTarget, TargetType pType);
-void SpellFunc_Gruul_Shatter(SpellDesc* pThis, MoonScriptCreatureAI* pCreatureAI, Unit* pTarget, TargetType pType);
+void SpellFunc_Gruul_GroundSlam(SpellDesc* pThis, CreatureAIScript* pCreatureAI, Unit* pTarget, TargetType pType);
+void SpellFunc_Gruul_Stoned(SpellDesc* pThis, CreatureAIScript* pCreatureAI, Unit* pTarget, TargetType pType);
+void SpellFunc_Gruul_Shatter(SpellDesc* pThis, CreatureAIScript* pCreatureAI, Unit* pTarget, TargetType pType);
 
 class GruulTheDragonkillerAI : public MoonScriptCreatureAI
 {
@@ -454,11 +465,12 @@ class GruulTheDragonkillerAI : public MoonScriptCreatureAI
             AddSpell(GRUUL_THE_DRAGONKILLER_REVERBERATION, Target_Self, 4, 0, 30);
             AddSpell(GRUUL_THE_DRAGONKILLER_CAVE_IN, Target_RandomPlayerDestination, 7, 0, 25);
             AddSpellFunc(&SpellFunc_Gruul_GroundSlam, Target_Self, 6, 1, 35);
-            AddEmote(Event_OnCombatStart, "Come and die.", CHAT_MSG_MONSTER_YELL, 11355);
-            AddEmote(Event_OnTargetDied, "No more.", CHAT_MSG_MONSTER_YELL, 11360);
-            AddEmote(Event_OnTargetDied, "Unworthy.", CHAT_MSG_MONSTER_YELL, 11361);
-            AddEmote(Event_OnTargetDied, "Die.", CHAT_MSG_MONSTER_EMOTE, 11362);
-            AddEmote(Event_OnDied, "", CHAT_MSG_MONSTER_YELL, 11363);
+
+            addEmoteForEvent(Event_OnCombatStart, 8811);
+            addEmoteForEvent(Event_OnTargetDied, 8812);
+            addEmoteForEvent(Event_OnTargetDied, 8813);
+            addEmoteForEvent(Event_OnTargetDied, 8814);
+            addEmoteForEvent(Event_OnDied, 8815);
 
             mGrowthTimer = mHurtfulTimer = -1;
             mGrowthStacks = 0;
@@ -580,7 +592,7 @@ class GruulTheDragonkillerAI : public MoonScriptCreatureAI
         SpellDesc*  mShatter2;
 };
 
-void SpellFunc_Gruul_GroundSlam(SpellDesc* pThis, MoonScriptCreatureAI* pCreatureAI, Unit* pTarget, TargetType pType)
+void SpellFunc_Gruul_GroundSlam(SpellDesc* pThis, CreatureAIScript* pCreatureAI, Unit* pTarget, TargetType pType)
 {
     GruulTheDragonkillerAI* pGruul = (pCreatureAI != NULL) ? static_cast< GruulTheDragonkillerAI* >(pCreatureAI) : NULL;
     if (pGruul != NULL)
@@ -591,7 +603,7 @@ void SpellFunc_Gruul_GroundSlam(SpellDesc* pThis, MoonScriptCreatureAI* pCreatur
     }
 }
 
-void SpellFunc_Gruul_Stoned(SpellDesc* pThis, MoonScriptCreatureAI* pCreatureAI, Unit* pTarget, TargetType pType)
+void SpellFunc_Gruul_Stoned(SpellDesc* pThis, CreatureAIScript* pCreatureAI, Unit* pTarget, TargetType pType)
 {
     GruulTheDragonkillerAI* pGruul = (pCreatureAI != NULL) ? static_cast< GruulTheDragonkillerAI* >(pCreatureAI) : NULL;
     if (pGruul != NULL)
@@ -610,7 +622,7 @@ void SpellFunc_Gruul_Stoned(SpellDesc* pThis, MoonScriptCreatureAI* pCreatureAI,
     }
 }
 
-void SpellFunc_Gruul_Shatter(SpellDesc* pThis, MoonScriptCreatureAI* pCreatureAI, Unit* pTarget, TargetType pType)
+void SpellFunc_Gruul_Shatter(SpellDesc* pThis, CreatureAIScript* pCreatureAI, Unit* pTarget, TargetType pType)
 {
     GruulTheDragonkillerAI* pGruul = (pCreatureAI != NULL) ? static_cast< GruulTheDragonkillerAI* >(pCreatureAI) : NULL;
     if (pGruul != NULL)

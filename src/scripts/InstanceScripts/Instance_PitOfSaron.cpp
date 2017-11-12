@@ -85,10 +85,10 @@ class ForgemasterGarfrostAI : public MoonScriptCreatureAI
         mDeepFreezeTimer = INVALIDATE_TIMER;
 
         // Emotes
-        AddEmote(Event_OnCombatStart, 8761);
-        AddEmote(Event_OnTargetDied, 8762);
-        AddEmote(Event_OnTargetDied, 8763);
-        AddEmote(Event_OnDied, 8764);
+        addEmoteForEvent(Event_OnCombatStart, 8761);
+        addEmoteForEvent(Event_OnTargetDied, 8762);
+        addEmoteForEvent(Event_OnTargetDied, 8763);
+        addEmoteForEvent(Event_OnDied, 8764);
     }
 
     void OnCombatStart(Unit* pTarget)
@@ -117,7 +117,7 @@ class ForgemasterGarfrostAI : public MoonScriptCreatureAI
     {
         CastSpells();
 
-        if (GetPhase() == 1 && _getHealthPercent() <= 66)
+        if (isScriptPhase(1) && _getHealthPercent() <= 66)
         {
             sendDBChatMessage(8765);
             getCreature()->CastSpell(getCreature(), SPELL_STOMP, false);
@@ -134,10 +134,10 @@ class ForgemasterGarfrostAI : public MoonScriptCreatureAI
 
             getCreature()->SetEquippedItem(MELEE, EQUIP_ID_SWORD);
             getCreature()->SetEquippedItem(OFFHAND, 0);
-            SetPhase(2);
+            setScriptPhase(2);
         }
 
-        if (GetPhase() == 2 && _getHealthPercent() <= 33)
+        if (isScriptPhase(2) && _getHealthPercent() <= 33)
         {
             sendDBChatMessage(8766);
             getCreature()->CastSpell(getCreature(), SPELL_STOMP, false);
@@ -153,7 +153,7 @@ class ForgemasterGarfrostAI : public MoonScriptCreatureAI
                 getCreature()->CastSpell(getCreature(), SPELL_FROZEMACE, false);
             
             getCreature()->SetEquippedItem(MELEE, EQUIP_ID_MACE);
-            SetPhase(3);
+            setScriptPhase(3);
         }
 
         ParentClass::AIUpdate();
@@ -176,14 +176,14 @@ class ForgemasterGarfrostAI : public MoonScriptCreatureAI
             _resetTimer(mPermafrostTimer, 2000);
         }
 
-        if (_isTimerFinished(mChllingWaveTimer) && GetPhase() == 2)
+        if (_isTimerFinished(mChllingWaveTimer) && isScriptPhase(2))
         {
             // Cast Chilling Wave every 10 secs.
             CastSpell(mChllingWave);
             _resetTimer(mChllingWaveTimer, 10000);
         }
 
-        if (_isTimerFinished(mDeepFreezeTimer) && GetPhase() == 3)
+        if (_isTimerFinished(mDeepFreezeTimer) && isScriptPhase(3))
         {
             // Cast Deep Freeze every 10 secs.
             CastSpell(mDeepFreeze);
@@ -243,11 +243,11 @@ class IckAI : public MoonScriptCreatureAI
 
         // Emotes
         // Krick
-        mKrickAI = SpawnCreature(CN_KRICK, getCreature()->GetPositionX(), getCreature()->GetPositionY(), getCreature()->GetPositionZ(), getCreature()->GetOrientation(), false);
+        mKrickAI = spawnCreatureAndGetAIScript(CN_KRICK, getCreature()->GetPositionX(), getCreature()->GetPositionY(), getCreature()->GetPositionZ(), getCreature()->GetOrientation());
 
-        mKrickAI->AddEmote(Event_OnCombatStart, 8767);
-        mKrickAI->AddEmote(Event_OnTargetDied, 8768);
-        mKrickAI->AddEmote(Event_OnTargetDied, 8769);
+        mKrickAI->addEmoteForEvent(Event_OnCombatStart, 8767);
+        mKrickAI->addEmoteForEvent(Event_OnTargetDied, 8768);
+        mKrickAI->addEmoteForEvent(Event_OnTargetDied, 8769);
 
         // Ick Spell Announcements
         mPursue->AddAnnouncement("Ick is chasing you!");
@@ -380,8 +380,8 @@ class IckAI : public MoonScriptCreatureAI
             if (mKrickAI)
             {
                 mKrickAI->sendDBChatMessage(8774);
-                mKrickAI->Announce("Krick begins rapidly conjuring explosive mines!");
-                mKrickAI->CastSpell(mExplosionBarageKrick);
+                mKrickAI->sendAnnouncement("Krick begins rapidly conjuring explosive mines!");
+                static_cast<MoonScriptCreatureAI*>(mKrickAI)->CastSpell(mExplosionBarageKrick);
             }
             
             getCreature()->setMoveRoot(true);
@@ -405,7 +405,7 @@ class IckAI : public MoonScriptCreatureAI
     }
 
     InstanceScript* mInstance;
-    MoonScriptCreatureAI* mKrickAI;
+    CreatureAIScript* mKrickAI;
     int32_t mMightyKickTimer;
     uint32_t mPursueTimer;
     uint32_t mPoisonNovaTimer;
@@ -515,9 +515,9 @@ class KrickAI : public MoonScriptCreatureAI
             getCreature()->GetAIInterface()->WipeHateList();
 
             if (pTarget->IsTeamHorde())
-                JainaOrSylvanas = SpawnCreature(CN_SYLVANAS_WINDRUNNER, 816.58f, 111.53f, 510.0f, 0.3825f, false);
+                JainaOrSylvanas = spawnCreatureAndGetAIScript(CN_SYLVANAS_WINDRUNNER, 816.58f, 111.53f, 510.0f, 0.3825f);
             else
-                JainaOrSylvanas = SpawnCreature(CN_JAINA_PROUDMOORE, 816.58f, 111.53f, 510.0f, 0.3825f, false);
+                JainaOrSylvanas = spawnCreatureAndGetAIScript(CN_JAINA_PROUDMOORE, 816.58f, 111.53f, 510.0f, 0.3825f);
 
             mOutroTimerStarted = true;
             mOutroTimer = _addTimer(2000);
@@ -600,7 +600,7 @@ class KrickAI : public MoonScriptCreatureAI
 
     InstanceScript* mInstance;
     Creature* mIckAI;
-    MoonScriptCreatureAI* JainaOrSylvanas;
+    CreatureAIScript* JainaOrSylvanas;
     SpellDesc* mBarrageSummon;
     uint8_t sequence;
     uint32_t mOutroTimer;

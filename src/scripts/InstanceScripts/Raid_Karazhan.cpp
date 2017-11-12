@@ -77,14 +77,14 @@ class AttumenTheHuntsmanAI : public MoonScriptCreatureAI
         AddPhaseSpell(2, AddSpell(ATTUMEN_BERSERKER_CHARGE, Target_RandomPlayerNotCurrent, 15, 0, 6, 15, 40, true));
 
         //Emotes
-        AddEmote(Event_OnCombatStart, "Cowards! Wretches!", CHAT_MSG_MONSTER_YELL, 9167);
-        AddEmote(Event_OnCombatStart, "Who dares attack the steed of the Huntsman?", CHAT_MSG_MONSTER_YELL, 9298);
-        AddEmote(Event_OnCombatStart, "Perhaps you would rather test yourselves against a more formidable opponent!", CHAT_MSG_MONSTER_YELL, 9299);
-        AddEmote(Event_OnTargetDied, "It was... inevitable.", CHAT_MSG_MONSTER_YELL, 9169);
-        AddEmote(Event_OnTargetDied, "Another trophy to add to my collection!", CHAT_MSG_MONSTER_YELL, 9300);
-        AddEmote(Event_OnDied, "Always knew... someday I would become... the hunted.", CHAT_MSG_MONSTER_YELL, 9165);
-        AddEmote(Event_OnTaunt, "Such easy sport.", CHAT_MSG_MONSTER_YELL, 9170);
-        AddEmote(Event_OnTaunt, "Amatures! Do not think you can best me! I kill for a living.", CHAT_MSG_MONSTER_YELL, 9304);
+        addEmoteForEvent(Event_OnCombatStart, 8816);
+        addEmoteForEvent(Event_OnCombatStart, 8817);
+        addEmoteForEvent(Event_OnTargetDied, 8818);
+        addEmoteForEvent(Event_OnTargetDied, 8819);
+        addEmoteForEvent(Event_OnTargetDied, 8820);
+        addEmoteForEvent(Event_OnDied, 8821);
+        addEmoteForEvent(Event_OnTaunt, 8822);
+        addEmoteForEvent(Event_OnTaunt, 8823);
     }
 
     void OnLoad()
@@ -100,16 +100,16 @@ class AttumenTheHuntsmanAI : public MoonScriptCreatureAI
 
     void AIUpdate()
     {
-        if (GetPhase() == 1)
+        if (isScriptPhase(1))
         {
             if (GetLinkedCreature() && GetLinkedCreature()->isAlive() && _getHealthPercent() <= 25 && !_isCasting())
             {
-                SetPhase(2);
+                setScriptPhase(2);
                 _setMeleeDisabled(false);
                 _setCastDisabled(true);
                 sendChatMessage(CHAT_MSG_MONSTER_YELL, 9168, "Come Midnight, let's disperse this petty rabble!");
                 MoonScriptCreatureAI* midnight = static_cast<MoonScriptCreatureAI*>(GetLinkedCreature());
-                midnight->SetPhase(2);
+                midnight->setScriptPhase(2);
                 midnight->moveToUnit(getCreature());
                 midnight->_setMeleeDisabled(false);
             }
@@ -143,13 +143,13 @@ class MidnightAI : public MoonScriptCreatureAI
 
     void AIUpdate()
     {
-        if (GetPhase() == 1)
+        if (isScriptPhase(1))
         {
-            if (GetLinkedCreature() == NULL && _getHealthPercent() <= 95 && !_isCasting())
+            if (GetLinkedCreature() == nullptr && _getHealthPercent() <= 95 && !_isCasting())
             {
                 sendChatMessage(CHAT_MSG_MONSTER_YELL, 0, "Midnight calls for her master!");
-                CreatureAIScript* attumen = SpawnCreature(CN_ATTUMEN, getCreature()->GetPositionX(), getCreature()->GetPositionY(), getCreature()->GetPositionZ(), getCreature()->GetOrientation(), false);
-                if (attumen != NULL)
+                CreatureAIScript* attumen = spawnCreatureAndGetAIScript(CN_ATTUMEN, getCreature()->GetPositionX(), getCreature()->GetPositionY(), getCreature()->GetPositionZ(), getCreature()->GetOrientation());
+                if (attumen != nullptr)
                 {
                     SetLinkedCreature(attumen);
                     attumen->SetLinkedCreature(this);
@@ -157,17 +157,17 @@ class MidnightAI : public MoonScriptCreatureAI
             }
             else if (GetLinkedCreature() && GetLinkedCreature()->isAlive() && _getHealthPercent() <= 25 && !_isCasting())
             {
-                SetPhase(2);
+                setScriptPhase(2);
                 MoonScriptCreatureAI* attumen = static_cast<MoonScriptCreatureAI*>(GetLinkedCreature());
                 moveToUnit(attumen->getCreature());
                 _setMeleeDisabled(false);
-                attumen->SetPhase(2);
+                attumen->setScriptPhase(2);
                 attumen->_setMeleeDisabled(false);
                 attumen->_setCastDisabled(true);
                 attumen->sendChatMessage(CHAT_MSG_MONSTER_YELL, 9168, "Come Midnight, let's disperse this petty rabble!");
             }
         }
-        else if (GetPhase() == 2)
+        else if (isScriptPhase(2))
         {
             if (GetLinkedCreature() && GetLinkedCreature()->isAlive())
             {
@@ -219,11 +219,11 @@ class MoroesAI : public MoonScriptCreatureAI
         mGarrote = AddSpell(MOROES_GARROTE, Target_RandomPlayer, 0, 0, 0);
 
         //Emotes
-        AddEmote(Event_OnCombatStart, "Hm, unannounced visitors. Preparations must be made...", CHAT_MSG_MONSTER_YELL, 9211);
-        AddEmote(Event_OnDied, "How terribly clumsy of me...", CHAT_MSG_MONSTER_YELL, 9213);
-        AddEmote(Event_OnTargetDied, "One more for dinner this evening.", CHAT_MSG_MONSTER_YELL, 9214);
-        AddEmote(Event_OnTargetDied, "Time... Never enough time.", CHAT_MSG_MONSTER_YELL, 9314);
-        AddEmote(Event_OnTargetDied, "I've gone and made a mess.", CHAT_MSG_MONSTER_YELL, 9315);
+        addEmoteForEvent(Event_OnCombatStart, 8824);
+        addEmoteForEvent(Event_OnDied, 8825);
+        addEmoteForEvent(Event_OnTargetDied, 8826);
+        addEmoteForEvent(Event_OnTargetDied, 8827);
+        addEmoteForEvent(Event_OnTargetDied, 8828);
     }
 
     void OnCombatStart(Unit* pTarget)
@@ -241,7 +241,7 @@ class MoroesAI : public MoonScriptCreatureAI
 
     void AIUpdate()
     {
-        if (GetPhase() == 1)
+        if (isScriptPhase(1))
         {
             if (mEnrage->mEnabled && _getHealthPercent() <= 30 && !_isCasting())
             {
@@ -250,21 +250,41 @@ class MoroesAI : public MoonScriptCreatureAI
             }
             else if (_isTimerFinished(mVanishTimer) && !_isCasting())
             {
-                SetPhase(2, mVanish);
-                mGarroteTimer = _addTimer(12000);
-                _resetTimer(mVanishTimer, 35000);
+                setScriptPhase(2);
             }
         }
-        else if (GetPhase() == 2)
+        else if (isScriptPhase(2))
         {
             if (_isTimerFinished(mGarroteTimer) && !_isCasting())
             {
-                SetPhase(1, mGarrote);
-                _removeAura(MOROES_VANISH);
-                _removeTimer(mGarroteTimer);
+                setScriptPhase(1);
             }
         }
         ParentClass::AIUpdate();
+    }
+
+    void OnScriptPhaseChange(uint32_t phaseId)
+    {
+        switch (phaseId)
+        {
+            case 1:
+            {
+                if (_isTimerFinished(mGarroteTimer))
+                {
+                    CastSpellNowNoScheduling(mGarrote);
+                    _removeAura(MOROES_VANISH);
+                    _removeTimer(mGarroteTimer);
+                }
+
+            } break;
+            case 2:
+                CastSpellNowNoScheduling(mVanish);
+                mGarroteTimer = _addTimer(12000);
+                _resetTimer(mVanishTimer, 35000);
+                break;
+            default:
+                break;
+        }
     }
 
     SpellDesc* mVanish;
@@ -296,11 +316,11 @@ class MaidenOfVirtueAI : public MoonScriptCreatureAI
         mRepentance->AddEmote("Your impurity must be cleansed.", CHAT_MSG_MONSTER_YELL, 9208);
 
         //Emotes
-        AddEmote(Event_OnCombatStart, "Your behavior will not be tolerated.", CHAT_MSG_MONSTER_YELL, 9204);
-        AddEmote(Event_OnTargetDied, "Ah ah ah...", CHAT_MSG_MONSTER_YELL, 9207);
-        AddEmote(Event_OnTargetDied, "This is for the best.", CHAT_MSG_MONSTER_YELL, 9312);
-        AddEmote(Event_OnTargetDied, "Impure thoughts lead to profane actions.", CHAT_MSG_MONSTER_YELL, 9311);
-        AddEmote(Event_OnDied, "Death comes. Will your conscience be clear?", CHAT_MSG_MONSTER_YELL, 9206);
+        addEmoteForEvent(Event_OnCombatStart, 8829);
+        addEmoteForEvent(Event_OnTargetDied, 8830);
+        addEmoteForEvent(Event_OnTargetDied, 8831);
+        addEmoteForEvent(Event_OnTargetDied, 8832);
+        addEmoteForEvent(Event_OnDied, 8833);
     }
 
     void OnCombatStart(Unit* pTarget)
@@ -2740,8 +2760,9 @@ public:
         float dumX = -10938.56f;
         float dumY = -2041.26f;
         float dumZ = 305.132f;
-        CreatureAIScript* infernalDummy = SpawnCreature(CN_DUMMY, dumX, dumY, dumZ);
-        if (infernalDummy != NULL)
+
+        CreatureAIScript* infernalDummy = spawnCreatureAndGetAIScript(CN_DUMMY, dumX, dumY, dumZ, 0);
+        if (infernalDummy != nullptr)
         {
             SetLinkedCreature(infernalDummy);
             infernalDummy->SetLinkedCreature(this);

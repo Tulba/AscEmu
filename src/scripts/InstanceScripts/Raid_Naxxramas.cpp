@@ -86,7 +86,7 @@ CarrionSpinnerAI::CarrionSpinnerAI(Creature* pCreature) : MoonScriptCreatureAI(p
 
     // Does it work ?
     AddSpell(CARRION_SPINNER_WEB_WRAP, Target_RandomPlayer, 8, 0, 10, 0, 40);
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Dread Creeper
@@ -96,7 +96,7 @@ DreadCreeperAI::DreadCreeperAI(Creature* pCreature) : MoonScriptCreatureAI(pCrea
         AddSpell(DREAD_CREEPER_VEIL_OF_SHADOW_HEROIC, Target_Self, 15, 0, 10);
     else
         AddSpell(DREAD_CREEPER_VEIL_OF_SHADOW_NORMAL, Target_Self, 15, 0, 10);
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Naxxramas Cultist
@@ -106,7 +106,7 @@ NaxxramasCultistAI::NaxxramasCultistAI(Creature* pCreature) : MoonScriptCreature
         AddSpell(NAXXRAMAS_CULTIST_KNOCKBACK_HEROIC, Target_Destination, 10, 0, 10, 0, 8);
     else
         AddSpell(NAXXRAMAS_CULTIST_KNOCKBACK_NORMAL, Target_Destination, 10, 0, 10, 0, 8);
-};
+}
 
 //Necro Stalker AI
 /////////////////////////////////////////////////////////////////////////////////
@@ -118,7 +118,7 @@ VenomStalkerAI::VenomStalkerAI(Creature* pCreature) : MoonScriptCreatureAI(pCrea
         AddSpell(VENOM_STALKER_POISON_CHARGE_HEROIC, Target_RandomPlayer, 10, 0, 10, 0, 40);
     else
         AddSpell(VENOM_STALKER_POISON_CHARGE_NORMAL, Target_RandomPlayer, 10, 0, 10, 0, 40);
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Tomb Horror
@@ -136,7 +136,7 @@ TombHorrorAI::TombHorrorAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature
     }
 
     AddSpell(TOMB_HORROR_SPIKE_VOLLEY, Target_Self, 10, 0.5f, 15);
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Naxxramas Acolyte
@@ -152,7 +152,7 @@ NaxxramasAcolyteAI::NaxxramasAcolyteAI(Creature* pCreature) : MoonScriptCreature
         AddSpell(NAXXRAMAS_ACOLYTE_SHADOW_BOLT_VOLLEY_NORMAL, Target_RandomPlayerDestination, 10, 3, 5, 0, 30);
         AddSpell(NAXXRAMAS_ACOLYTE_ARCANE_EXPLOSION_NORMAL, Target_Self, 10, 2, 15);
     }
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Vigilant Shade
@@ -165,19 +165,19 @@ VigilantShadeAI::VigilantShadeAI(Creature* pCreature) : MoonScriptCreatureAI(pCr
         AddSpell(NAXXRAMAS_ACOLYTE_SHADOW_BOLT_VOLLEY_NORMAL, Target_RandomPlayerDestination, 10, 0, 15, 0, 30);
 
     _applyAura(VIGILANT_SHADE_INVISIBILITY);
-};
+}
 
 void VigilantShadeAI::OnCombatStart(Unit* pTarget)
 {
     ParentClass::OnCombatStart(pTarget);
     _removeAura(VIGILANT_SHADE_INVISIBILITY);
-};
+}
 
 void VigilantShadeAI::OnCombatStop(Unit* pTarget)
 {
     ParentClass::OnCombatStop(pTarget);
     _applyAura(VIGILANT_SHADE_INVISIBILITY);
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Crypt Reaver
@@ -185,27 +185,27 @@ CryptReaverAI::CryptReaverAI(Creature* pCreature) : MoonScriptCreatureAI(pCreatu
 {
     AddSpell(CRYPT_REAVER_CLEAVE, Target_Current, 10, 0, 5, 0, 8);
     AddSpell(CRYPT_REAVER_FRENZY, Target_Self, 7, 0, 40);
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Web Wrap
 WebWrapAI::WebWrapAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
 {
     mPlayerGuid = 0;
-};
+}
 
 void WebWrapAI::OnCombatStart(Unit* pTarget)
 {
     _setMeleeDisabled(false);
     setRooted(true);
     stopMovement();
-};
+}
 
 void WebWrapAI::OnCombatStop(Unit* pTarget)
 {
     _setMeleeDisabled(true);
     setRooted(false);
-};
+}
 
 void WebWrapAI::OnDied(Unit* pKiller)
 {
@@ -221,7 +221,7 @@ void WebWrapAI::OnDied(Unit* pKiller)
 
         mPlayerGuid = 0;
     }
-};
+}
 
 void WebWrapAI::AIUpdate()
 {
@@ -235,7 +235,7 @@ void WebWrapAI::AIUpdate()
             despawn(1);
         }
     }
-};
+}
 
 void WebWrapAI::Destroy()
 {
@@ -252,7 +252,7 @@ void WebWrapAI::Destroy()
     }
 
     delete this;
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Maexxna Spiderling
@@ -262,7 +262,7 @@ MaexxnaSpiderlingAI::MaexxnaSpiderlingAI(Creature* pCreature) : MoonScriptCreatu
         AddSpell(MAEXXNA_SPIDERLING_NECROTIC_POISON_HEROIC, Target_Current, 10, 0, 20, 0, 8);
     else
         AddSpell(MAEXXNA_SPIDERLING_NECROTIC_POISON_NORMAL, Target_Current, 10, 0, 20, 0, 8);
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Maexxna
@@ -283,7 +283,7 @@ MaexxnaAI::MaexxnaAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
     mAddsSummonTimer = mWebWrapTimer = mWebSprayTimer = INVALIDATE_TIMER;
     mHasEnraged = false;
     mLeftWall = true;
-};
+}
 
 void MaexxnaAI::OnCombatStart(Unit* pTarget)
 {
@@ -294,27 +294,26 @@ void MaexxnaAI::OnCombatStart(Unit* pTarget)
     mHasEnraged = false;
     if (RandomUInt(1) == 1)
         mLeftWall = !mLeftWall;
-};
+}
 
 void MaexxnaAI::OnCombatStop(Unit* pTarget)
 {
     ParentClass::OnCombatStop(pTarget);
     _removeTimer(mWebWrapTimer);
-};
+}
 
 void MaexxnaAI::AIUpdate()
 {
     if (_isTimerFinished(mAddsSummonTimer))
     {
-        MoonScriptCreatureAI* Spiderling = NULL;
         for (uint8 i = 0; i < 8; ++i)
         {
-            Spiderling = SpawnCreature(CN_MAEXXNA_SPIDERLING, getCreature()->GetPositionX(), getCreature()->GetPositionY(), getCreature()->GetPositionZ(), getCreature()->GetOrientation(), false);
-            if (Spiderling != NULL)
+            CreatureAIScript* Spiderling = spawnCreatureAndGetAIScript(CN_MAEXXNA_SPIDERLING, getCreature()->GetPositionX(), getCreature()->GetPositionY(), getCreature()->GetPositionZ(), getCreature()->GetOrientation());
+            if (Spiderling != nullptr)
             {
                 Spiderling->getCreature()->m_noRespawn = true;
                 Spiderling->_setDespawnWhenInactive(true);
-                Spiderling->AggroRandomPlayer(1000);
+                static_cast<MoonScriptCreatureAI*>(Spiderling)->AggroRandomPlayer(1000);
             }
         }
 
@@ -352,9 +351,9 @@ void MaexxnaAI::AIUpdate()
     }
 
     ParentClass::AIUpdate();
-};
+}
 
-void SpellFunc_MaexxnaWebWrap(SpellDesc* pThis, MoonScriptCreatureAI* pCreatureAI, Unit* pTarget, TargetType pType)
+void SpellFunc_MaexxnaWebWrap(SpellDesc* pThis, CreatureAIScript* pCreatureAI, Unit* pTarget, TargetType pType)
 {
     MaexxnaAI* Maexxna = (pCreatureAI != NULL) ? static_cast< MaexxnaAI* >(pCreatureAI) : NULL;
     if (Maexxna != NULL)
@@ -367,7 +366,7 @@ void SpellFunc_MaexxnaWebWrap(SpellDesc* pThis, MoonScriptCreatureAI* pCreatureA
         if (!Maexxna->mLeftWall)
             Id += 3;
 
-        WebWrapAI* WebWrap = static_cast< WebWrapAI* >(Maexxna->SpawnCreature(CN_WEB_WRAP, WebWrapPos[Id].x, WebWrapPos[Id].y, WebWrapPos[Id].z, pTarget->GetOrientation()));
+        WebWrapAI* WebWrap = static_cast< WebWrapAI* >(Maexxna->spawnCreatureAndGetAIScript(CN_WEB_WRAP, WebWrapPos[Id].x, WebWrapPos[Id].y, WebWrapPos[Id].z, pTarget->GetOrientation()));
         if (WebWrap == NULL)
             return;
 
@@ -382,7 +381,7 @@ void SpellFunc_MaexxnaWebWrap(SpellDesc* pThis, MoonScriptCreatureAI* pCreatureA
         static_cast<Player*>(pTarget)->SafeTeleport(Maexxna->getCreature()->GetMapId(), Maexxna->getCreature()->GetInstanceID(), LocationVector(WebWrapPos[Id].x, WebWrapPos[Id].y, WebWrapPos[Id].z));
         pTarget->CastSpell(pTarget, MAEXXNA_WEB_WRAP, true);
     }
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Naxxramas Worshipper
@@ -395,7 +394,7 @@ NaxxramasWorshipperAI::NaxxramasWorshipperAI(Creature* pCreature) : MoonScriptCr
 
     mGrandWidow = NULL;
     mPossessed = false;
-};
+}
 
 void NaxxramasWorshipperAI::OnCastSpell(uint32 pSpellId)
 {
@@ -407,7 +406,7 @@ void NaxxramasWorshipperAI::OnCastSpell(uint32 pSpellId)
         DataPacket << _unit->GetGUID() << _unit->GetGUID() << NAXXRAMAS_WORSHIPPER_WIDOW_EMBRACE;
         _unit->SendMessageToSet(&DataPacket, true);
     }*/
-};
+}
 
 void NaxxramasWorshipperAI::OnDied(Unit* pKiller)
 {
@@ -446,7 +445,7 @@ void NaxxramasWorshipperAI::OnDied(Unit* pKiller)
             mGrandWidow->_resetTimer(mGrandWidow->mPoisonVolleyBoltTimer, 60000);
         }
     }
-};
+}
 
 void NaxxramasWorshipperAI::AIUpdate()
 {
@@ -512,7 +511,7 @@ void NaxxramasWorshipperAI::AIUpdate()
         return;*/
 
     ParentClass::AIUpdate();
-};
+}
 
 void NaxxramasWorshipperAI::Destroy()
 {
@@ -526,7 +525,7 @@ void NaxxramasWorshipperAI::Destroy()
     }
 
     delete this;
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Naxxramas Follower
@@ -537,7 +536,7 @@ NaxxramasFollowerAI::NaxxramasFollowerAI(Creature* pCreature) : MoonScriptCreatu
     AddSpell(NAXXRAMAS_FOLLOWER_SILENCE_HEROIC, Target_Self, 10, 0, 15);
 
     mGrandWidow = NULL;
-};
+}
 
 void NaxxramasFollowerAI::Destroy()
 {
@@ -551,9 +550,9 @@ void NaxxramasFollowerAI::Destroy()
     }
 
     delete this;
-};
+}
 
-void SpellFunc_NaxxramasFollowerCharge(SpellDesc* pThis, MoonScriptCreatureAI* pCreatureAI, Unit* pTarget, TargetType pType)
+void SpellFunc_NaxxramasFollowerCharge(SpellDesc* pThis, CreatureAIScript* pCreatureAI, Unit* pTarget, TargetType pType)
 {
     NaxxramasFollowerAI* NaxxramasFollower = (pCreatureAI != NULL) ? static_cast< NaxxramasFollowerAI* >(pCreatureAI) : NULL;
     if (NaxxramasFollower != NULL)
@@ -568,21 +567,20 @@ void SpellFunc_NaxxramasFollowerCharge(SpellDesc* pThis, MoonScriptCreatureAI* p
 
         NaxxramasFollower->CastSpell(NaxxramasFollower->mCharge);
     }
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Grand Widow Faerlina
 GrandWidowFaerlinaAI::GrandWidowFaerlinaAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
 {
-    MoonScriptCreatureAI* AddAI = NULL;
     for (uint8 i = 0; i < 4; ++i)
     {
-        AddAI = SpawnCreature(CN_NAXXRAMAS_WORSHIPPER, 3353.364502f + Worshippers[i].x, -3620.322998f, 260.996857f, 4.725017f);
-        if (AddAI != NULL)
+        CreatureAIScript* whorshipper = spawnCreatureAndGetAIScript(CN_NAXXRAMAS_WORSHIPPER, 3353.364502f + Worshippers[i].x, -3620.322998f, 260.996857f, 4.725017f);
+        if (whorshipper != nullptr)
         {
-            AddAI->getCreature()->m_noRespawn = true;
-            static_cast< NaxxramasWorshipperAI* >(AddAI)->mGrandWidow = this;
-            mWorshippers.insert(static_cast< NaxxramasWorshipperAI* >(AddAI));
+            whorshipper->getCreature()->m_noRespawn = true;
+            static_cast< NaxxramasWorshipperAI* >(whorshipper)->mGrandWidow = this;
+            mWorshippers.insert(static_cast< NaxxramasWorshipperAI* >(whorshipper));
         }
     }
 
@@ -590,12 +588,12 @@ GrandWidowFaerlinaAI::GrandWidowFaerlinaAI(Creature* pCreature) : MoonScriptCrea
     {
         for (uint8 i = 0; i < 2; ++i)
         {
-            AddAI = SpawnCreature(CN_NAXXRAMAS_FOLLOWER, 3353.364502f + Followers[i].x, -3620.322998f, 260.996857f, 4.725017f);
-            if (AddAI != NULL)
+            CreatureAIScript* follower = spawnCreatureAndGetAIScript(CN_NAXXRAMAS_FOLLOWER, 3353.364502f + Followers[i].x, -3620.322998f, 260.996857f, 4.725017f);
+            if (follower != nullptr)
             {
-                AddAI->getCreature()->m_noRespawn = true;
-                static_cast< NaxxramasFollowerAI* >(AddAI)->mGrandWidow = this;
-                mFollowers.insert(static_cast< NaxxramasFollowerAI* >(AddAI));
+                follower->getCreature()->m_noRespawn = true;
+                static_cast< NaxxramasFollowerAI* >(follower)->mGrandWidow = this;
+                mFollowers.insert(static_cast< NaxxramasFollowerAI* >(follower));
             }
         }
 
@@ -610,16 +608,16 @@ GrandWidowFaerlinaAI::GrandWidowFaerlinaAI(Creature* pCreature) : MoonScriptCrea
         AddSpell(GRAND_WIDOW_RAIN_OF_FIRE_NORMAL, Target_RandomPlayerDestination, 7, 0, 10, 0, 40);
     }
 
-    sendChatMessage(CHAT_MSG_MONSTER_YELL, 8799, "Your old lives, your mortal desires, mean nothing. You are acolytes of the master now, and you will serve the cause without question! The greatest glory is to die in the master's service!");
-    AddEmote(Event_OnCombatStart, "Slay them in the master's name!", CHAT_MSG_MONSTER_YELL, 8794);
-    AddEmote(Event_OnTargetDied, "You have failed!", CHAT_MSG_MONSTER_YELL, 8800);
-    AddEmote(Event_OnTargetDied, "Pathetic wretch!", CHAT_MSG_MONSTER_YELL, 8801);
-    AddEmote(Event_OnDied, "The master... will avenge me!", CHAT_MSG_MONSTER_YELL, 8798);
+    sendDBChatMessage(8914);
+    addEmoteForEvent(Event_OnCombatStart, 8915);
+    addEmoteForEvent(Event_OnTargetDied, 8916);
+    addEmoteForEvent(Event_OnTargetDied, 8917);
+    addEmoteForEvent(Event_OnDied, 8918);
     mFrenzy->AddEmote("You cannot hide from me!", CHAT_MSG_MONSTER_YELL, 8795);
     mFrenzy->AddEmote("Kneel before me, worm!", CHAT_MSG_MONSTER_YELL, 8796);
     mFrenzy->AddEmote("Run while you still can!", CHAT_MSG_MONSTER_YELL, 8797);
     mPoisonVolleyBoltTimer = mFrenzyTimer = INVALIDATE_TIMER;
-};
+}
 
 void GrandWidowFaerlinaAI::OnCombatStart(Unit* pTarget)
 {
@@ -640,7 +638,7 @@ void GrandWidowFaerlinaAI::OnCombatStart(Unit* pTarget)
     {
         (*Iter)->AggroNearestPlayer(200);
     }
-};
+}
 
 void GrandWidowFaerlinaAI::OnCombatStop(Unit* pTarget)
 {
@@ -671,15 +669,14 @@ void GrandWidowFaerlinaAI::OnCombatStop(Unit* pTarget)
 
     if (isAlive())
     {
-        MoonScriptCreatureAI* AddAI = NULL;
         for (uint8 i = 0; i < 4; ++i)
         {
-            AddAI = SpawnCreature(CN_NAXXRAMAS_WORSHIPPER, 3353.364502f + Worshippers[i].x, -3620.322998f, 260.996857f, 4.725017f);
-            if (AddAI != NULL)
+            CreatureAIScript* whorshipper = spawnCreatureAndGetAIScript(CN_NAXXRAMAS_WORSHIPPER, 3353.364502f + Worshippers[i].x, -3620.322998f, 260.996857f, 4.725017f);
+            if (whorshipper != nullptr)
             {
-                AddAI->getCreature()->m_noRespawn = true;
-                static_cast< NaxxramasWorshipperAI* >(AddAI)->mGrandWidow = this;
-                mWorshippers.insert(static_cast< NaxxramasWorshipperAI* >(AddAI));
+                whorshipper->getCreature()->m_noRespawn = true;
+                static_cast< NaxxramasWorshipperAI* >(whorshipper)->mGrandWidow = this;
+                mWorshippers.insert(static_cast< NaxxramasWorshipperAI* >(whorshipper));
             }
         }
 
@@ -687,17 +684,17 @@ void GrandWidowFaerlinaAI::OnCombatStop(Unit* pTarget)
         {
             for (uint8 i = 0; i < 2; ++i)
             {
-                AddAI = SpawnCreature(CN_NAXXRAMAS_FOLLOWER, 3353.364502f + Followers[i].x, -3620.322998f, 260.996857f, 4.725017f);
-                if (AddAI != NULL)
+                CreatureAIScript* follower = spawnCreatureAndGetAIScript(CN_NAXXRAMAS_FOLLOWER, 3353.364502f + Followers[i].x, -3620.322998f, 260.996857f, 4.725017f);
+                if (follower != nullptr)
                 {
-                    AddAI->getCreature()->m_noRespawn = true;
-                    static_cast< NaxxramasFollowerAI* >(AddAI)->mGrandWidow = this;
-                    mFollowers.insert(static_cast< NaxxramasFollowerAI* >(AddAI));
+                    follower->getCreature()->m_noRespawn = true;
+                    static_cast< NaxxramasFollowerAI* >(follower)->mGrandWidow = this;
+                    mFollowers.insert(static_cast< NaxxramasFollowerAI* >(follower));
                 }
             }
         }
     }
-};
+}
 
 void GrandWidowFaerlinaAI::AIUpdate()
 {
@@ -716,7 +713,7 @@ void GrandWidowFaerlinaAI::AIUpdate()
     }
 
     ParentClass::AIUpdate();
-};
+}
 
 void GrandWidowFaerlinaAI::Destroy()
 {
@@ -737,7 +734,7 @@ void GrandWidowFaerlinaAI::Destroy()
     mFollowers.clear();
 
     delete this;
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Crypt Guard
@@ -751,13 +748,13 @@ CryptGuardAI::CryptGuardAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature
     AddSpell(CRYPT_GUARD_CLEAVE, Target_Current, 10, 0, 10, 0, 8);
     mAnubRekhanAI = NULL;
     mEnraged = false;
-};
+}
 
 void CryptGuardAI::OnCombatStart(Unit* pTarget)
 {
     ParentClass::OnCombatStart(pTarget);
     mEnraged = false;
-};
+}
 
 void CryptGuardAI::AIUpdate()
 {
@@ -768,7 +765,7 @@ void CryptGuardAI::AIUpdate()
     }
 
     ParentClass::AIUpdate();
-};
+}
 
 void CryptGuardAI::Destroy()
 {
@@ -782,14 +779,14 @@ void CryptGuardAI::Destroy()
     }
 
     delete this;
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Corpse Scarab
 CorpseScarabAI::CorpseScarabAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
 {
     mAnubRekhanAI = NULL;
-};
+}
 
 void CorpseScarabAI::Destroy()
 {
@@ -803,7 +800,7 @@ void CorpseScarabAI::Destroy()
     }
 
     delete this;
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Anub'Rekhan
@@ -811,11 +808,10 @@ AnubRekhanAI::AnubRekhanAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature
 {
     if (_isHeroic())
     {
-        CryptGuardAI* CryptAI = NULL;
         for (uint8 i = 0; i < 2; ++i)
         {
-            CryptAI = static_cast< CryptGuardAI* >(SpawnCreature(CN_CRYPT_GUARD, CryptGuards[i].x, CryptGuards[i].y, CryptGuards[i].z, CryptGuards[i].o));
-            if (CryptAI != NULL)
+            CryptGuardAI* CryptAI = static_cast< CryptGuardAI* >(spawnCreatureAndGetAIScript(CN_CRYPT_GUARD, CryptGuards[i].x, CryptGuards[i].y, CryptGuards[i].z, CryptGuards[i].o));
+            if (CryptAI != nullptr)
             {
                 CryptAI->getCreature()->m_noRespawn = true;
                 CryptAI->mAnubRekhanAI = this;
@@ -834,18 +830,19 @@ AnubRekhanAI::AnubRekhanAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature
 
     AddSpellFunc(&SpellFunc_AnubRekhanCorpseScarabsPlayer, Target_Self, 8, 0, 20);
     AddSpellFunc(&SpellFunc_AnubRekhanCorpseScarabsCryptGuard, Target_Self, 8, 0, 20);
-    sendChatMessage(CHAT_MSG_MONSTER_YELL, 8788, "Ahh... welcome to my parlor.");
-    AddEmote(Event_OnCombatStart, "Just a little taste...", CHAT_MSG_MONSTER_YELL, 8785);
-    AddEmote(Event_OnCombatStart, "There is no way out.", CHAT_MSG_MONSTER_YELL, 8786);
-    AddEmote(Event_OnCombatStart, "Yes, run! It makes the blood pump faster!", CHAT_MSG_MONSTER_YELL, 8787);
-    AddEmote(Event_OnTargetDied, "Shhh... it will all be over soon.", CHAT_MSG_MONSTER_YELL, 8789);
-    AddEmote(Event_OnTaunt, "I hear little hearts beating. Yesss... beating faster now. Soon the beating will stop.", CHAT_MSG_MONSTER_YELL, 8790);
-    AddEmote(Event_OnTaunt, "Where to go? What to do? So many choices that all end in pain, end in death.", CHAT_MSG_MONSTER_YELL, 8791);
-    AddEmote(Event_OnTaunt, "Which one shall I eat first? So difficult to choose. They all smell so delicious...", CHAT_MSG_MONSTER_YELL, 8792);
-    AddEmote(Event_OnTaunt, "Closer now... tasty morsels. I've been too long without food. Without blood to drink.", CHAT_MSG_MONSTER_YELL, 8793);
+    sendDBChatMessage(8919);
+    addEmoteForEvent(Event_OnCombatStart, 8920);
+    addEmoteForEvent(Event_OnCombatStart, 8921);
+    addEmoteForEvent(Event_OnCombatStart, 8922);
+    addEmoteForEvent(Event_OnTargetDied, 8923);
+    addEmoteForEvent(Event_OnTaunt, 8924);
+    addEmoteForEvent(Event_OnTaunt, 8925);
+    addEmoteForEvent(Event_OnTaunt, 8926);
+    addEmoteForEvent(Event_OnTaunt, 8927);
+
     SetEnrageInfo(AddSpell(ANUBREKHAN_BERSERK, Target_Self, 0, 0, 0), 600000);
     mLocustSwarmTimer = mCryptSpawnTimer = INVALIDATE_TIMER;
-};
+}
 
 void AnubRekhanAI::OnCombatStart(Unit* pTarget)
 {
@@ -861,7 +858,7 @@ void AnubRekhanAI::OnCombatStart(Unit* pTarget)
     }
     else
         mCryptSpawnTimer = _addTimer(20000);
-};
+}
 
 void AnubRekhanAI::OnCombatStop(Unit* pTarget)
 {
@@ -888,11 +885,10 @@ void AnubRekhanAI::OnCombatStop(Unit* pTarget)
 
     if (_isHeroic() && isAlive())
     {
-        CryptGuardAI* CryptAI = NULL;
         for (uint8 i = 0; i < 2; ++i)
         {
-            CryptAI = static_cast< CryptGuardAI* >(SpawnCreature(CN_CRYPT_GUARD, CryptGuards[i].x, CryptGuards[i].y, CryptGuards[i].z, CryptGuards[i].o));
-            if (CryptAI != NULL)
+            CryptGuardAI* CryptAI = static_cast< CryptGuardAI* >(spawnCreatureAndGetAIScript(CN_CRYPT_GUARD, CryptGuards[i].x, CryptGuards[i].y, CryptGuards[i].z, CryptGuards[i].o));
+            if (CryptAI != nullptr)
             {
                 CryptAI->getCreature()->m_noRespawn = true;
                 CryptAI->mAnubRekhanAI = this;
@@ -900,7 +896,7 @@ void AnubRekhanAI::OnCombatStop(Unit* pTarget)
             }
         }
     }
-};
+}
 
 void AnubRekhanAI::AIUpdate()
 {
@@ -909,8 +905,8 @@ void AnubRekhanAI::AIUpdate()
         if (mCryptSpawnTimer != INVALIDATE_TIMER && _isTimerFinished(mCryptSpawnTimer))
         {
             _removeTimer(mCryptSpawnTimer);
-            CryptGuardAI* CryptAI = static_cast< CryptGuardAI* >(SpawnCreature(CN_CRYPT_GUARD, CryptGuards[2].x, CryptGuards[2].y, CryptGuards[2].z, CryptGuards[2].o));
-            if (CryptAI != NULL)
+            CryptGuardAI* CryptAI = static_cast< CryptGuardAI* >(spawnCreatureAndGetAIScript(CN_CRYPT_GUARD, CryptGuards[2].x, CryptGuards[2].y, CryptGuards[2].z, CryptGuards[2].o));
+            if (CryptAI != nullptr)
             {
                 CryptAI->getCreature()->m_noRespawn = true;
                 CryptAI->mAnubRekhanAI = this;
@@ -921,8 +917,8 @@ void AnubRekhanAI::AIUpdate()
 
         if (_isTimerFinished(mLocustSwarmTimer))
         {
-            CryptGuardAI* CryptAI = static_cast< CryptGuardAI* >(SpawnCreature(CN_CRYPT_GUARD, CryptGuards[2].x, CryptGuards[2].y, CryptGuards[2].z, CryptGuards[2].o));
-            if (CryptAI != NULL)
+            CryptGuardAI* CryptAI = static_cast< CryptGuardAI* >(spawnCreatureAndGetAIScript(CN_CRYPT_GUARD, CryptGuards[2].x, CryptGuards[2].y, CryptGuards[2].z, CryptGuards[2].o));
+            if (CryptAI != nullptr)
             {
                 CryptAI->getCreature()->m_noRespawn = true;
                 CryptAI->mAnubRekhanAI = this;
@@ -936,7 +932,7 @@ void AnubRekhanAI::AIUpdate()
     }
 
     ParentClass::AIUpdate();
-};
+}
 
 void AnubRekhanAI::Destroy()
 {
@@ -957,9 +953,9 @@ void AnubRekhanAI::Destroy()
     mScarabs.clear();
 
     delete this;
-};
+}
 
-void SpellFunc_AnubRekhanCorpseScarabsPlayer(SpellDesc* pThis, MoonScriptCreatureAI* pCreatureAI, Unit* pTarget, TargetType pType)
+void SpellFunc_AnubRekhanCorpseScarabsPlayer(SpellDesc* pThis, CreatureAIScript* pCreatureAI, Unit* pTarget, TargetType pType)
 {
     AnubRekhanAI* AnubRekhan = (pCreatureAI != NULL) ? static_cast< AnubRekhanAI* >(pCreatureAI) : NULL;
     if (AnubRekhan != NULL)
@@ -1015,11 +1011,10 @@ void SpellFunc_AnubRekhanCorpseScarabsPlayer(SpellDesc* pThis, MoonScriptCreatur
             PlayerPtr = PlayerCorpses[Id].first;
             AnubRekhan->mUsedCorpseGuids.insert(static_cast<uint32>(PlayerPtr->GetGUID()));
 
-            CorpseScarabAI* ScarabAI = NULL;
             for (uint8 i = 0; i < 5; ++i)
             {
-                ScarabAI = static_cast< CorpseScarabAI* >(AnubRekhan->SpawnCreature(CN_CORPSE_SCARAB, PlayerCorpses[Id].second.x, PlayerCorpses[Id].second.y, PlayerCorpses[Id].second.z, PlayerCorpses[Id].second.o));
-                if (ScarabAI != NULL)
+                CorpseScarabAI* ScarabAI = static_cast< CorpseScarabAI* >(AnubRekhan->spawnCreatureAndGetAIScript(CN_CORPSE_SCARAB, PlayerCorpses[Id].second.x, PlayerCorpses[Id].second.y, PlayerCorpses[Id].second.z, PlayerCorpses[Id].second.o));
+                if (ScarabAI != nullptr)
                 {
                     ScarabAI->getCreature()->m_noRespawn = true;
                     ScarabAI->mAnubRekhanAI = AnubRekhan;
@@ -1029,9 +1024,9 @@ void SpellFunc_AnubRekhanCorpseScarabsPlayer(SpellDesc* pThis, MoonScriptCreatur
             }
         }
     }
-};
+}
 
-void SpellFunc_AnubRekhanCorpseScarabsCryptGuard(SpellDesc* pThis, MoonScriptCreatureAI* pCreatureAI, Unit* pTarget, TargetType pType)
+void SpellFunc_AnubRekhanCorpseScarabsCryptGuard(SpellDesc* pThis, CreatureAIScript* pCreatureAI, Unit* pTarget, TargetType pType)
 {
     AnubRekhanAI* AnubRekhan = (pCreatureAI != NULL) ? static_cast< AnubRekhanAI* >(pCreatureAI) : NULL;
     if (AnubRekhan != NULL)
@@ -1067,11 +1062,10 @@ void SpellFunc_AnubRekhanCorpseScarabsCryptGuard(SpellDesc* pThis, MoonScriptCre
             Z = CreaturePtr->GetPositionZ();
             O = CreaturePtr->GetOrientation();
 
-            CorpseScarabAI* ScarabAI = NULL;
             for (uint8 i = 0; i < 10; ++i)
             {
-                ScarabAI = static_cast< CorpseScarabAI* >(AnubRekhan->SpawnCreature(CN_CORPSE_SCARAB, X, Y, Z, O));
-                if (ScarabAI != NULL)
+                CorpseScarabAI* ScarabAI = static_cast< CorpseScarabAI* >(AnubRekhan->spawnCreatureAndGetAIScript(CN_CORPSE_SCARAB, X, Y, Z, O));
+                if (ScarabAI != nullptr)
                 {
                     ScarabAI->getCreature()->m_noRespawn = true;
                     ScarabAI->mAnubRekhanAI = AnubRekhan;
@@ -1081,7 +1075,7 @@ void SpellFunc_AnubRekhanCorpseScarabsCryptGuard(SpellDesc* pThis, MoonScriptCre
             }
         }
     }
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// The Plague Quarter
@@ -1097,13 +1091,13 @@ InfectiousGhoulAI::InfectiousGhoulAI(Creature* pCreature) : MoonScriptCreatureAI
         AddSpell(INFECTIOUS_GHOUL_REND_NORMAL, Target_Current, 7, 0, 15, 0, 8);
 
     mEnraged = false;
-};
+}
 
 void InfectiousGhoulAI::OnCombatStart(Unit* pTarget)
 {
     ParentClass::OnCombatStart(pTarget);
     mEnraged = false;
-};
+}
 
 void InfectiousGhoulAI::AIUpdate()
 {
@@ -1118,7 +1112,7 @@ void InfectiousGhoulAI::AIUpdate()
     }
 
     ParentClass::AIUpdate();
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Stoneskin Gargoyle
@@ -1134,12 +1128,12 @@ StoneskinGargoyleAI::StoneskinGargoyleAI(Creature* pCreature) : MoonScriptCreatu
         AddSpell(STONESKIN_GARGOYLE_ACID_VOLLEY_NORMAL, Target_Self, 10, 0, 5);
         mStoneskin = AddSpell(STONESKIN_GARGOYLE_STONESKIN_NORMAL, Target_Self, 0, 7, 0);
     }
-};
+}
 
 bool StoneskinGargoyleAI::HasStoneskin()
 {
     return (getCreature()->HasAura(STONESKIN_GARGOYLE_STONESKIN_NORMAL) || getCreature()->HasAura(STONESKIN_GARGOYLE_STONESKIN_HEROIC));
-};
+}
 
 void StoneskinGargoyleAI::AIUpdate()
 {
@@ -1160,14 +1154,14 @@ void StoneskinGargoyleAI::AIUpdate()
     }
 
     ParentClass::AIUpdate();
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Frenzied Bat
 FrenziedBatAI::FrenziedBatAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
 {
     AddSpell(FRENZIED_BAT_FRENZIED_DIVE, Target_Self, 10, 0, 15);
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Plague Beast
@@ -1180,19 +1174,19 @@ PlagueBeastAI::PlagueBeastAI(Creature* pCreature) : MoonScriptCreatureAI(pCreatu
 
     AddSpell(PLAGUE_BEAST_TRAMPLE, Target_Current, 10, 0, 10, 0, 8);
     _applyAura(PLAGUE_BEAST_MUTATED_SPORES);
-};
+}
 
 void PlagueBeastAI::OnCombatStart(Unit* pTarget)
 {
     ParentClass::OnCombatStart(pTarget);
     _applyAura(PLAGUE_BEAST_MUTATED_SPORES);
-};
+}
 
 void PlagueBeastAI::OnCombatStop(Unit* pTarget)
 {
     ParentClass::OnCombatStop(pTarget);
     _applyAura(PLAGUE_BEAST_MUTATED_SPORES);
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Eye Stalker
@@ -1202,7 +1196,7 @@ EyeStalkerAI::EyeStalkerAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature
         AddSpell(EYE_STALKER_MIND_FLAY_HEROIC, Target_Current, 100, 6, 8, 0, 35);
     else
         AddSpell(EYE_STALKER_MIND_FLAY_NORMAL, Target_Current, 100, 6, 8, 0, 45);
-};
+}
 
 void EyeStalkerAI::OnCombatStart(Unit* pTarget)
 {
@@ -1210,7 +1204,7 @@ void EyeStalkerAI::OnCombatStart(Unit* pTarget)
     setAIAgent(AGENT_SPELL);
     setRooted(true);
     stopMovement();
-};
+}
 
 void EyeStalkerAI::AIUpdate()
 {
@@ -1240,7 +1234,7 @@ void EyeStalkerAI::AIUpdate()
     setAIAgent(AGENT_SPELL);
     setRooted(true);
     stopMovement();
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Noth the Plaguebringer
@@ -1264,13 +1258,13 @@ NothThePlaguebringerAI::NothThePlaguebringerAI(Creature* pCreature) : MoonScript
     mBlinkTimer = mSkeletonTimer = mPhaseSwitchTimer = INVALIDATE_TIMER;
     mPhaseCounter = 0;
 
-    AddEmote(Event_OnCombatStart, "Glory to the master!", CHAT_MSG_MONSTER_YELL, 8845);
-    AddEmote(Event_OnCombatStart, "Your life is forfeit.", CHAT_MSG_MONSTER_YELL, 8846);
-    AddEmote(Event_OnCombatStart, "Die, trespasser!", CHAT_MSG_MONSTER_YELL, 8847);
-    AddEmote(Event_OnDied, "I will serve the master... in death.", CHAT_MSG_MONSTER_YELL, 8848);
-    AddEmote(Event_OnTargetDied, "My task is done!", CHAT_MSG_MONSTER_YELL, 8849);
-    AddEmote(Event_OnTargetDied, "Breathe no more.", CHAT_MSG_MONSTER_YELL, 8850);
-};
+    addEmoteForEvent(Event_OnCombatStart, 8928);
+    addEmoteForEvent(Event_OnCombatStart, 8929);
+    addEmoteForEvent(Event_OnCombatStart, 8930);
+    addEmoteForEvent(Event_OnDied, 8931);
+    addEmoteForEvent(Event_OnTargetDied, 8932);
+    addEmoteForEvent(Event_OnTargetDied, 8933);
+}
 
 void NothThePlaguebringerAI::OnCombatStart(Unit* pTarget)
 {
@@ -1292,7 +1286,7 @@ void NothThePlaguebringerAI::OnCombatStart(Unit* pTarget)
         if (Gate != NULL)
             Gate->SetState(GO_STATE_CLOSED);
     }
-};
+}
 
 void NothThePlaguebringerAI::OnCombatStop(Unit* pTarget)
 {
@@ -1331,17 +1325,17 @@ void NothThePlaguebringerAI::OnCombatStop(Unit* pTarget)
     }
 
     mGuardians.clear();
-};
+}
 
 void NothThePlaguebringerAI::AIUpdate()
 {
-    if (GetPhase() == 1)
+    if (isScriptPhase(1))
     {
         if (!_isCasting())
         {
             if (mPhaseCounter < 3 && _isTimerFinished(mPhaseSwitchTimer))
             {
-                SetPhase(2, mToBalconySwitch);
+                setScriptPhase(2);
                 _resetTimer(mPhaseSwitchTimer, 70000);
                 _resetTimer(mSkeletonTimer, 0);
                 ++mPhaseCounter;
@@ -1374,7 +1368,6 @@ void NothThePlaguebringerAI::AIUpdate()
             }
 
             uint32 Id = 0;
-            PlaguedWarriorAI* WarriorAI = NULL;
             for (uint8 i = 0; i < SkelLimit; ++i)
             {
                 Id = RandomUInt(0, (SkelLimit - 1));    // SkellPosPhase1 is 0-indexed
@@ -1390,8 +1383,8 @@ void NothThePlaguebringerAI::AIUpdate()
                     }
                 }
 
-                WarriorAI = static_cast< PlaguedWarriorAI* >(SpawnCreature(CN_PLAGUED_WARRIOR, SkelPosPhase1[Id].x, SkelPosPhase1[Id].y, SkelPosPhase1[Id].z, SkelPosPhase1[Id].o));
-                if (WarriorAI != NULL)
+                PlaguedWarriorAI* WarriorAI = static_cast< PlaguedWarriorAI* >(spawnCreatureAndGetAIScript(CN_PLAGUED_WARRIOR, SkelPosPhase1[Id].x, SkelPosPhase1[Id].y, SkelPosPhase1[Id].z, SkelPosPhase1[Id].o));
+                if (WarriorAI != nullptr)
                 {
                     WarriorAI->getCreature()->m_noRespawn = true;
                     WarriorAI->AggroNearestPlayer(200);
@@ -1411,7 +1404,7 @@ void NothThePlaguebringerAI::AIUpdate()
     {
         if (!_isCasting() && _isTimerFinished(mPhaseSwitchTimer))
         {
-            SetPhase(1, mFromBalconySwitch);
+            setScriptPhase(1);
             _resetTimer(mPhaseSwitchTimer, 70000);
             _resetTimer(mSkeletonTimer, 8000);
             if (_isHeroic())
@@ -1437,7 +1430,6 @@ void NothThePlaguebringerAI::AIUpdate()
                 PosTaken[i] = false;
             }
 
-            PlaguedChampionAI* ChampionAI = NULL;
             for (uint8 i = 0; i < Champions; ++i)
             {
                 Id = RandomUInt(1, 3);
@@ -1453,8 +1445,8 @@ void NothThePlaguebringerAI::AIUpdate()
                     }
                 }
 
-                ChampionAI = static_cast< PlaguedChampionAI* >(SpawnCreature(CN_PLAGUED_CHAMPION, SkelPosPhase2[Id].x, SkelPosPhase2[Id].y, SkelPosPhase2[Id].z, SkelPosPhase2[Id].o));
-                if (ChampionAI != NULL)
+                PlaguedChampionAI* ChampionAI = static_cast< PlaguedChampionAI* >(spawnCreatureAndGetAIScript(CN_PLAGUED_CHAMPION, SkelPosPhase2[Id].x, SkelPosPhase2[Id].y, SkelPosPhase2[Id].z, SkelPosPhase2[Id].o));
+                if (ChampionAI != nullptr)
                 {
                     ChampionAI->getCreature()->m_noRespawn = true;
                     ChampionAI->AggroNearestPlayer(200);
@@ -1465,7 +1457,6 @@ void NothThePlaguebringerAI::AIUpdate()
                 PosTaken[Id] = true;
             }
 
-            PlaguedGuardianAI* GuardianAI = NULL;
             for (uint8 i = 0; i < SpawnLimit - Champions; ++i)
             {
                 Id = RandomUInt(1, 3);
@@ -1481,8 +1472,8 @@ void NothThePlaguebringerAI::AIUpdate()
                     }
                 }
 
-                GuardianAI = static_cast< PlaguedGuardianAI* >(SpawnCreature(CN_PLAGUED_GUARDIAN, SkelPosPhase2[Id].x, SkelPosPhase2[Id].y, SkelPosPhase2[Id].z, SkelPosPhase2[Id].o));
-                if (GuardianAI != NULL)
+                PlaguedGuardianAI* GuardianAI = static_cast< PlaguedGuardianAI* >(spawnCreatureAndGetAIScript(CN_PLAGUED_GUARDIAN, SkelPosPhase2[Id].x, SkelPosPhase2[Id].y, SkelPosPhase2[Id].z, SkelPosPhase2[Id].o));
+                if (GuardianAI != nullptr)
                 {
                     GuardianAI->getCreature()->m_noRespawn = true;
                     GuardianAI->AggroNearestPlayer(200);
@@ -1497,13 +1488,28 @@ void NothThePlaguebringerAI::AIUpdate()
     }
 
     ParentClass::AIUpdate();
-    if (GetPhase() == 2)
+    if (isScriptPhase(2))
     {
         setAIAgent(AGENT_SPELL);
         setRooted(true);
         stopMovement();
     }
-};
+}
+
+void NothThePlaguebringerAI::OnScriptPhaseChange(uint32_t phaseId)
+{
+    switch (phaseId)
+    {
+        case 1:
+            CastSpellNowNoScheduling(mFromBalconySwitch);
+            break;
+        case 2:
+            CastSpellNowNoScheduling(mToBalconySwitch);
+            break;
+        default:
+            break;
+    }
+}
 
 void NothThePlaguebringerAI::Destroy()
 {
@@ -1532,9 +1538,9 @@ void NothThePlaguebringerAI::Destroy()
     mGuardians.clear();
 
     delete this;
-};
+}
 
-void SpellFunc_NothToBalconyPhaseSwitch(SpellDesc* pThis, MoonScriptCreatureAI* pCreatureAI, Unit* pTarget, TargetType pType)
+void SpellFunc_NothToBalconyPhaseSwitch(SpellDesc* pThis, CreatureAIScript* pCreatureAI, Unit* pTarget, TargetType pType)
 {
     NothThePlaguebringerAI* Noth = (pCreatureAI != NULL) ? static_cast< NothThePlaguebringerAI* >(pCreatureAI) : NULL;
     if (Noth != NULL)
@@ -1546,9 +1552,9 @@ void SpellFunc_NothToBalconyPhaseSwitch(SpellDesc* pThis, MoonScriptCreatureAI* 
         Noth->setRooted(true);
         Noth->stopMovement();
     }
-};
+}
 
-void SpellFunc_NothFromBalconyPhaseSwitch(SpellDesc* pThis, MoonScriptCreatureAI* pCreatureAI, Unit* pTarget, TargetType pType)
+void SpellFunc_NothFromBalconyPhaseSwitch(SpellDesc* pThis, CreatureAIScript* pCreatureAI, Unit* pTarget, TargetType pType)
 {
     NothThePlaguebringerAI* Noth = (pCreatureAI != NULL) ? static_cast< NothThePlaguebringerAI* >(pCreatureAI) : NULL;
     if (Noth != NULL)
@@ -1563,9 +1569,9 @@ void SpellFunc_NothFromBalconyPhaseSwitch(SpellDesc* pThis, MoonScriptCreatureAI
 
         Noth->getCreature()->GetAIInterface()->setNextTarget(pTarget);
     }
-};
+}
 
-void SpellFunc_NothCriple(SpellDesc* pThis, MoonScriptCreatureAI* pCreatureAI, Unit* pTarget, TargetType pType)
+void SpellFunc_NothCriple(SpellDesc* pThis, CreatureAIScript* pCreatureAI, Unit* pTarget, TargetType pType)
 {
     NothThePlaguebringerAI* Noth = (pCreatureAI != NULL) ? static_cast< NothThePlaguebringerAI* >(pCreatureAI) : NULL;
     if (Noth != NULL)
@@ -1574,9 +1580,9 @@ void SpellFunc_NothCriple(SpellDesc* pThis, MoonScriptCreatureAI* pCreatureAI, U
         Noth->_applyAura(NOTH_THE_PLAGUEBRINGER_CRIPLE_HEROIC);
         Noth->CastSpell(Noth->mBlink);
     }
-};
+}
 
-void SpellFunc_NothBlink(SpellDesc* pThis, MoonScriptCreatureAI* pCreatureAI, Unit* pTarget, TargetType pType)
+void SpellFunc_NothBlink(SpellDesc* pThis, CreatureAIScript* pCreatureAI, Unit* pTarget, TargetType pType)
 {
     NothThePlaguebringerAI* Noth = (pCreatureAI != NULL) ? static_cast< NothThePlaguebringerAI* >(pCreatureAI) : NULL;
     if (Noth != NULL)
@@ -1592,7 +1598,7 @@ void SpellFunc_NothBlink(SpellDesc* pThis, MoonScriptCreatureAI* pCreatureAI, Un
 
         Noth->getCreature()->GetAIInterface()->setNextTarget(pTarget);
     }
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Plagued Warrior
@@ -1602,7 +1608,7 @@ PlaguedWarriorAI::PlaguedWarriorAI(Creature* pCreature) : MoonScriptCreatureAI(p
     AddSpell(PLAGUED_WARRIOR_CLEAVE, Target_Current, 10, 0, 10, 0, 8);
 
     mNothAI = NULL;
-};
+}
 
 void PlaguedWarriorAI::Destroy()
 {
@@ -1614,7 +1620,7 @@ void PlaguedWarriorAI::Destroy()
     }
 
     delete this;
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Plagued Champion
@@ -1632,7 +1638,7 @@ PlaguedChampionAI::PlaguedChampionAI(Creature* pCreature) : MoonScriptCreatureAI
     }
 
     mNothAI = NULL;
-};
+}
 
 void PlaguedChampionAI::Destroy()
 {
@@ -1644,7 +1650,7 @@ void PlaguedChampionAI::Destroy()
     }
 
     delete this;
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Plagued Guardian
@@ -1656,7 +1662,7 @@ PlaguedGuardianAI::PlaguedGuardianAI(Creature* pCreature) : MoonScriptCreatureAI
         AddSpell(PLAGUED_GUARDIAN_ARCANE_EXPLOSION_NORMAL, Target_Self, 10, 1.5, 10);
 
     mNothAI = NULL;
-};
+}
 
 void PlaguedGuardianAI::Destroy()
 {
@@ -1668,7 +1674,7 @@ void PlaguedGuardianAI::Destroy()
     }
 
     delete this;
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Heigan the Unclean
@@ -1682,19 +1688,19 @@ HeiganTheUncleanAI::HeiganTheUncleanAI(Creature* pCreature) : MoonScriptCreature
 
     AddPhaseSpell(2, AddSpell(HEIGAN_THE_UNCLEAN_PLAGUE_CLOUD_DAMAGE, Target_Self, 100, 0, 2));
 
-    AddEmote(Event_OnCombatStart, "You are mine now!", CHAT_MSG_MONSTER_YELL, 8825);
-    AddEmote(Event_OnCombatStart, "I see you...", CHAT_MSG_MONSTER_YELL, 8826);
-    AddEmote(Event_OnCombatStart, "You... are next!", CHAT_MSG_MONSTER_YELL, 8827);
-    AddEmote(Event_OnDied, "Arghhaahhhhh!", CHAT_MSG_MONSTER_YELL, 8828);
-    AddEmote(Event_OnTargetDied, "Close your eyes. Sleep.", CHAT_MSG_MONSTER_YELL, 8829);
-    AddEmote(Event_OnTaunt, "The races of the world will perish... it is only a matter of time.", CHAT_MSG_MONSTER_YELL, 8830);
-    AddEmote(Event_OnTaunt, "I see endless suffering... I see torment... I see rage... I see everything.", CHAT_MSG_MONSTER_YELL, 8831);
-    AddEmote(Event_OnTaunt, "Soon... the world will tremble.", CHAT_MSG_MONSTER_YELL, 8832);
-    AddEmote(Event_OnTaunt, "Hungry worms will feast on your rotting flesh.", CHAT_MSG_MONSTER_YELL, 8834);
+    addEmoteForEvent(Event_OnCombatStart, 8938);
+    addEmoteForEvent(Event_OnCombatStart, 8939);
+    addEmoteForEvent(Event_OnCombatStart, 8940);
+    addEmoteForEvent(Event_OnDied, 8941);
+    addEmoteForEvent(Event_OnTargetDied, 8942);
+    addEmoteForEvent(Event_OnTaunt, 8943);
+    addEmoteForEvent(Event_OnTaunt, 8944);
+    addEmoteForEvent(Event_OnTaunt, 8945);
+    addEmoteForEvent(Event_OnTaunt, 8946);
     mPhaseSwitchTimer = mEruptionTimer = INVALIDATE_TIMER;
     mEruptionPhase = 3;
     mClockWiseEruption = true;
-};
+}
 
 uint32 HeiganTheUncleanAI::CalculateTriggerArea(float pPosX, float pPosY)
 {
@@ -1712,7 +1718,7 @@ uint32 HeiganTheUncleanAI::CalculateTriggerArea(float pPosX, float pPosY)
             return i;
 
     return 3;
-};
+}
 
 void HeiganTheUncleanAI::CallEruptionEvent(int32 pTimerId, int32 pNewTime)
 {
@@ -1737,7 +1743,7 @@ void HeiganTheUncleanAI::CallEruptionEvent(int32 pTimerId, int32 pNewTime)
         --mEruptionPhase;
     else
         ++mEruptionPhase;
-};
+}
 
 void HeiganTheUncleanAI::OnCombatStart(Unit* pTarget)
 {
@@ -1785,12 +1791,12 @@ void HeiganTheUncleanAI::OnCombatStart(Unit* pTarget)
             }
         }
     }
-};
+}
 
 void HeiganTheUncleanAI::OnCombatStop(Unit* pTarget)
 {
     ParentClass::OnCombatStop(pTarget);
-    SetTargetToChannel(NULL, 0);
+    _unsetTargetToChannel();
     if (getCreature()->GetMapMgr() != NULL && getCreature()->GetMapMgr()->GetInterface() != NULL)
     {
         GameObject* Gate = getNearestGameObject(2790.709961f, -3708.669922f, 276.584991f, 181202);
@@ -1803,22 +1809,22 @@ void HeiganTheUncleanAI::OnCombatStop(Unit* pTarget)
     }
 
     mFissures.clear();
-};
+}
 
 void HeiganTheUncleanAI::AIUpdate()
 {
-    if (GetPhase() == 1)
+    if (isScriptPhase(1))
     {
         if (!_isCasting() && _isTimerFinished(mPhaseSwitchTimer))
         {
             _applyAura(HEIGAN_THE_UNCLEAN_TELEPORT);
             sendChatMessage(CHAT_MSG_MONSTER_YELL, 8833, "The end is uppon you!");
             getCreature()->SetPosition(2794.235596f, -3707.067627f, 276.545746f, 2.407245f);
-            SetTargetToChannel(getCreature(), HEIGAN_THE_UNCLEAN_PLAGUE_CLOUD_CHANNEL);
+            _setTargetToChannel(getCreature(), HEIGAN_THE_UNCLEAN_PLAGUE_CLOUD_CHANNEL);
             setAIAgent(AGENT_SPELL);
             setRooted(true);
             stopMovement();
-            SetPhase(2);
+            setScriptPhase(2);
             mEruptionPhase = 3;
             _resetTimer(mPhaseSwitchTimer, 45000);
             _resetTimer(mEruptionTimer, 3000);
@@ -1832,10 +1838,10 @@ void HeiganTheUncleanAI::AIUpdate()
     {
         if (!_isCasting() && _isTimerFinished(mPhaseSwitchTimer))
         {
-            SetTargetToChannel(NULL, 0);
+            _unsetTargetToChannel();
             setAIAgent(AGENT_NULL);
             setRooted(false);
-            SetPhase(1);
+            setScriptPhase(1);
             _resetTimer(mPhaseSwitchTimer, 90000);
             return;
         }
@@ -1845,13 +1851,13 @@ void HeiganTheUncleanAI::AIUpdate()
     }
 
     ParentClass::AIUpdate();
-    if (GetPhase() == 2)
+    if (isScriptPhase(2))
     {
         setAIAgent(AGENT_SPELL);
         setRooted(true);
         stopMovement();
     }
-};
+}
 
 void HeiganTheUncleanAI::Destroy()
 {
@@ -1861,24 +1867,24 @@ void HeiganTheUncleanAI::Destroy()
     }
     mFissures.clear();
     delete this;
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Plague Fissure
 GameObjectAIScript* PlagueFissureGO::Create(GameObject* pGameObject)
 {
     return new PlagueFissureGO(pGameObject);
-};
+}
 
 PlagueFissureGO::PlagueFissureGO(GameObject* pGameObject) : GameObjectAIScript(pGameObject)
 {
     mHeiganAI = NULL;
-};
+}
 
 void PlagueFissureGO::SetState(uint32 pState)
 {
     _gameobject->SetState(pState);
-};
+}
 
 void PlagueFissureGO::DoErrupt()
 {
@@ -1890,7 +1896,7 @@ void PlagueFissureGO::DoErrupt()
 
     pFissureTrigger->CastSpell(pFissureTrigger, FISSURE_TRIGGER_ERUPTION, true);
     pFissureTrigger->Despawn(2000, 0);
-};
+}
 
 void PlagueFissureGO::Destroy()
 {
@@ -1909,7 +1915,7 @@ void PlagueFissureGO::Destroy()
     }
 
     delete this;
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Loatheb
@@ -1924,7 +1930,7 @@ LoathebAI::LoathebAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
     mSporeTimer = mDoomTimer = mDeathbloomTimer = INVALIDATE_TIMER;
     mDoomStaticTimer = 120000;
     mDeathbloomDamagePhase = false;
-};
+}
 
 void LoathebAI::OnCombatStart(Unit* pTarget)
 {
@@ -1934,7 +1940,7 @@ void LoathebAI::OnCombatStart(Unit* pTarget)
     mDoomTimer = _addTimer(mDoomStaticTimer);
     mDeathbloomTimer = _addTimer(30000);
     mDeathbloomDamagePhase = false;
-};
+}
 
 void LoathebAI::OnCombatStop(Unit* pTarget)
 {
@@ -1946,7 +1952,7 @@ void LoathebAI::OnCombatStop(Unit* pTarget)
     }
 
     mSpores.clear();
-};
+}
 
 void LoathebAI::AIUpdate()
 {
@@ -1959,7 +1965,6 @@ void LoathebAI::AIUpdate()
         }
 
         uint32 Id = 0;
-        SporeAI* Spore = NULL;
         for (uint8 i = 0; i < 3; ++i)
         {
             Id = RandomUInt(3);
@@ -1975,8 +1980,8 @@ void LoathebAI::AIUpdate()
                 }
             }
 
-            Spore = static_cast< SporeAI* >(SpawnCreature(CN_SPORE, Spores[Id].x, Spores[Id].y, Spores[Id].z, Spores[Id].o, true));
-            if (Spore != NULL)
+            SporeAI* Spore = static_cast< SporeAI* >(spawnCreatureAndGetAIScript(CN_SPORE, Spores[Id].x, Spores[Id].y, Spores[Id].z, Spores[Id].o));
+            if (Spore != nullptr)
             {
                 Spore->getCreature()->m_noRespawn = true;
                 Spore->AggroRandomPlayer(200);
@@ -2048,7 +2053,7 @@ void LoathebAI::AIUpdate()
     }
 
     ParentClass::AIUpdate();
-};
+}
 
 void LoathebAI::Destroy()
 {
@@ -2061,7 +2066,7 @@ void LoathebAI::Destroy()
     mSpores.clear();
 
     delete this;
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Spore
@@ -2070,13 +2075,13 @@ SporeAI::SporeAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
     despawn(90000);
 
     mLoathebAI = NULL;
-};
+}
 
 void SporeAI::OnDied(Unit* pKiller)
 {
     ParentClass::OnDied(pKiller);
     _applyAura(SPORE_FUNGAL_CREEP);
-};
+}
 
 void SporeAI::Destroy()
 {
@@ -2090,7 +2095,7 @@ void SporeAI::Destroy()
     }
 
     delete this;
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// The Military Quarter
@@ -2106,13 +2111,13 @@ DeathKnightAI::DeathKnightAI(Creature* pCreature) : MoonScriptCreatureAI(pCreatu
 
     AddSpell(DEATH_KNIGHT_DEATH_COIL_HEAL, Target_WoundedFriendly, 6, 0, 15, 0, 45);
     AddSpell(DEATH_KNIGHT_HYSTERIA, Target_RandomFriendly, 7, 0, 30, 0, 45);
-};
+}
 
 void DeathKnightAI::OnCombatStart(Unit* pTarget)
 {
     ParentClass::OnCombatStart(pTarget);
     _applyAura(DEATH_KNIGHT_BLOOD_PRESENCE);
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Death Knight Captain
@@ -2125,13 +2130,13 @@ DeathKnightCaptainAI::DeathKnightCaptainAI(Creature* pCreature) : MoonScriptCrea
 
     AddSpell(DEATH_KNIGHT_CAPTAIN_RAISE_DEAD, Target_RandomPlayerDestination, 6, 1.5, 20);
     AddSpell(DEATH_KNIGHT_CAPTAIN_WHIRLWIND, Target_Self, 10, 0, 10);
-};
+}
 
 void DeathKnightCaptainAI::OnCombatStart(Unit* pTarget)
 {
     ParentClass::OnCombatStart(pTarget);
     _applyAura(DEATH_KNIGHT_CAPTAIN_UNHOLY_PRESENCE);
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Skeletal Construct - wiki says he's in Naxx, but WoWHead claims him to be in Icecrown only
@@ -2140,7 +2145,7 @@ void DeathKnightCaptainAI::OnCombatStart(Unit* pTarget)
 ////// Ghost of Naxxramas
 GhostOfNaxxramasAI::GhostOfNaxxramasAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
 {
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Shade of Naxxramas
@@ -2152,16 +2157,16 @@ ShadeOfNaxxramasAI::ShadeOfNaxxramasAI(Creature* pCreature) : MoonScriptCreature
         AddSpell(SHADE_OF_NAXXRAMAS_SHADOW_BOLT_VOLLEY_NORMAL, Target_Self, 10, 0, 10);
 
     AddSpell(SHADE_OF_NAXXRAMAS_PORTAL_OF_SHADOWS, Target_Self, 8, 0, 60);
-};
+}
 
 void ShadeOfNaxxramasAI::OnDied(Unit* pKiller)
 {
-    MoonScriptCreatureAI* Ghost = SpawnCreature(CN_GHOST_OF_NAXXRAMAS, getCreature()->GetPositionX(), getCreature()->GetPositionY(), getCreature()->GetPositionZ(), getCreature()->GetOrientation(), true);
-    if (Ghost != NULL)
+    CreatureAIScript* Ghost = spawnCreatureAndGetAIScript(CN_GHOST_OF_NAXXRAMAS, getCreature()->GetPositionX(), getCreature()->GetPositionY(), getCreature()->GetPositionZ(), getCreature()->GetOrientation(), getCreature()->GetFaction());
+    if (Ghost != nullptr)
     {
         Ghost->getCreature()->setUInt64Value(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_2);
         Ghost->_setDespawnWhenInactive(true);
-        Ghost->AggroNearestPlayer(200);
+        static_cast<MoonScriptCreatureAI*>(Ghost)->AggroNearestPlayer(200);
     }
 
     for (std::set< PortalOfShadowsAI* >::iterator Iter = mPortals.begin(); Iter != mPortals.end(); ++Iter)
@@ -2171,7 +2176,7 @@ void ShadeOfNaxxramasAI::OnDied(Unit* pKiller)
     }
 
     mPortals.clear();
-};
+}
 
 void ShadeOfNaxxramasAI::Destroy()
 {
@@ -2184,7 +2189,7 @@ void ShadeOfNaxxramasAI::Destroy()
     mPortals.clear();
 
     delete this;
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Portal of Shadows - timer value is a wild guess
@@ -2208,14 +2213,14 @@ PortalOfShadowsAI::PortalOfShadowsAI(Creature* pCreature) : MoonScriptCreatureAI
                 mShadeAI->mPortals.insert(this);
         }
     }
-};
+}
 
 void PortalOfShadowsAI::OnCombatStart(Unit* pTarget)
 {
     setAIAgent(AGENT_SPELL);
     setRooted(true);
     stopMovement();
-};
+}
 
 void PortalOfShadowsAI::OnCombatStop(Unit* pTarget)
 {
@@ -2223,20 +2228,20 @@ void PortalOfShadowsAI::OnCombatStop(Unit* pTarget)
     _cancelAllTimers();
     setRooted(false);
     setAIAgent(AGENT_NULL);
-};
+}
 
 void PortalOfShadowsAI::AIUpdate()
 {
-    if (mShadeAI != NULL && mShadeAI->getCreature()->GetAIInterface()->getNextTarget() != NULL)
+    if (mShadeAI != nullptr && mShadeAI->getCreature()->GetAIInterface()->getNextTarget() != nullptr)
     {
         if (_isTimerFinished(mSpawnTimer))
         {
-            MoonScriptCreatureAI* Ghost = SpawnCreature(CN_GHOST_OF_NAXXRAMAS, getCreature()->GetPositionX(), getCreature()->GetPositionY(), getCreature()->GetPositionZ(), getCreature()->GetOrientation(), true);
-            if (Ghost != NULL)
+            CreatureAIScript* Ghost = spawnCreatureAndGetAIScript(CN_GHOST_OF_NAXXRAMAS, getCreature()->GetPositionX(), getCreature()->GetPositionY(), getCreature()->GetPositionZ(), getCreature()->GetOrientation(), getCreature()->GetFaction());
+            if (Ghost != nullptr)
             {
                 Ghost->getCreature()->setUInt64Value(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_2);
                 Ghost->_setDespawnWhenInactive(true);
-                Ghost->AggroNearestPlayer(200);
+                static_cast<MoonScriptCreatureAI*>(Ghost)->AggroNearestPlayer(200);
             }
 
             _resetTimer(mSpawnTimer, 15000);
@@ -2253,21 +2258,21 @@ void PortalOfShadowsAI::AIUpdate()
     setAIAgent(AGENT_SPELL);
     setRooted(true);
     stopMovement();
-};
+}
 
 void PortalOfShadowsAI::Destroy()
 {
-    if (mShadeAI != NULL)
+    if (mShadeAI != nullptr)
     {
         std::set< PortalOfShadowsAI* >::iterator Iter = mShadeAI->mPortals.find(this);
         if (Iter != mShadeAI->mPortals.end())
             mShadeAI->mPortals.erase(Iter);
 
-        mShadeAI = NULL;
+        mShadeAI = nullptr;
     }
 
     delete this;
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Necro Knight
@@ -2279,9 +2284,9 @@ NecroKnightAI::NecroKnightAI(Creature* pCreature) : MoonScriptCreatureAI(pCreatu
     AddSpell(NECRO_KNIGHT_FLAMESTRIKE, Target_RandomPlayerDestination, 8, 2, 10, 0, 30);
     AddSpell(NECRO_KNIGHT_FROST_NOVA, Target_Self, 8, 0, 10);
     AddSpellFunc(&SpellFunc_NecroKnightBlink, Target_RandomPlayerNotCurrent, 5, 0, 20, 0, 30);
-};
+}
 
-void SpellFunc_NecroKnightBlink(SpellDesc* pThis, MoonScriptCreatureAI* pCreatureAI, Unit* pTarget, TargetType pType)
+void SpellFunc_NecroKnightBlink(SpellDesc* pThis, CreatureAIScript* pCreatureAI, Unit* pTarget, TargetType pType)
 {
     NecroKnightAI* NecroKnight = (pCreatureAI != NULL) ? static_cast< NecroKnightAI* >(pCreatureAI) : NULL;
     if (NecroKnight != NULL && pTarget != NULL)
@@ -2291,7 +2296,7 @@ void SpellFunc_NecroKnightBlink(SpellDesc* pThis, MoonScriptCreatureAI* pCreatur
         NecroKnight->getCreature()->GetAIInterface()->AttackReaction(pTarget, 500);
         NecroKnight->getCreature()->GetAIInterface()->setNextTarget(pTarget);
     }
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Skeletal Smith
@@ -2301,7 +2306,7 @@ SkeletalSmithAI::SkeletalSmithAI(Creature* pCreature) : MoonScriptCreatureAI(pCr
     AddSpell(SKELETAL_SMITH_DISARM, Target_Current, 10, 0, 15, 0, 8);
     AddSpell(SKELETAL_SMITH_THUNDERCLAP, Target_Self, 8, 0, 15);
     //AddSpell(SKELETAL_SMITH_SUDDER_ARMOR, Target_Current, 8, 0, 10, 0, 8);
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Death Knight Cavalier
@@ -2326,7 +2331,7 @@ DeathKnightCavalierAI::DeathKnightCavalierAI(Creature* pCreature) : MoonScriptCr
     getCreature()->setUInt32Value(UNIT_FIELD_MOUNTDISPLAYID , 25278);
     mChargerAI = NULL;
     mIsMounted = true;
-};
+}
 
 void DeathKnightCavalierAI::OnCombatStop(Unit* pTarget)
 {
@@ -2342,7 +2347,7 @@ void DeathKnightCavalierAI::OnCombatStop(Unit* pTarget)
     }
 
     mIsMounted = true;
-};
+}
 
 void DeathKnightCavalierAI::AIUpdate()
 {
@@ -2356,7 +2361,7 @@ void DeathKnightCavalierAI::AIUpdate()
     }
 
     ParentClass::AIUpdate();
-};
+}
 
 void DeathKnightCavalierAI::Destroy()
 {
@@ -2368,7 +2373,7 @@ void DeathKnightCavalierAI::Destroy()
     }
 
     delete this;
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Deathcharger Steed
@@ -2382,11 +2387,11 @@ DeathchargerSteedAI::DeathchargerSteedAI(Creature* pCreature) : MoonScriptCreatu
     // I don't like this method anyway.
     if (getCreature()->GetSummonedByGUID() != 0 && getCreature()->GetMapMgr() != NULL && getCreature()->GetMapMgr()->GetInterface() != NULL)
     {
-        mDeathKnightAI = static_cast< DeathKnightCavalierAI* >(GetNearestCreature(CN_DEATH_KNIGHT_CAVALIER));
+        mDeathKnightAI = static_cast< DeathKnightCavalierAI* >(getNearestCreatureAI(CN_DEATH_KNIGHT_CAVALIER));
         if (mDeathKnightAI != NULL && mDeathKnightAI->mChargerAI == NULL)
             mDeathKnightAI->mChargerAI = this;
     }
-};
+}
 
 void DeathchargerSteedAI::OnCombatStop(Unit* pTarget)
 {
@@ -2402,7 +2407,7 @@ void DeathchargerSteedAI::OnCombatStop(Unit* pTarget)
             despawn(1);
         }
     }
-};
+}
 
 void DeathchargerSteedAI::Destroy()
 {
@@ -2413,9 +2418,9 @@ void DeathchargerSteedAI::Destroy()
     }
 
     delete this;
-};
+}
 
-void SpellFunc_DeathchargerSteedCharge(SpellDesc* pThis, MoonScriptCreatureAI* pCreatureAI, Unit* pTarget, TargetType pType)
+void SpellFunc_DeathchargerSteedCharge(SpellDesc* pThis, CreatureAIScript* pCreatureAI, Unit* pTarget, TargetType pType)
 {
     DeathchargerSteedAI* Deathcharger = (pCreatureAI != NULL) ? static_cast< DeathchargerSteedAI* >(pCreatureAI) : NULL;
     if (Deathcharger != NULL)
@@ -2430,7 +2435,7 @@ void SpellFunc_DeathchargerSteedCharge(SpellDesc* pThis, MoonScriptCreatureAI* p
 
         Deathcharger->CastSpellNowNoScheduling(Deathcharger->mCharge);
     }
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Dark Touched Warrior
@@ -2439,13 +2444,13 @@ DarkTouchedWarriorAI::DarkTouchedWarriorAI(Creature* pCreature) : MoonScriptCrea
     AddSpell(DARK_TOUCHED_WARRIOR_WHIRLWIND, Target_Self, 10, 0, 15);
 
     mResetHateTimer = INVALIDATE_TIMER;
-};
+}
 
 void DarkTouchedWarriorAI::OnCombatStart(Unit* pTarget)
 {
     ParentClass::OnCombatStart(pTarget);
     mResetHateTimer = _addTimer(8000 + RandomUInt(7) * 1000);
-};
+}
 
 void DarkTouchedWarriorAI::AIUpdate()
 {
@@ -2456,14 +2461,14 @@ void DarkTouchedWarriorAI::AIUpdate()
     }
 
     ParentClass::AIUpdate();
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Risen Squire
 RisenSquireAI::RisenSquireAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
 {
     AddSpell(RISEN_SQUIRE_PIERCE_ARMOR, Target_Current, 10, 0, 15, 0, 8);
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Unholy Axe
@@ -2479,7 +2484,7 @@ UnholyAxeAI::UnholyAxeAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
         AddSpell(UNHOLY_AXE_MORTAL_STRIKE_NORMAL, Target_Current, 10, 0, 10, 0, 8);
         AddSpell(UNHOLY_AXE_WHIRLWIND_NORMAL, Target_Self, 8, 2, 15);
     }
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Unholy Sword
@@ -2489,7 +2494,7 @@ UnholySwordAI::UnholySwordAI(Creature* pCreature) : MoonScriptCreatureAI(pCreatu
         AddSpell(UNHOLY_SWORD_CLEAVE_HEROIC, Target_Current, 10, 0, 15, 0, 8);
     else
         AddSpell(UNHOLY_SWORD_CLEAVE_NORMAL, Target_Current, 10, 0, 15, 0, 8);
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Unholy Staff
@@ -2502,7 +2507,7 @@ UnholyStaffAI::UnholyStaffAI(Creature* pCreature) : MoonScriptCreatureAI(pCreatu
 
     AddSpell(UNHOLY_STAFF_FROST_NOVA, Target_Self, 10, 0, 15);
     AddSpell(UNHOLY_STAFF_POLYMORPH, Target_RandomPlayer, 8, 0, 20, 0, 45);    // NotCurrent ?
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// The Construct Quarter
@@ -2524,7 +2529,7 @@ PatchworkGolemAI::PatchworkGolemAI(Creature* pCreature) : MoonScriptCreatureAI(p
         AddSpell(PATCHWORK_GOLEM_WAR_STOMP_NORMAL, Target_Self, 8, 0, 15);
         _applyAura(PATCHWORK_GOLEM_DISEASE_CLOUD_NORMAL);
     }
-};
+}
 
 void PatchworkGolemAI::OnCombatStart(Unit* pTarget)
 {
@@ -2533,7 +2538,7 @@ void PatchworkGolemAI::OnCombatStart(Unit* pTarget)
         _applyAura(PATCHWORK_GOLEM_DISEASE_CLOUD_HEROIC);
     else
         _applyAura(PATCHWORK_GOLEM_DISEASE_CLOUD_NORMAL);
-};
+}
 
 void PatchworkGolemAI::OnCombatStop(Unit* pTarget)
 {
@@ -2545,7 +2550,7 @@ void PatchworkGolemAI::OnCombatStop(Unit* pTarget)
         else
             _applyAura(PATCHWORK_GOLEM_DISEASE_CLOUD_NORMAL);
     }
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Bile Retcher
@@ -2557,45 +2562,45 @@ BileRetcherAI::BileRetcherAI(Creature* pCreature) : MoonScriptCreatureAI(pCreatu
         AddSpell(BILE_RETCHER_BILE_VOMIT_HEROIC, Target_Destination, 10, 0, 10, 0, 20);
 
     AddSpell(BILE_RETCHER_BILE_RETCHER_SLAM, Target_Destination, 8, 0, 10, 0, 10);
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Sewage Slime
 SewageSlimeAI::SewageSlimeAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
 {
     _applyAura(SEWAGE_SLIME_DISEASE_CLOUD);
-};
+}
 
 void SewageSlimeAI::OnCombatStart(Unit* pTarget)
 {
     ParentClass::OnCombatStart(pTarget);
     _applyAura(SEWAGE_SLIME_DISEASE_CLOUD);
-};
+}
 
 void SewageSlimeAI::OnCombatStop(Unit* pTarget)
 {
     ParentClass::OnCombatStop(pTarget);
     _applyAura(SEWAGE_SLIME_DISEASE_CLOUD);
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Embalming Slime
 EmbalmingSlimeAI::EmbalmingSlimeAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
 {
     _applyAura(EMBALMING_SLIME_EMBALMING_CLOUD);
-};
+}
 
 void EmbalmingSlimeAI::OnCombatStart(Unit* pTarget)
 {
     ParentClass::OnCombatStart(pTarget);
     _applyAura(EMBALMING_SLIME_EMBALMING_CLOUD);
-};
+}
 
 void EmbalmingSlimeAI::OnCombatStop(Unit* pTarget)
 {
     ParentClass::OnCombatStop(pTarget);
     _applyAura(EMBALMING_SLIME_EMBALMING_CLOUD);
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Mad Scientist
@@ -2611,7 +2616,7 @@ MadScientistAI::MadScientistAI(Creature* pCreature) : MoonScriptCreatureAI(pCrea
         AddSpell(MAD_SCIENTIST_GREAT_HEAL_NORMAL, Target_WoundedFriendly, 8, 2, 15, 0, 40);
         AddSpell(MAD_SCIENTIST_MANA_BURN_NORMAL, Target_RandomPlayer, 10, 2, 10, 0, 40);
     }
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Living Monstrosity
@@ -2623,7 +2628,7 @@ LivingMonstrosityAI::LivingMonstrosityAI(Creature* pCreature) : MoonScriptCreatu
         AddSpell(LIVING_MONSTROSITY_CHAIN_LIGHTNING_HEROIC, Target_RandomPlayer, 10, 1.5, 10, 0, 45);
     else
         AddSpell(LIVING_MONSTROSITY_CHAIN_LIGHTNING_NORMAL, Target_RandomPlayer, 10, 1.5, 10, 0, 45);
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Lightning Totem
@@ -2636,7 +2641,7 @@ LightningTotemAI::LightningTotemAI(Creature* pCreature) : MoonScriptCreatureAI(p
 
     getCreature()->m_noRespawn = true;
     despawn(60000);
-};
+}
 
 void LightningTotemAI::OnCombatStart(Unit* pTarget)
 {
@@ -2644,7 +2649,7 @@ void LightningTotemAI::OnCombatStart(Unit* pTarget)
     setAIAgent(AGENT_SPELL);
     setRooted(true);
     stopMovement();
-};
+}
 
 void LightningTotemAI::AIUpdate()
 {
@@ -2654,7 +2659,7 @@ void LightningTotemAI::AIUpdate()
     setAIAgent(AGENT_SPELL);
     setRooted(true);
     stopMovement();
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Stitched Colossus
@@ -2666,12 +2671,12 @@ StitchedColossusAI::StitchedColossusAI(Creature* pCreature) : MoonScriptCreature
         AddSpell(STITCHED_COLOSSUS_MASSIVE_STOMP_NORMAL, Target_Self, 8, 0, 15);
 
     mEnraged = false;
-};
+}
 
 void StitchedColossusAI::OnCombatStart(Unit* pTarget)
 {
     ParentClass::OnCombatStart(pTarget);
-};
+}
 
 void StitchedColossusAI::AIUpdate()
 {
@@ -2682,19 +2687,19 @@ void StitchedColossusAI::AIUpdate()
     }
 
     ParentClass::AIUpdate();
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Marauding Geist
 MaraudingGeistAI::MaraudingGeistAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
 {
     AddSpell(MARAUDING_GEIST_FRENZIED_LEAP, Target_RandomPlayer, 8, 0, 10);
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 ////// Patchwerk
 
-void SpellFunc_PatchwerkHatefulStrike(SpellDesc* pThis, MoonScriptCreatureAI* pCreatureAI, Unit* pTarget, TargetType pType)
+void SpellFunc_PatchwerkHatefulStrike(SpellDesc* pThis, CreatureAIScript* pCreatureAI, Unit* pTarget, TargetType pType)
 {
     if (!pThis || !pCreatureAI)
         return;
@@ -2720,19 +2725,19 @@ void SpellFunc_PatchwerkHatefulStrike(SpellDesc* pThis, MoonScriptCreatureAI* pC
         pCreatureAI->getCreature()->CastSpell(pBestTarget, PATCHWERK_HATEFUL_STRIKE_25, true);
     else
         pCreatureAI->getCreature()->CastSpell(pBestTarget, PATCHWERK_HATEFUL_STRIKE_10, true);
-};
+}
 
 PatchwerkAI::PatchwerkAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
 {
     AddSpellFunc(&SpellFunc_PatchwerkHatefulStrike, Target_Self, 50, 0, 3);
     SetEnrageInfo(AddSpell(PATCHWERK_BERSERK, Target_Self, 0, 0, 0), 360000);
 
-    AddEmote(Event_OnCombatStart, "Patchwerk want to play.", CHAT_MSG_MONSTER_YELL, 8909);
-    AddEmote(Event_OnCombatStart, "Kel'Thuzad make Patchwerk his avatar of war!", CHAT_MSG_MONSTER_YELL, 8910);
-    AddEmote(Event_OnTargetDied, "No more play?", CHAT_MSG_MONSTER_YELL, 8911);
-    AddEmote(Event_OnDied, "What happened to... Patch...", CHAT_MSG_MONSTER_YELL, 8912);
+    addEmoteForEvent(Event_OnCombatStart, 8934);
+    addEmoteForEvent(Event_OnCombatStart, 8935);
+    addEmoteForEvent(Event_OnTargetDied, 8936);
+    addEmoteForEvent(Event_OnDied, 8937);
     mEnraged = false;
-};
+}
 
 void PatchwerkAI::AIUpdate()
 {
@@ -2744,7 +2749,7 @@ void PatchwerkAI::AIUpdate()
     }
 
     ParentClass::AIUpdate();
-};
+}
 
 void SetupNaxxramas(ScriptMgr* pScriptMgr)
 {
@@ -2788,12 +2793,12 @@ void SetupNaxxramas(ScriptMgr* pScriptMgr)
     for (uint32 Id = 181510; Id < 181553; ++Id)
     {
         pScriptMgr->register_gameobject_script(Id, &PlagueFissureGO::Create);
-    };
+    }
 
     for (uint32 Id = 181676; Id < 181679; ++Id)
     {
         pScriptMgr->register_gameobject_script(Id, &PlagueFissureGO::Create);
-    };
+    }
     pScriptMgr->register_gameobject_script(181695, &PlagueFissureGO::Create);
     // ---- Bosses ----
     pScriptMgr->register_creature_script(CN_NOTH_THE_PLAGUEBRINGER, &NothThePlaguebringerAI::Create);
@@ -2869,4 +2874,4 @@ void SetupNaxxramas(ScriptMgr* pScriptMgr)
     pScriptMgr->register_creature_script(CN_KELTHUZAD, &KelthuzadAI::Create);
 
     // ---- Go Scripts ---- >
-};
+}

@@ -41,10 +41,10 @@ class NalorakkAI : public MoonScriptCreatureAI
 
             SetEnrageInfo(AddSpell(NALORAKK_BERSERK, Target_Self, 0, 0, 600, 0, 0, false, "You had your chance, now it be too late!", CHAT_MSG_MONSTER_YELL, 12074), 600000);
 
-            AddEmote(Event_OnCombatStart, "You be dead soon enough!", CHAT_MSG_MONSTER_YELL, 12070);
-            AddEmote(Event_OnTargetDied, "Da Amani gonna rule again!", CHAT_MSG_MONSTER_YELL, 12076);
-            AddEmote(Event_OnTargetDied, "Now whatchoo got to say?", CHAT_MSG_MONSTER_YELL, 12075);
-            AddEmote(Event_OnDied, "I... be waitin' on da udda side....", CHAT_MSG_MONSTER_YELL, 12077);
+            addEmoteForEvent(Event_OnCombatStart, 8855);
+            addEmoteForEvent(Event_OnTargetDied, 8856);
+            addEmoteForEvent(Event_OnTargetDied, 8857);
+            addEmoteForEvent(Event_OnDied, 8858);
 
             // Bear Form
             Morph = AddSpell(42377, Target_Self, 0, 0, 0, 0, 0, false, "You call on da beast, you gonna get more dan you bargain for!", CHAT_MSG_MONSTER_YELL, 12072);
@@ -80,9 +80,9 @@ class NalorakkAI : public MoonScriptCreatureAI
             ParentClass::AIUpdate();
 
             // Bear Form
-            if (_isTimerFinished(MorphTimer) && GetPhase() == 1)
+            if (_isTimerFinished(MorphTimer) && isScriptPhase(1))
             {
-                SetPhase(2, Morph);
+                setScriptPhase(2);
                 // Morph into a bear since the spell doesnt work
                 _setDisplayId(21635);
                 // 20 Seconds until switch to Troll Form
@@ -90,13 +90,13 @@ class NalorakkAI : public MoonScriptCreatureAI
             }
 
             // Troll Form
-            else if (_isTimerFinished(MorphTimer) && GetPhase() == 2)
+            else if (_isTimerFinished(MorphTimer) && isScriptPhase(2))
             {
                 // Remove Bear Form
                 _removeAura(42377);
                 // Transform back into a Troll
                 _setDisplayId(21631);
-                SetPhase(1);
+                setScriptPhase(1);
                 // 45 Seconds until switch to Bear Form
                 _resetTimer(MorphTimer, 45000);
 
@@ -119,10 +119,10 @@ class AkilzonAI : public MoonScriptCreatureAI
             AddSpell(AKILZON_GUST_OF_WIND, Target_Current, 0, 0, 0);
             AddSpell(AKILZON_ELECTRICAL_STORM, Target_Self, 1, 0, 0);
 
-            AddEmote(Event_OnCombatStart, "I be da predator! You da prey!", CHAT_MSG_MONSTER_YELL, 12013);
-            AddEmote(Event_OnTargetDied, "Stop your cryin'!", CHAT_MSG_MONSTER_YELL, 12018);
-            AddEmote(Event_OnTargetDied, "Ya got nothin'!", CHAT_MSG_MONSTER_YELL, 12017);
-            AddEmote(Event_OnDied, "You can't... kill... me spirit!", CHAT_MSG_MONSTER_YELL, 12019);
+            addEmoteForEvent(Event_OnCombatStart, 8859);
+            addEmoteForEvent(Event_OnTargetDied, 8860);
+            addEmoteForEvent(Event_OnTargetDied, 8861);
+            addEmoteForEvent(Event_OnDied, 8862);
 
             mSummonTime = 0;
         }
@@ -141,19 +141,18 @@ class AkilzonAI : public MoonScriptCreatureAI
 
             if (_isTimerFinished(mSummonTime))
             {
-                MoonScriptCreatureAI* Eagle = NULL;
                 // Spawn 3 Soaring Eagles
                 for (uint8 x = 0; x < 3; x++)
                 {
-                    Eagle = SpawnCreature(CN_SOARING_EAGLE, (getCreature()->GetPositionX() + RandomFloat(12) - 10), (getCreature()->GetPositionY() + RandomFloat(12) - 15),
-                                          getCreature()->GetPositionZ(), getCreature()->GetOrientation(), true);
+                    CreatureAIScript* Eagle = spawnCreatureAndGetAIScript(CN_SOARING_EAGLE, (getCreature()->GetPositionX() + RandomFloat(12) - 10), (getCreature()->GetPositionY() + RandomFloat(12) - 15),
+                                          getCreature()->GetPositionZ(), getCreature()->GetOrientation(), getCreature()->GetFaction());
                     if (Eagle)
                     {
-                        Eagle->AggroNearestUnit();
+                        static_cast<MoonScriptCreatureAI*>(Eagle)->AggroNearestUnit();
                         Eagle->_setDespawnWhenInactive(true);
                     }
                 }
-                Eagle = NULL;
+
                 sendChatMessage(CHAT_MSG_MONSTER_YELL, 12019, "Feed, me bruddahs!");
                 // Restart the timer
                 _resetTimer(mSummonTime, 120000);
@@ -194,10 +193,10 @@ class HalazziAI : public MoonScriptCreatureAI
             // Transfigure: 4k aoe damage
             Transfigure = AddSpell(44054, Target_Self, 0, 0, 0, 0, 0, false, "I fight wit' untamed spirit...", CHAT_MSG_MONSTER_YELL, 12021);
 
-            AddEmote(Event_OnCombatStart, "Get on your knees and bow to da fang and claw!", CHAT_MSG_MONSTER_YELL, 12020);
-            AddEmote(Event_OnTargetDied, "You cant fight da power...", CHAT_MSG_MONSTER_YELL, 12026);
-            AddEmote(Event_OnTargetDied, "You all gonna fail...", CHAT_MSG_MONSTER_YELL, 12027);
-            AddEmote(Event_OnDied, "Chaga... choka'jinn.", CHAT_MSG_MONSTER_YELL, 12028);
+            addEmoteForEvent(Event_OnCombatStart, 8863);
+            addEmoteForEvent(Event_OnTargetDied, 8864);
+            addEmoteForEvent(Event_OnTargetDied, 8865);
+            addEmoteForEvent(Event_OnDied, 8866);
             mLynx = NULL;
 
             mTotemTimer = 0;
@@ -234,25 +233,24 @@ class HalazziAI : public MoonScriptCreatureAI
                 Merge();
 
             // At <25% Phase 3 begins
-            if (_getHealthPercent() < 25 && GetPhase() == 1)
+            if (_getHealthPercent() < 25 && isScriptPhase(1))
             {
                 _resetTimer(mTotemTimer, 30000);
-                SetPhase(3);
+                setScriptPhase(3);
             }
 
-            if (GetPhase() == 2 || GetPhase() == 3)
+            if (isScriptPhase(2) || isScriptPhase(3))
             {
                 if (_isTimerFinished(mTotemTimer))
                 {
-                    MoonScriptCreatureAI* Totem = NULL;
-                    Totem = SpawnCreature(CN_TOTEM, (getCreature()->GetPositionX() + RandomFloat(3) - 3), (getCreature()->GetPositionY() + RandomFloat(3) - 3), getCreature()->GetPositionZ(), 0, true);
+                    CreatureAIScript* Totem = spawnCreatureAndGetAIScript(CN_TOTEM, (getCreature()->GetPositionX() + RandomFloat(3) - 3), (getCreature()->GetPositionY() + RandomFloat(3) - 3), getCreature()->GetPositionZ(), 0, getCreature()->GetFaction());
                     if (Totem)
                     {
                         Totem->despawn(60000); // Despawn in 60 seconds
-                        Totem->AggroNearestPlayer();
-                        Totem = NULL;
+                        static_cast<MoonScriptCreatureAI*>(Totem)->AggroNearestPlayer();
                     }
-                    switch (GetPhase())
+
+                    switch (getScriptPhase())
                     {
                         case 2:
                             _resetTimer(mTotemTimer, 60000);
@@ -272,14 +270,14 @@ class HalazziAI : public MoonScriptCreatureAI
             getCreature()->SetHealth(240000);
             getCreature()->setUInt32Value(UNIT_FIELD_MAXHEALTH, 240000);
 
-            mLynx = getCreature()->GetMapMgr()->GetInterface()->SpawnCreature(CN_LYNX_SPIRIT, getCreature()->GetPositionX(), getCreature()->GetPositionY(), getCreature()->GetPositionZ(), getCreature()->GetOrientation(), true, false, 0, 0);
+            mLynx = spawnCreature(CN_LYNX_SPIRIT, getCreature()->GetPosition());
             if (mLynx)
             {
                 mLynx->GetAIInterface()->AttackReaction(getCreature()->GetAIInterface()->getNextTarget(), 1);
                 mLynx->m_noRespawn = true;
             }
 
-            SetPhase(2, Transfigure);
+            setScriptPhase(2);
         }
 
         void Merge()
@@ -298,7 +296,19 @@ class HalazziAI : public MoonScriptCreatureAI
             _setDisplayId(21632);
 
             SplitCount++;
-            SetPhase(1);
+            setScriptPhase(1);
+        }
+
+        void OnScriptPhaseChange(uint32_t phaseId)
+        {
+            switch (phaseId)
+            {
+                case 2:
+                    CastSpellNowNoScheduling(Transfigure);
+                    break;
+                default:
+                    break;
+            }
         }
 
         Creature* mLynx;
