@@ -159,7 +159,7 @@ class RhahkZorAI : public CreatureAIScript
         AddSpell(6304, Target_Current, 8, 0, 3);    // Rhahk'Zor Slam
     }
 
-    void OnCombatStart(Unit* pTarget) override
+    void OnCombatStart(Unit* /*pTarget*/) override
     {
         sendDBChatMessage(5495);     // VanCleef pay big for you heads!
 
@@ -177,11 +177,11 @@ class MrSmiteAI : public CreatureAIScript
         {
             AddSpell(SMITE_SLAM, Target_Current, 25, 0.0f, 15, 0.0f, 8.0f, true);
             mStomp = AddSpell(SMITE_STOMP, Target_Self, 0, 0, 0);
-            mWaitAtChest = INVALIDATE_TIMER;
+            mWaitAtChest = 0;
             _setWieldWeapon(true);
         }
 
-        void OnCombatStop(Unit* pTarget) override
+        void OnCombatStop(Unit* /*pTarget*/) override
         {
             if (isScriptPhase(4))
                 _removeAura(SMITES_HAMMER);
@@ -192,7 +192,6 @@ class MrSmiteAI : public CreatureAIScript
             setScriptPhase(1);
             SwitchWeapons();
             _removeTimer(mWaitAtChest);
-            
         }
 
         void AIUpdate() override
@@ -214,8 +213,6 @@ class MrSmiteAI : public CreatureAIScript
 
             if (_isTimerFinished(mWaitAtChest))
                 MoveToPlayer();
-
-            
         }
 
         void OnScriptPhaseChange(uint32_t phaseId) override
@@ -255,7 +252,8 @@ class MrSmiteAI : public CreatureAIScript
         {
             if (getCreature()->GetPositionX() == 1.100060f && getCreature()->GetPositionY() == -780.026367f)
                 return true;
-            else if (getCreature()->GetAIInterface()->isAiState(AI_STATE_SCRIPTMOVE) == false)
+
+            if (getCreature()->GetAIInterface()->isAiState(AI_STATE_SCRIPTMOVE) == false)
             {
                 // Too small distance - let's prevent from blocking
                 float XDiff, YDiff;

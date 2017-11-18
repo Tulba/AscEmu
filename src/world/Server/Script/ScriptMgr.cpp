@@ -463,7 +463,7 @@ CreatureAIScript* ScriptMgr::CreateAIScriptClassForEntry(Creature* pCreature)
     return (function_ptr)(pCreature);
 }
 
-GameObjectAIScript* ScriptMgr::CreateAIScriptClassForGameObject(uint32 uEntryId, GameObject* pGameObject)
+GameObjectAIScript* ScriptMgr::CreateAIScriptClassForGameObject(uint32 /*uEntryId*/, GameObject* pGameObject)
 {
     GameObjectCreateMap::iterator itr = _gameobjects.find(pGameObject->GetEntry());
     if (itr == _gameobjects.end())
@@ -473,7 +473,7 @@ GameObjectAIScript* ScriptMgr::CreateAIScriptClassForGameObject(uint32 uEntryId,
     return (function_ptr)(pGameObject);
 }
 
-InstanceScript* ScriptMgr::CreateScriptClassForInstance(uint32 pMapId, MapMgr* pMapMgr)
+InstanceScript* ScriptMgr::CreateScriptClassForInstance(uint32 /*pMapId*/, MapMgr* pMapMgr)
 {
     InstanceCreateMap::iterator Iter = mInstances.find(pMapMgr->GetMapId());
     if (Iter == mInstances.end())
@@ -988,7 +988,7 @@ void CreatureAIScript::_regenerateHealth()
 
 bool CreatureAIScript::_isCasting()
 {
-    return _creature->IsCasting();
+    return _creature->isCastingNonMeleeSpell();
 }
 
 bool CreatureAIScript::_isHeroic()
@@ -1348,7 +1348,7 @@ void CreatureAIScript::newAIUpdateSpellSystem()
             // stop spells and remove aura in case of duration
             if (_isTimerFinished(AISpell->mDurationTimerId) && AISpell->mForceRemoveAura)
             {
-                getCreature()->InterruptSpell();
+                getCreature()->interruptSpell();
                 _removeAura(AISpell->mSpellInfo->getId());
             }
         }
@@ -1414,6 +1414,12 @@ void CreatureAIScript::newAIUpdateSpellSystem()
                 case TARGET_RANDOM_DESTINATION:
                     castSpellOnRandomTarget(usedSpell);
                     break;
+                case TARGET_CUSTOM:
+                {
+                    // nos custom target set, no spell cast.
+                    if (usedSpell->getCustomTarget() != nullptr)
+                        getCreature()->CastSpell(usedSpell->getCustomTarget(), usedSpell->mSpellInfo, usedSpell->mIsTriggered);
+                } break;
             }
 
             // override attack stop timer if needed
@@ -1449,7 +1455,7 @@ void CreatureAIScript::castSpellOnRandomTarget(CreatureAISpells* AiSpell)
     bool isTargetRandFriend = (AiSpell->mTargetType == TARGET_RANDOM_FRIEND ? true : false);
 
     // if we already cast a spell, do not set/cast another one!
-    if (getCreature()->GetCurrentSpell() == nullptr
+    if (!getCreature()->isCastingNonMeleeSpell()
         && getCreature()->GetAIInterface()->getNextTarget())
     {
         // set up targets in range by position, relation and hp range
