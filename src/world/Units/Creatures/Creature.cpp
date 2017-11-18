@@ -40,6 +40,7 @@
 #include "Pet.h"
 #include "Spell/SpellEffects.h"
 #include "Storage/MySQLStructures.h"
+#include "Objects/ObjectMgr.h"
 
 Creature::Creature(uint64 guid)
 {
@@ -1130,7 +1131,6 @@ void Creature::CallScriptUpdate()
         return;
 
     _myScriptClass->_internalAIUpdate();
-    _myScriptClass->AIUpdate();
 }
 
 CreatureProperties const* Creature::GetCreatureProperties()

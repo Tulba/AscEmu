@@ -1,36 +1,20 @@
 /*
- * ArcScripts for ArcEmu MMORPG Server
- * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- */
+Copyright (c) 2014-2017 AscEmu Team <http://www.ascemu.org/>
+This file is released under the MIT license. See README-MIT for more information.
+*/
+
+#pragma once
 
 #include "Units/Creatures/AIInterface.h"
 #include "Management/Item.h"
 #include "Map/MapMgr.h"
 #include "Management/ItemInterface.h"
 #include "Storage/MySQLDataStore.hpp"
-#include <Management/QuestLogEntry.hpp>
+#include "Management/QuestLogEntry.hpp"
 #include "Map/MapScriptInterface.h"
-#include <Spell/Customization/SpellCustomizations.hpp>
+#include "Spell/Customization/SpellCustomizations.hpp"
 #include "Map/WorldCreatorDefines.hpp"
-#include "../Common/Base.h"
 
-#ifndef _INSTANCE_SCRIPTS_SETUP_H
-#define _INSTANCE_SCRIPTS_SETUP_H
-
-//Instances
 void SetupArcatraz(ScriptMgr* mgr);
 void SetupAuchenaiCrypts(ScriptMgr* mgr);
 void SetupAzjolNerub(ScriptMgr* mgr);
@@ -96,7 +80,7 @@ void SetupSunwellPlateau(ScriptMgr* pScriptMgr);
 void SetupWorldBosses(ScriptMgr* mgr);
 void SetupZulAman(ScriptMgr* mgr);
 
-
+// Zyres 11/14/2017 Marked as deprecated
 struct ScriptSpell
 {
     uint32 normal_spellid;
@@ -108,7 +92,8 @@ struct ScriptSpell
     uint32 phase;
 };
 
-enum SPELL_TARGETS
+// Zyres 11/14/2017 Marked as deprecated
+enum SPELL_TARGETS  // used for structure ScriptSpell
 {
     SPELL_TARGET_SELF,
     SPELL_TARGET_CURRENT_ENEMY,
@@ -120,6 +105,7 @@ enum SPELL_TARGETS
     SPELL_TARGET_CUSTOM
 };
 
+// Zyres 11/14/2017 Marked as deprecated
 struct SP_AI_Spell
 {
     SP_AI_Spell();
@@ -140,17 +126,19 @@ struct SP_AI_Spell
     int maxhp2cast;         // max hp amount of victim to perform cast on it (health <= maxhp2cast)
 };
 
-enum
-{
-    TARGET_SELF,
-    TARGET_VARIOUS,
-    TARGET_ATTACKING,
-    TARGET_DESTINATION,
-    TARGET_SOURCE,
-    TARGET_RANDOM_FRIEND,    // doesn't work yet
-    TARGET_RANDOM_SINGLE,
-    TARGET_RANDOM_DESTINATION
-};
+// Zyres 11/14/2017 Moved to ScriptMgr.h
+// used for struct SP_AI_SPELL
+//enum
+//{
+//    TARGET_SELF,
+//    TARGET_VARIOUS,
+//    TARGET_ATTACKING,
+//    TARGET_DESTINATION,
+//    TARGET_SOURCE,
+//    TARGET_RANDOM_FRIEND,    // doesn't work yet
+//    TARGET_RANDOM_SINGLE,
+//    TARGET_RANDOM_DESTINATION
+//};
 
 ///\todo create for all instance scripts for these maps... best example how encounter states work ->Raid_IceCrownCitadel.cpp
 enum InstanceMaps
@@ -274,5 +262,3 @@ enum InstanceAreas
 {
     AREA_VIOLET_HOLD = 4415
 };
-
-#endif      // _INSTANCE_SCRIPTS_SETUP_H

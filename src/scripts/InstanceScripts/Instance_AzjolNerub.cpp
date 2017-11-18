@@ -25,10 +25,10 @@
 #include "Instance_AzjolNerub.h"
 
 //Krikthir The Gatewatcher
-class KrikthirAI : public MoonScriptCreatureAI
+class KrikthirAI : public CreatureAIScript
 {
-    MOONSCRIPT_FACTORY_FUNCTION(KrikthirAI, MoonScriptCreatureAI);
-    KrikthirAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+    ADD_CREATURE_FACTORY_FUNCTION(KrikthirAI);
+    KrikthirAI(Creature* pCreature) : CreatureAIScript(pCreature)
     {
         if (!_isHeroic())
         {
@@ -42,56 +42,38 @@ class KrikthirAI : public MoonScriptCreatureAI
         }
 
         mEnraged = false;
+
+        // new
+        addEmoteForEvent(Event_OnCombatStart, 3908);    // This kingdom belongs to the Scourge. Only the dead may enter!
+        addEmoteForEvent(Event_OnTargetDied, 3910);     // As Anub'arak commands!
+        addEmoteForEvent(Event_OnTargetDied, 3909);     // You were foolish to come.
+        addEmoteForEvent(Event_OnDied, 3911);           // I should be grateful... but I long ago lost the capacity....
     }
 
-    void AIUpdate()
+    void AIUpdate() override
     {
+        // case for scriptphase
         if (getCreature()->GetHealthPct() <= 10 && mEnraged == false)
         {
             _applyAura(KRIKTHIR_ENRAGE);
             mEnraged = true;
         }
-
-        ParentClass::AIUpdate();
     }
 
-    void OnCombatStart(Unit* pTarget)
+    void OnDied(Unit* pKiller) override
     {
-        sendDBChatMessage(3908);     // This kingdom belongs to the Scourge. Only the dead may enter!
-    }
-
-    void OnTargetDied(Unit* mKiller)
-    {
-        switch (RandomUInt(1))
-        {
-            case 0:
-                sendDBChatMessage(3910);     // As Anub'arak commands!
-                break;
-            case 1:
-                sendDBChatMessage(3909);     // You were foolish to come.
-                break;
-        }
-    }
-
-    void OnDied(Unit* pKiller)
-    {
-        sendDBChatMessage(3911);         // I should be grateful... but I long ago lost the capacity....
-
         GameObject* Doors = getNearestGameObject(192395);
         if (Doors != NULL)
             Doors->Despawn(0, 0);
-
-        ParentClass::OnDied(pKiller);
     }
-
     bool mEnraged;
 };
 
 //Hadronox
-class HadronoxAI : public MoonScriptCreatureAI
+class HadronoxAI : public CreatureAIScript
 {
-    MOONSCRIPT_FACTORY_FUNCTION(HadronoxAI, MoonScriptCreatureAI);
-    HadronoxAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+    ADD_CREATURE_FACTORY_FUNCTION(HadronoxAI);
+    HadronoxAI(Creature* pCreature) : CreatureAIScript(pCreature)
     {
         if (!_isHeroic())
         {
@@ -108,57 +90,52 @@ class HadronoxAI : public MoonScriptCreatureAI
 
         AddSpell(HADRONOX_PIERCEARMOR, Target_ClosestPlayer, 20, 0, 5, 0, 0);
     }
-
 };
 
 //Watcher Gashra
-class GashraAI : public MoonScriptCreatureAI
+class GashraAI : public CreatureAIScript
 {
-    MOONSCRIPT_FACTORY_FUNCTION(GashraAI, MoonScriptCreatureAI);
-    GashraAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+    ADD_CREATURE_FACTORY_FUNCTION(GashraAI);
+    GashraAI(Creature* pCreature) : CreatureAIScript(pCreature)
     {
         AddSpell(GASHRA_WEBWRAP, Target_RandomPlayer, 22, 0, 35, 0, 0);
         AddSpell(GASHRA_INFECTEDBITE, Target_ClosestPlayer, 35, 0, 12, 0, 0);
     }
-
 };
 
 //Watcher Narjil
-class NarjilAI : public MoonScriptCreatureAI
+class NarjilAI : public CreatureAIScript
 {
-    MOONSCRIPT_FACTORY_FUNCTION(NarjilAI, MoonScriptCreatureAI);
-    NarjilAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+    ADD_CREATURE_FACTORY_FUNCTION(NarjilAI);
+    NarjilAI(Creature* pCreature) : CreatureAIScript(pCreature)
     {
         AddSpell(NARJIL_WEBWRAP, Target_RandomPlayer, 22, 0, 35, 0, 0);
         AddSpell(NARJIL_INFECTEDBITE, Target_ClosestPlayer, 35, 0, 12, 0, 0);
         AddSpell(NARJIL_BLINDINGWEBS, Target_ClosestPlayer, 16, 0, 9, 0, 0);
     }
-
 };
 
 //Watcher Silthik
-class SilthikAI : public MoonScriptCreatureAI
+class SilthikAI : public CreatureAIScript
 {
-    MOONSCRIPT_FACTORY_FUNCTION(SilthikAI, MoonScriptCreatureAI);
-    SilthikAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+    ADD_CREATURE_FACTORY_FUNCTION(SilthikAI);
+    SilthikAI(Creature* pCreature) : CreatureAIScript(pCreature)
     {
         AddSpell(NARJIL_WEBWRAP, Target_RandomPlayer, 22, 0, 35, 0, 0);
         AddSpell(NARJIL_INFECTEDBITE, Target_ClosestPlayer, 35, 0, 12, 0, 0);
         AddSpell(SILTHIK_POISONSPRAY, Target_RandomPlayer, 30, 0, 15, 0, 0);
     }
-
 };
 
 //Anub'ar Shadowcaster (anub shadowcaster)
-class AnubShadowcasterAI : public MoonScriptCreatureAI
+class AnubShadowcasterAI : public CreatureAIScript
 {
-    MOONSCRIPT_FACTORY_FUNCTION(AnubShadowcasterAI, MoonScriptCreatureAI);
-    AnubShadowcasterAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+    ADD_CREATURE_FACTORY_FUNCTION(AnubShadowcasterAI);
+    AnubShadowcasterAI(Creature* pCreature) : CreatureAIScript(pCreature)
     {
         AddSpell(SHADOWCASTER_SHADOWBOLT, Target_RandomPlayer, 36, 0, 8);
         AddSpell(SHADOWCASTER_SHADOW_NOVA, Target_Self, 22, 0, 15);
     }
-
 };
 
 void SetupAzjolNerub(ScriptMgr* mgr)

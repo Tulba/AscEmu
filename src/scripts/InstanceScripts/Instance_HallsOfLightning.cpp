@@ -43,7 +43,7 @@ class HallsOfLightningScript : public InstanceScript
 
         static InstanceScript* Create(MapMgr* pMapMgr) { return new HallsOfLightningScript(pMapMgr); }
 
-        void OnGameObjectPushToWorld(GameObject* pGameObject)
+        void OnGameObjectPushToWorld(GameObject* pGameObject) override
         {
             switch (pGameObject->GetEntry())
             {
@@ -65,7 +65,7 @@ class HallsOfLightningScript : public InstanceScript
             }
         }
 
-        void OnCreatureDeath(Creature* pVictim, Unit* pKiller)
+        void OnCreatureDeath(Creature* pVictim, Unit* pKiller) override
         {
             GameObject* pDoors = NULL;
             switch (pVictim->GetEntry())
@@ -117,12 +117,11 @@ enum GENERAL_STANCES
 
 /////////////////////////////////////////////////////////////////////////////////
 /// General Bjarnrim Script
-class GeneralBjarngrimAI : public MoonScriptCreatureAI
+class GeneralBjarngrimAI : public CreatureAIScript
 {
-    MOONSCRIPT_FACTORY_FUNCTION(GeneralBjarngrimAI, MoonScriptCreatureAI);
-    GeneralBjarngrimAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+    ADD_CREATURE_FACTORY_FUNCTION(GeneralBjarngrimAI);
+    GeneralBjarngrimAI(Creature* pCreature) : CreatureAIScript(pCreature)
     {
-        mInstance = getInstanceScript();
         // Battle Stance
         AddPhaseSpell(1, AddSpell(SPELL_MORTAL_STRIKE, Target_Current, 25, 0, 5));
         AddPhaseSpell(1, AddSpell(SPELL_WHIRLWIND, Target_Self, 90, 8, 30));
@@ -136,43 +135,21 @@ class GeneralBjarngrimAI : public MoonScriptCreatureAI
         AddPhaseSpell(3, AddSpell(SPELL_PUMMEL, Target_Current, 40, 0, 5));
 
         mStanceTimer = INVALIDATE_TIMER;
+
+        // new
+        addEmoteForEvent(Event_OnCombatStart, 758);      // I am the greatest of my father's sons! Your end has come!
+        addEmoteForEvent(Event_OnTargetDied, 762);        // So ends your curse.
+        addEmoteForEvent(Event_OnTargetDied, 763);        // Flesh... is... weak!
+        addEmoteForEvent(Event_OnDied, 765);      // How can it be...? Flesh is not... stronger!
     }
 
-    void OnCombatStart(Unit* pTarget)
+    void OnCombatStart(Unit* pTarget) override
     {
-        sendDBChatMessage(758);      // I am the greatest of my father's sons! Your end has come!
-
         mStanceTimer = _addTimer(TIMER_STANCE_CHANGE + (RandomUInt(7) * 1000));
         switchStance(RandomUInt(2));
-
-        ParentClass::OnCombatStart(pTarget);
-
-        if (mInstance)
-            mInstance->setData(getCreature()->GetEntry(), InProgress);
     }
 
-    void OnTargetDied(Unit* pTarget)
-    {
-        switch (RandomUInt(1))
-        {
-           case 0:
-              sendDBChatMessage(762);        // So ends your curse.
-           break;
-           case 1:
-              sendDBChatMessage(763);        // Flesh... is... weak!
-           break;
-        }
-    }
-
-    void OnCombatStop(Unit* pTarget)
-    {
-        if (mInstance)
-            mInstance->setData(getCreature()->GetEntry(), Performed);
-
-        ParentClass::OnCombatStop(pTarget);
-    }
-
-    void AIUpdate()
+    void AIUpdate() override
     {
         if (_isTimerFinished(mStanceTimer))
         {
@@ -191,19 +168,11 @@ class GeneralBjarngrimAI : public MoonScriptCreatureAI
                     switchStance(RandomUInt(1) + 1);
                     break;
             }
-
-
             _resetTimer(mStanceTimer, TIMER_STANCE_CHANGE + (RandomUInt(7) * 1000));
         }
-
-        ParentClass::AIUpdate();
     }
 
-    void OnDied(Unit* pKiller)
-    {
-        sendDBChatMessage(765);      // How can it be...? Flesh is not... stronger!
-    }
-
+    // case for scriptPhase and spell emotes
     void switchStance(int32 pStance)
     {
         switch (pStance)
@@ -235,7 +204,6 @@ class GeneralBjarngrimAI : public MoonScriptCreatureAI
     private:
 
         int32 mStanceTimer;
-        InstanceScript* mInstance;
 };
 
 
@@ -250,13 +218,11 @@ const uint32 TIMER_STOMP = 24000;
 
 /////////////////////////////////////////////////////////////////////////////////
 /// Volkhan Script
-class Volkhan : public MoonScriptCreatureAI
+class Volkhan : public CreatureAIScript
 {
-    MOONSCRIPT_FACTORY_FUNCTION(Volkhan, MoonScriptCreatureAI);
-    Volkhan(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+    ADD_CREATURE_FACTORY_FUNCTION(Volkhan);
+    Volkhan(Creature* pCreature) : CreatureAIScript(pCreature)
     {
-        mInstance = getInstanceScript();
-
         if (_isHeroic())
         {
             AddSpell(59529, Target_WoundedFriendly, 15, 1.5f, 15);
@@ -268,8 +234,8 @@ class Volkhan : public MoonScriptCreatureAI
             mStomp = AddSpell(52237, Target_Self, 0, 3, 0);
         }
 
-        mStomp->AddEmote("I will crush you beneath my boots!", CHAT_MSG_MONSTER_YELL, 13963);
-        mStomp->AddEmote("All my work... undone!", CHAT_MSG_MONSTER_YELL, 13964);
+        mStomp->addEmote("I will crush you beneath my boots!", CHAT_MSG_MONSTER_YELL, 13963);
+        mStomp->addEmote("All my work... undone!", CHAT_MSG_MONSTER_YELL, 13964);
 
         m_cVolkhanWP.x = 1328.666870f;
         m_cVolkhanWP.y = -97.022758f;
@@ -281,45 +247,22 @@ class Volkhan : public MoonScriptCreatureAI
         mStompTimer = INVALIDATE_TIMER;
         mPhase = 0;
         m_bStomp = false;
+
+        // new
+        addEmoteForEvent(Event_OnCombatStart, 769);      // It is you who have destroyed my children? You... shall... pay!
+        addEmoteForEvent(Event_OnTargetDied, 774);      // The armies of iron will conquer all!
+        addEmoteForEvent(Event_OnTargetDied, 775);      // Feh! Pathetic!
+        addEmoteForEvent(Event_OnTargetDied, 776);      // You have cost me too much work!
+        addEmoteForEvent(Event_OnDied, 777);      // The master was right... to be concerned.
     }
 
-    void OnCombatStart(Unit* pTarget)
+    void OnCombatStart(Unit* pTarget) override
     {
-        sendDBChatMessage(769);      // It is you who have destroyed my children? You... shall... pay!
         mStompTimer = _addTimer(TIMER_STOMP + (RandomUInt(6) * 1000));
         mPhase = 0;
-
-        ParentClass::OnCombatStart(pTarget);
-
-        if (mInstance)
-            mInstance->setData(getCreature()->GetEntry(), InProgress);
     }
 
-    void OnTargetDied(Unit* pTarget)
-    {
-        switch (RandomUInt(2))
-        {
-            case 0:
-                sendDBChatMessage(774);      // The armies of iron will conquer all!
-                break;
-            case 1:
-                sendDBChatMessage(775);      // Feh! Pathetic!
-                break;
-            case 2:
-                sendDBChatMessage(776);      // You have cost me too much work!
-                break;
-        }
-    }
-
-    void OnCombatStop(Unit* pTarget)
-    {
-        if (mInstance)
-            mInstance->setData(getCreature()->GetEntry(), Performed);
-
-        ParentClass::OnCombatStop(pTarget);
-    }
-
-    void AIUpdate()
+    void AIUpdate() override
     {
         if (_isTimerFinished(mStompTimer))
         {
@@ -344,10 +287,10 @@ class Volkhan : public MoonScriptCreatureAI
             ++mPhase;
         }
 
-        ParentClass::AIUpdate();
+        
     }
 
-    void OnReachWP(uint32 iWaypointId, bool bForwards)
+    void OnReachWP(uint32 iWaypointId, bool bForwards) override
     {
         if (iWaypointId == 1)
         {
@@ -391,24 +334,18 @@ class Volkhan : public MoonScriptCreatureAI
         m_bStomp = false;
     }
 
-    void OnDied(Unit* pKiller)
-    {
-        sendDBChatMessage(777);      // The master was right... to be concerned.
-    }
-
     SpellDesc* mStomp;
     Movement::Location m_cVolkhanWP;
     bool m_bStomp;
     int32 mStompTimer;
     int32 mPhase;
-    InstanceScript* mInstance;
 };
 
 
-class MoltenGolem : public MoonScriptCreatureAI
+class MoltenGolem : public CreatureAIScript
 {
-    MOONSCRIPT_FACTORY_FUNCTION(MoltenGolem, MoonScriptCreatureAI);
-    MoltenGolem(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+    ADD_CREATURE_FACTORY_FUNCTION(MoltenGolem);
+    MoltenGolem(Creature* pCreature) : CreatureAIScript(pCreature)
     {
         AddSpell(SPELL_BLAST_WAVE, Target_Self, 25, 0, 20);
 
@@ -418,7 +355,7 @@ class MoltenGolem : public MoonScriptCreatureAI
             AddSpell(52433, Target_Current, 15, 0, 15);
     }
 
-    void OnDied(Unit* pKiller)
+    void OnDied(Unit* pKiller) override
     {
         spawnCreature(CN_BRITTLE_GOLEM, getCreature()->GetPosition());
         despawn();
@@ -426,10 +363,10 @@ class MoltenGolem : public MoonScriptCreatureAI
 };
 
 
-class BrittleGolem : public MoonScriptCreatureAI
+class BrittleGolem : public CreatureAIScript
 {
-    MOONSCRIPT_FACTORY_FUNCTION(BrittleGolem, MoonScriptCreatureAI);
-    BrittleGolem(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+    ADD_CREATURE_FACTORY_FUNCTION(BrittleGolem);
+    BrittleGolem(Creature* pCreature) : CreatureAIScript(pCreature)
     {
         setCanEnterCombat(false);
         setRooted(true);
@@ -437,10 +374,10 @@ class BrittleGolem : public MoonScriptCreatureAI
 };
 
 
-class VolkhansAnvil : public MoonScriptCreatureAI
+class VolkhansAnvil : public CreatureAIScript
 {
-    MOONSCRIPT_FACTORY_FUNCTION(VolkhansAnvil, MoonScriptCreatureAI);
-    VolkhansAnvil(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+    ADD_CREATURE_FACTORY_FUNCTION(VolkhansAnvil);
+    VolkhansAnvil(Creature* pCreature) : CreatureAIScript(pCreature)
     {
         getCreature()->GetAIInterface()->SetAllowedToEnterCombat(false);
         getCreature()->setUInt64Value(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
@@ -454,13 +391,11 @@ const uint32 SPELL_SUMMON_SPARK = 52746;
 /////////////////////////////////////////////////////////////////////////////////
 /// Ionar
 // Status: Basic script, missing spark phase
-class IonarAI : public MoonScriptCreatureAI
+class IonarAI : public CreatureAIScript
 {
-    MOONSCRIPT_FACTORY_FUNCTION(IonarAI, MoonScriptCreatureAI);
-    IonarAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+    ADD_CREATURE_FACTORY_FUNCTION(IonarAI);
+    IonarAI(Creature* pCreature) : CreatureAIScript(pCreature)
     {
-        mInstance = getInstanceScript();
-
         if (_isHeroic())
         {
             AddSpell(59800, Target_RandomPlayerNotCurrent, 20, 1.5f, 5);
@@ -471,48 +406,14 @@ class IonarAI : public MoonScriptCreatureAI
             AddSpell(52780, Target_RandomPlayerNotCurrent, 20, 1.5f, 5);
             AddSpell(52658, Target_RandomPlayerNotCurrent, 15, 0, 12);
         }
+
+        // new
+        addEmoteForEvent(Event_OnCombatStart, 738);      // You wish to confront the master? You must first weather the storm!
+        addEmoteForEvent(Event_OnTargetDied, 741);      // Shocking, I know.
+        addEmoteForEvent(Event_OnTargetDied, 742);      // You attempt the impossible.
+        addEmoteForEvent(Event_OnTargetDied, 743);      // Your spark of life is... extinguished.
+        addEmoteForEvent(Event_OnDied, 744);      // Master... you have guests
     }
-
-    void OnCombatStart(Unit* pTarget)
-    {
-        sendDBChatMessage(738);      // You wish to confront the master? You must first weather the storm!
-
-        ParentClass::OnCombatStart(pTarget);
-
-        if (mInstance)
-            mInstance->setData(getCreature()->GetEntry(), InProgress);
-    }
-
-    void OnTargetDied(Unit* pTarget)
-    {
-        switch (RandomUInt(2))
-        {
-            case 0:
-                sendDBChatMessage(741);      // Shocking, I know.
-                break;
-            case 1:
-                sendDBChatMessage(742);      // You attempt the impossible.
-                break;
-            case 2:
-                sendDBChatMessage(743);      // Your spark of life is... extinguished.
-                break;
-        }
-    }
-
-    void OnCombatStop(Unit* pTarget)
-    {
-        ParentClass::OnCombatStop(pTarget);
-
-        if (mInstance)
-            mInstance->setData(getCreature()->GetEntry(), Performed);
-    }
-
-    void OnDied(Unit* pKiller)
-    {
-        sendDBChatMessage(744);      // Master... you have guests.
-    }
-
-    InstanceScript* mInstance;
 };
 
 
@@ -524,13 +425,11 @@ const uint32 TIMER_RESPOND = 18000;
 
 /////////////////////////////////////////////////////////////////////////////////
 /// Loken
-class LokenAI : public MoonScriptCreatureAI
+class LokenAI : public CreatureAIScript
 {
-    MOONSCRIPT_FACTORY_FUNCTION(LokenAI, MoonScriptCreatureAI);
-    LokenAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+    ADD_CREATURE_FACTORY_FUNCTION(LokenAI);
+    LokenAI(Creature* pCreature) : CreatureAIScript(pCreature)
     {
-        mInstance = getInstanceScript();
-
         if (_isHeroic())
             mNova = AddSpell(59835, Target_Self, 0, 4.0f, 0);
         else
@@ -544,13 +443,17 @@ class LokenAI : public MoonScriptCreatureAI
         mRespondTimer = _addTimer(TIMER_RESPOND);
         RegisterAIUpdateEvent(1000);
         mSpeech = 1;
+
+        // new
+        addEmoteForEvent(Event_OnCombatStart, 801);      // What hope is there for you? None!
+        addEmoteForEvent(Event_OnTargetDied, 805);      // Only mortal...
+        addEmoteForEvent(Event_OnTargetDied, 806);      // I... am... FOREVER!
+        addEmoteForEvent(Event_OnTargetDied, 807);      // What little time you had, you wasted!
+        addEmoteForEvent(Event_OnDied, 811);      // My death... heralds the end of this world.
     }
 
-    void OnCombatStart(Unit* pTarget)
+    void OnCombatStart(Unit* pTarget) override
     {
-        sendDBChatMessage(801);      // What hope is there for you? None!
-
-        ParentClass::OnCombatStart(pTarget);
         mSpeech = 1;
 
         if (_isHeroic())
@@ -560,46 +463,22 @@ class LokenAI : public MoonScriptCreatureAI
 
         mNovaTimer = _addTimer(TIMER_NOVA);
         _castOnInrangePlayers(PULSING_SHOCKWAVE_AURA);
-
-        if (mInstance)
-            mInstance->setData(getCreature()->GetEntry(), InProgress);
     }
 
-    void OnCombatStop(Unit* pTarget)
+    void OnCombatStop(Unit* pTarget) override
     {
         _removeAuraOnPlayers(PULSING_SHOCKWAVE_AURA);
-        ParentClass::OnCombatStop(pTarget);
-
-        if (mInstance)
-            mInstance->setData(getCreature()->GetEntry(), Performed);
     }
 
-    void OnTargetDied(Unit* pTarget)
-    {
-        switch (RandomUInt(2))
-        {
-            case 0:
-                sendDBChatMessage(805);      // Only mortal...
-                break;
-            case 1:
-                sendDBChatMessage(806);      // I... am... FOREVER!
-                break;
-            case 2:
-                sendDBChatMessage(807);      // What little time you had, you wasted!
-                break;
-        }
-    }
 
-    void OnDied(Unit* pKiller)
+    void OnDied(Unit* pKiller) override
     {
-        sendDBChatMessage(811);      // My death... heralds the end of this world.
-
         _removeAuraOnPlayers(PULSING_SHOCKWAVE_AURA);
-        ParentClass::OnDied(pKiller);
     }
 
-    void AIUpdate()
+    void AIUpdate() override
     {
+        // spell emote
         if (_isTimerFinished(mNovaTimer))
         {
             switch (RandomUInt(2))
@@ -623,6 +502,7 @@ class LokenAI : public MoonScriptCreatureAI
         if (mSpeech == 4)
             return;
 
+        // scriptPhase
         if (_getHealthPercent() <= (100 - (25 * mSpeech)))
         {
             switch (mSpeech) //rand() % 2
@@ -648,11 +528,10 @@ class LokenAI : public MoonScriptCreatureAI
             RemoveAIUpdateEvent();
         }
 
-        ParentClass::AIUpdate();
+        
     }
 
     SpellDesc* mNova;
-    InstanceScript* mInstance;
 
     int32 mNovaTimer;
     uint32 mRespondTimer;

@@ -32,7 +32,6 @@ const uint32 A_STAR_ARCANE_EXPLOSION = 27082;
 
 class AStarScryerAI : public CreatureAIScript
 {
-    public:
         ADD_CREATURE_FACTORY_FUNCTION(AStarScryerAI);
         SP_AI_Spell spells[2];
         bool m_spellcheck[2];
@@ -57,10 +56,9 @@ class AStarScryerAI : public CreatureAIScript
             spells[1].cooldown = 5;
             spells[1].perctrigger = 50.0f;
             spells[1].attackstoptimer = 1000;
-
         }
 
-        void OnCombatStart(Unit* mTarget)
+        void OnCombatStart(Unit* mTarget) override
         {
             CastTime();
             RegisterAIUpdateEvent(getCreature()->GetBaseAttackTime(MELEE));
@@ -72,11 +70,7 @@ class AStarScryerAI : public CreatureAIScript
                 spells[i].casttime = spells[i].cooldown;
         }
 
-        void OnTargetDied(Unit* mTarget)
-        {
-        }
-
-        void OnCombatStop(Unit* mTarget)
+        void OnCombatStop(Unit* mTarget) override
         {
             CastTime();
             setAIAgent(AGENT_NULL);
@@ -84,12 +78,12 @@ class AStarScryerAI : public CreatureAIScript
             RemoveAIUpdateEvent();
         }
 
-        void OnDied(Unit* mKiller)
+        void OnDied(Unit* mKiller) override
         {
             CastTime();
         }
 
-        void AIUpdate()
+        void AIUpdate() override
         {
             float val = RandomFloat(100.0f);
             SpellCast(val);
@@ -202,7 +196,6 @@ const uint32 STARFALL = 37124;
 
 class StarScryerAI : public CreatureAIScript
 {
-    public:
         ADD_CREATURE_FACTORY_FUNCTION(StarScryerAI);
         SP_AI_Spell spells[1];
         bool m_spellcheck[1];
@@ -220,10 +213,9 @@ class StarScryerAI : public CreatureAIScript
             spells[0].cooldown = 12;
             spells[0].perctrigger = 50.0f;
             spells[0].attackstoptimer = 1000;
-
         }
 
-        void OnCombatStart(Unit* mTarget)
+        void OnCombatStart(Unit* mTarget) override
         {
             CastTime();
             RegisterAIUpdateEvent(getCreature()->GetBaseAttackTime(MELEE));
@@ -235,11 +227,7 @@ class StarScryerAI : public CreatureAIScript
                 spells[i].casttime = spells[i].cooldown;
         }
 
-        void OnTargetDied(Unit* mTarget)
-        {
-        }
-
-        void OnCombatStop(Unit* mTarget)
+        void OnCombatStop(Unit* mTarget) override
         {
             CastTime();
             setAIAgent(AGENT_NULL);
@@ -247,12 +235,12 @@ class StarScryerAI : public CreatureAIScript
             RemoveAIUpdateEvent();
         }
 
-        void OnDied(Unit* mKiller)
+        void OnDied(Unit* mKiller) override
         {
             CastTime();
         }
 
-        void AIUpdate()
+        void AIUpdate() override
         {
             float val = RandomFloat(100.0f);
             SpellCast(val);
@@ -366,10 +354,10 @@ const uint32 ASTROMANCER_FIREBALL = 36971;
 const uint32 ASTROMANCER_CONFLAGRATION = 37018;
 const uint32 ASTROMANCER_ARCANE_BURST = 36970;
 
-class AstromancerAI : public MoonScriptCreatureAI
+class AstromancerAI : public CreatureAIScript
 {
-        MOONSCRIPT_FACTORY_FUNCTION(AstromancerAI, MoonScriptCreatureAI);
-        AstromancerAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(AstromancerAI);
+        AstromancerAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             //spells
             mArcaneBurst = AddSpell(ASTROMANCER_ARCANE_BURST, Target_Self, 0, 0, 0, 0, 10);
@@ -380,7 +368,7 @@ class AstromancerAI : public MoonScriptCreatureAI
             SetAIUpdateFreq(250);
         }
 
-        void AIUpdate()
+        void AIUpdate() override
         {
             if (!_isCasting())
             {
@@ -394,13 +382,9 @@ class AstromancerAI : public MoonScriptCreatureAI
                             mArcaneBurstTimer = _addTimer(6000);
                         else
                             _resetTimer(mArcaneBurstTimer, 6000);
-                        ParentClass::AIUpdate();
-                        return;
                     }
                 }
             }
-
-            ParentClass::AIUpdate();
         }
 
         SpellDesc* mArcaneBurst;
@@ -417,7 +401,6 @@ const uint32 DRAGONS_BREATH = 33043;
 
 class AstromancerLordAI : public CreatureAIScript
 {
-    public:
         ADD_CREATURE_FACTORY_FUNCTION(AstromancerLordAI);
         SP_AI_Spell spells[3];
         bool m_spellcheck[3];
@@ -449,10 +432,9 @@ class AstromancerLordAI : public CreatureAIScript
             spells[2].cooldown = 10;
             spells[2].perctrigger = 50.0f;
             spells[2].attackstoptimer = 1000;
-
         }
 
-        void OnCombatStart(Unit* mTarget)
+        void OnCombatStart(Unit* mTarget) override
         {
             CastTime();
             RegisterAIUpdateEvent(getCreature()->GetBaseAttackTime(MELEE));
@@ -464,11 +446,7 @@ class AstromancerLordAI : public CreatureAIScript
                 spells[i].casttime = spells[i].cooldown;
         }
 
-        void OnTargetDied(Unit* mTarget)
-        {
-        }
-
-        void OnCombatStop(Unit* mTarget)
+        void OnCombatStop(Unit* mTarget) override
         {
             CastTime();
             setAIAgent(AGENT_NULL);
@@ -476,12 +454,12 @@ class AstromancerLordAI : public CreatureAIScript
             RemoveAIUpdateEvent();
         }
 
-        void OnDied(Unit* mKiller)
+        void OnDied(Unit* mKiller) override
         {
             CastTime();
         }
 
-        void AIUpdate()
+        void AIUpdate() override
         {
             float val = RandomFloat(100.0f);
             SpellCast(val);
@@ -595,7 +573,6 @@ const uint32 FLASH_HEAL = 38588;
 
 class BloodVindicatorAI : public CreatureAIScript
 {
-    public:
         ADD_CREATURE_FACTORY_FUNCTION(BloodVindicatorAI);
         SP_AI_Spell spells[2];
         bool m_spellcheck[2];
@@ -620,10 +597,9 @@ class BloodVindicatorAI : public CreatureAIScript
             spells[1].cooldown = 15;
             spells[1].perctrigger = 50.0f;
             spells[1].attackstoptimer = 1000;
-
         }
 
-        void OnCombatStart(Unit* mTarget)
+        void OnCombatStart(Unit* mTarget) override
         {
             CastTime();
             RegisterAIUpdateEvent(getCreature()->GetBaseAttackTime(MELEE));
@@ -635,11 +611,7 @@ class BloodVindicatorAI : public CreatureAIScript
                 spells[i].casttime = spells[i].cooldown;
         }
 
-        void OnTargetDied(Unit* mTarget)
-        {
-        }
-
-        void OnCombatStop(Unit* mTarget)
+        void OnCombatStop(Unit* mTarget) override
         {
             CastTime();
             setAIAgent(AGENT_NULL);
@@ -647,12 +619,12 @@ class BloodVindicatorAI : public CreatureAIScript
             RemoveAIUpdateEvent();
         }
 
-        void OnDied(Unit* mKiller)
+        void OnDied(Unit* mKiller) override
         {
             CastTime();
         }
 
-        void AIUpdate()
+        void AIUpdate() override
         {
             float val = RandomFloat(100.0f);
             SpellCast(val);
@@ -766,7 +738,6 @@ const uint32 CLEAVE = 26350;
 
 class BloodLegionnareAI : public CreatureAIScript
 {
-    public:
         ADD_CREATURE_FACTORY_FUNCTION(BloodLegionnareAI);
         SP_AI_Spell spells[2];
         bool m_spellcheck[2];
@@ -791,10 +762,9 @@ class BloodLegionnareAI : public CreatureAIScript
             spells[1].cooldown = 10;
             spells[1].perctrigger = 40.0f;
             spells[1].attackstoptimer = 1000;
-
         }
 
-        void OnCombatStart(Unit* mTarget)
+        void OnCombatStart(Unit* mTarget) override
         {
             CastTime();
             RegisterAIUpdateEvent(getCreature()->GetBaseAttackTime(MELEE));
@@ -806,11 +776,7 @@ class BloodLegionnareAI : public CreatureAIScript
                 spells[i].casttime = spells[i].cooldown;
         }
 
-        void OnTargetDied(Unit* mTarget)
-        {
-        }
-
-        void OnCombatStop(Unit* mTarget)
+        void OnCombatStop(Unit* mTarget) override
         {
             CastTime();
             setAIAgent(AGENT_NULL);
@@ -818,12 +784,12 @@ class BloodLegionnareAI : public CreatureAIScript
             RemoveAIUpdateEvent();
         }
 
-        void OnDied(Unit* mKiller)
+        void OnDied(Unit* mKiller) override
         {
             CastTime();
         }
 
-        void AIUpdate()
+        void AIUpdate() override
         {
             float val = RandomFloat(100.0f);
             SpellCast(val);
@@ -937,7 +903,6 @@ const uint32 UPPERCUT = 26007;
 
 class BloodMarshalAI : public CreatureAIScript
 {
-    public:
         ADD_CREATURE_FACTORY_FUNCTION(BloodMarshalAI);
         SP_AI_Spell spells[2];
         bool m_spellcheck[2];
@@ -962,10 +927,9 @@ class BloodMarshalAI : public CreatureAIScript
             spells[1].cooldown = 20;
             spells[1].perctrigger = 50.0f;
             spells[1].attackstoptimer = 1000;
-
         }
 
-        void OnCombatStart(Unit* mTarget)
+        void OnCombatStart(Unit* mTarget) override
         {
             CastTime();
             RegisterAIUpdateEvent(getCreature()->GetBaseAttackTime(MELEE));
@@ -977,11 +941,7 @@ class BloodMarshalAI : public CreatureAIScript
                 spells[i].casttime = spells[i].cooldown;
         }
 
-        void OnTargetDied(Unit* mTarget)
-        {
-        }
-
-        void OnCombatStop(Unit* mTarget)
+        void OnCombatStop(Unit* mTarget) override
         {
             CastTime();
             setAIAgent(AGENT_NULL);
@@ -989,12 +949,12 @@ class BloodMarshalAI : public CreatureAIScript
             RemoveAIUpdateEvent();
         }
 
-        void OnDied(Unit* mKiller)
+        void OnDied(Unit* mKiller) override
         {
             CastTime();
         }
 
-        void AIUpdate()
+        void AIUpdate() override
         {
             float val = RandomFloat(100.0f);
             SpellCast(val);
@@ -1108,7 +1068,6 @@ const uint32 HAWK_CHARGE = 16636;
 
 class PhoenixHawkAI : public CreatureAIScript
 {
-    public:
         ADD_CREATURE_FACTORY_FUNCTION(PhoenixHawkAI);
         SP_AI_Spell spells[2];
         bool m_spellcheck[2];
@@ -1135,10 +1094,9 @@ class PhoenixHawkAI : public CreatureAIScript
             spells[1].attackstoptimer = 1000;
             spells[1].mindist2cast = 15;
             spells[1].maxdist2cast = 45;
-
         }
 
-        void OnCombatStart(Unit* mTarget)
+        void OnCombatStart(Unit* mTarget) override
         {
             CastTime();
             RegisterAIUpdateEvent(getCreature()->GetBaseAttackTime(MELEE));
@@ -1150,11 +1108,7 @@ class PhoenixHawkAI : public CreatureAIScript
                 spells[i].casttime = spells[i].cooldown;
         }
 
-        void OnTargetDied(Unit* mTarget)
-        {
-        }
-
-        void OnCombatStop(Unit* mTarget)
+        void OnCombatStop(Unit* mTarget) override
         {
             CastTime();
             setAIAgent(AGENT_NULL);
@@ -1162,12 +1116,12 @@ class PhoenixHawkAI : public CreatureAIScript
             RemoveAIUpdateEvent();
         }
 
-        void OnDied(Unit* mKiller)
+        void OnDied(Unit* mKiller) override
         {
             CastTime();
         }
 
-        void AIUpdate()
+        void AIUpdate() override
         {
             float val = RandomFloat(100.0f);
             SpellCast(val);
@@ -1281,7 +1235,6 @@ const uint32 CHARGET_ARCANE_EXPLOSION = 37106;
 
 class CrystalSentinelAI : public CreatureAIScript
 {
-    public:
         ADD_CREATURE_FACTORY_FUNCTION(CrystalSentinelAI);
         SP_AI_Spell spells[2];
         bool m_spellcheck[2];
@@ -1306,10 +1259,9 @@ class CrystalSentinelAI : public CreatureAIScript
             spells[1].cooldown = 20;
             spells[1].perctrigger = 50.0f;
             spells[1].attackstoptimer = 1000;
-
         }
 
-        void OnCombatStart(Unit* mTarget)
+        void OnCombatStart(Unit* mTarget) override
         {
             CastTime();
             RegisterAIUpdateEvent(getCreature()->GetBaseAttackTime(MELEE));
@@ -1321,11 +1273,7 @@ class CrystalSentinelAI : public CreatureAIScript
                 spells[i].casttime = spells[i].cooldown;
         }
 
-        void OnTargetDied(Unit* mTarget)
-        {
-        }
-
-        void OnCombatStop(Unit* mTarget)
+        void OnCombatStop(Unit* mTarget) override
         {
             CastTime();
             setAIAgent(AGENT_NULL);
@@ -1333,12 +1281,12 @@ class CrystalSentinelAI : public CreatureAIScript
             RemoveAIUpdateEvent();
         }
 
-        void OnDied(Unit* mKiller)
+        void OnDied(Unit* mKiller) override
         {
             CastTime();
         }
 
-        void AIUpdate()
+        void AIUpdate() override
         {
             float val = RandomFloat(100.0f);
             SpellCast(val);
@@ -1451,7 +1399,6 @@ const uint32 SAW_BLADE = 37123;
 
 class CrystalMechanicAI : public CreatureAIScript
 {
-    public:
         ADD_CREATURE_FACTORY_FUNCTION(CrystalMechanicAI);
         SP_AI_Spell spells[1];
         bool m_spellcheck[1];
@@ -1473,7 +1420,7 @@ class CrystalMechanicAI : public CreatureAIScript
             spells[0].maxdist2cast = 40.0f;
         }
 
-        void OnCombatStart(Unit* mTarget)
+        void OnCombatStart(Unit* mTarget) override
         {
             CastTime();
             RegisterAIUpdateEvent(getCreature()->GetBaseAttackTime(MELEE));
@@ -1485,11 +1432,7 @@ class CrystalMechanicAI : public CreatureAIScript
                 spells[i].casttime = spells[i].cooldown;
         }
 
-        void OnTargetDied(Unit* mTarget)
-        {
-        }
-
-        void OnCombatStop(Unit* mTarget)
+        void OnCombatStop(Unit* mTarget) override
         {
             CastTime();
             setAIAgent(AGENT_NULL);
@@ -1497,12 +1440,12 @@ class CrystalMechanicAI : public CreatureAIScript
             RemoveAIUpdateEvent();
         }
 
-        void OnDied(Unit* mKiller)
+        void OnDied(Unit* mKiller) override
         {
             CastTime();
         }
 
-        void AIUpdate()
+        void AIUpdate() override
         {
             float val = RandomFloat(100.0f);
             SpellCast(val);
@@ -1625,17 +1568,16 @@ const uint32 VOID_REAVER_ARCANE_ORB_TRIGGER = 34172;
 const uint32 VOID_REAVER_KNOCK_AWAY = 25778;
 const uint32 VOID_REAVER_ENRAGE = 27680; // Needs checking (as it can be wrong [or maybe IS wrong])
 
-class VoidReaverAI : public MoonScriptCreatureAI
+class VoidReaverAI : public CreatureAIScript
 {
-    public:
-        MOONSCRIPT_FACTORY_FUNCTION(VoidReaverAI, MoonScriptCreatureAI);
-        VoidReaverAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(VoidReaverAI);
+        VoidReaverAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             SpellDesc* pPounding = AddSpell(VOID_REAVER_POUNDING, Target_Self, 100, 0, 12);
             if (pPounding != NULL)
             {
-                pPounding->AddEmote("Alternative measure commencing...", CHAT_MSG_MONSTER_YELL, 11218);
-                pPounding->AddEmote("Calculating force parameters...", CHAT_MSG_MONSTER_YELL, 11219);
+                pPounding->addEmote("Alternative measure commencing...", CHAT_MSG_MONSTER_YELL, 11218);
+                pPounding->addEmote("Calculating force parameters...", CHAT_MSG_MONSTER_YELL, 11219);
             }
 
             mArcaneOrb = AddSpell(VOID_REAVER_ARCANE_ORB_TRIGGER, Target_RandomPlayerDestination, 100, 0, 3);
@@ -1651,9 +1593,8 @@ class VoidReaverAI : public MoonScriptCreatureAI
             mArcaneOrbTimer = INVALIDATE_TIMER;
         }
 
-        void OnCombatStart(Unit* mTarget)
+        void OnCombatStart(Unit* mTarget) override
         {
-            ParentClass::OnCombatStart(mTarget);
             if (mArcaneOrb != NULL)
             {
                 mArcaneOrbTimer = _addTimer(10000);
@@ -1661,15 +1602,13 @@ class VoidReaverAI : public MoonScriptCreatureAI
             }
         }
 
-        void AIUpdate()
+        void AIUpdate() override
         {
             if (mArcaneOrb != NULL && !mArcaneOrb->mEnabled && _isTimerFinished(mArcaneOrbTimer))
             {
                 _removeTimer(mArcaneOrbTimer);
                 mArcaneOrb->mEnabled = true;
-            }
-
-            ParentClass::AIUpdate();
+            }  
         }
 
         uint32 mArcaneOrbTimer;
@@ -1704,10 +1643,10 @@ bool Dummy_Solarian_WrathOfTheAstromancer(uint32 pEffectIndex, Spell* pSpell);
 void SpellFunc_Solarian_Disappear(SpellDesc* pThis, CreatureAIScript* pCreatureAI, Unit* pTarget, TargetType pType);
 void SpellFunc_Solarian_Reappear(SpellDesc* pThis, CreatureAIScript* pCreatureAI, Unit* pTarget, TargetType pType);
 
-class HighAstromancerSolarianAI : public MoonScriptCreatureAI
+class HighAstromancerSolarianAI : public CreatureAIScript
 {
-        MOONSCRIPT_FACTORY_FUNCTION(HighAstromancerSolarianAI, MoonScriptCreatureAI);
-        HighAstromancerSolarianAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(HighAstromancerSolarianAI);
+        HighAstromancerSolarianAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             //Initialize timers
             mSplitTimer = mAgentsTimer = mSolarianTimer = INVALIDATE_TIMER;
@@ -1717,8 +1656,8 @@ class HighAstromancerSolarianAI : public MoonScriptCreatureAI
             AddPhaseSpell(1, AddSpell(SOLARIAN_WRATH_OF_THE_ASTROMANCER, Target_RandomPlayerNotCurrent, 20, 0, 6, 0, 50000));
             AddPhaseSpell(1, AddSpell(SOLARIAN_BLINDING_LIGHT, Target_Self, 20, 0, 20, 0, 50));
             mDisappear = AddSpellFunc(&SpellFunc_Solarian_Disappear, Target_Self, 0, 22, 0);
-            mDisappear->AddEmote("You are hopelessly outmatched!", CHAT_MSG_MONSTER_YELL, 11139);
-            mDisappear->AddEmote("I will crush your delusions of grandeur!", CHAT_MSG_MONSTER_YELL, 11140);
+            mDisappear->addEmote("You are hopelessly outmatched!", CHAT_MSG_MONSTER_YELL, 11139);
+            mDisappear->addEmote("I will crush your delusions of grandeur!", CHAT_MSG_MONSTER_YELL, 11140);
 
             //Phase 2 spells
             mReappear = AddSpellFunc(&SpellFunc_Solarian_Reappear, Target_Self, 0, 0, 0);
@@ -1727,8 +1666,8 @@ class HighAstromancerSolarianAI : public MoonScriptCreatureAI
             AddPhaseSpell(3, AddSpell(SOLARIAN_VOID_BOLT, Target_Current, 100, 3, 10, 0, 100));
             AddPhaseSpell(3, AddSpell(SOLARIAN_PSYCHIC_SCREAM, Target_Self, 10, 0, 0));
             mVoidForm = AddSpell(SOLARIAN_SOLARIANS_TRANSFORM, Target_Self, 0, 0, 0);
-            mVoidForm->AddEmote("Enough of this! Now I call upon the fury of the cosmos itself.", CHAT_MSG_MONSTER_YELL);
-            mVoidForm->AddEmote("I become ONE... with the VOID!", CHAT_MSG_MONSTER_YELL);
+            mVoidForm->addEmote("Enough of this! Now I call upon the fury of the cosmos itself.", CHAT_MSG_MONSTER_YELL);
+            mVoidForm->addEmote("I become ONE... with the VOID!", CHAT_MSG_MONSTER_YELL);
 
             //Emotes
             addEmoteForEvent(Event_OnCombatStart, 8872);
@@ -1740,13 +1679,12 @@ class HighAstromancerSolarianAI : public MoonScriptCreatureAI
             isNotInitialPhase = false;
         }
 
-        void OnCombatStart(Unit* pTarget)
+        void OnCombatStart(Unit* pTarget) override
         {
             mSplitTimer = _addTimer(50000);    //First split after 50sec
-            ParentClass::OnCombatStart(pTarget);
         }
 
-        void AIUpdate()
+        void AIUpdate() override
         {
             if (isScriptPhase(1))
             {
@@ -1782,10 +1720,10 @@ class HighAstromancerSolarianAI : public MoonScriptCreatureAI
                     _removeTimer(mAgentsTimer);
                 }
             }
-            ParentClass::AIUpdate();
+            
         }
 
-        void OnScriptPhaseChange(uint32_t phaseId)
+        void OnScriptPhaseChange(uint32_t phaseId) override
         {
             switch (phaseId)
             {
@@ -1864,40 +1802,40 @@ void SpellFunc_Solarian_Reappear(SpellDesc* pThis, CreatureAIScript* pCreatureAI
     }
 }
 
-class SolariumAgentAI : public MoonScriptCreatureAI
+class SolariumAgentAI : public CreatureAIScript
 {
-        MOONSCRIPT_FACTORY_FUNCTION(SolariumAgentAI, MoonScriptCreatureAI);
-        SolariumAgentAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(SolariumAgentAI);
+        SolariumAgentAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             _setDespawnWhenInactive(true);    //despawn creature if it gets out of combat or dead
         }
 
-        void OnLoad()
+        void OnLoad() override
         {
             AggroNearestUnit(); //Aggro on spawn
         }
 };
 
-class SolariumPriestAI : public MoonScriptCreatureAI
+class SolariumPriestAI : public CreatureAIScript
 {
-        MOONSCRIPT_FACTORY_FUNCTION(SolariumPriestAI, MoonScriptCreatureAI);
-        SolariumPriestAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(SolariumPriestAI);
+        SolariumPriestAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             AddSpell(SOLARIUMPRIEST_GREATER_HEAL, Target_WoundedFriendly, 20, 2, 0, 0, 40);
             AddSpell(SOLARIUMPRIEST_HOLY_SMITE, Target_Current, 80, 2.5f, 0, 0, 40);
             _setDespawnWhenInactive(true);    //despawn creature if it gets out of combat or dead
         }
 
-        void OnLoad()
+        void OnLoad() override
         {
             AggroNearestUnit(); //Aggro on spawn
         }
 };
 
-class SolariumSpotLight : public MoonScriptCreatureAI
+class SolariumSpotLight : public CreatureAIScript
 {
-        MOONSCRIPT_FACTORY_FUNCTION(SolariumSpotLight, MoonScriptCreatureAI);
-        SolariumSpotLight(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(SolariumSpotLight);
+        SolariumSpotLight(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             setCanEnterCombat(false);
         }
@@ -1952,7 +1890,6 @@ static Movement::Location fly[] =
 
 class AlarAI : public CreatureAIScript
 {
-    public:
         ADD_CREATURE_FACTORY_FUNCTION(AlarAI);
         SP_AI_Spell spells[7];
         bool m_spellcheck[7];
@@ -2045,7 +1982,7 @@ class AlarAI : public CreatureAIScript
             FlyWay = 0;
         }
 
-        void OnDamageTaken(Unit* mAttacker, uint32 fAmount)
+        void OnDamageTaken(Unit* mAttacker, uint32 fAmount) override
         {
             if (!getCreature()->event_HasEvents())
             {
@@ -2055,7 +1992,7 @@ class AlarAI : public CreatureAIScript
             }
         }
 
-        void OnCombatStart(Unit* mTarget)
+        void OnCombatStart(Unit* mTarget) override
         {
             FlameQuills = false;
             Meteor = false;
@@ -2077,7 +2014,7 @@ class AlarAI : public CreatureAIScript
             getCreature()->SetBaseMana(Phase);
         }
 
-        void OnCombatStop(Unit* mTarget)
+        void OnCombatStop(Unit* mTarget) override
         {
             CastTime();
 
@@ -2137,7 +2074,7 @@ class AlarAI : public CreatureAIScript
                 if (spells[i].casttime > 0) spells[i].casttime--;
         }
 
-        void AIUpdate()
+        void AIUpdate() override
         {
             UPCastTime();
             if (!HostileInMeleeRange() && spells[0].casttime == 0 && !FlameQuills && !Flying)
@@ -2294,7 +2231,7 @@ class AlarAI : public CreatureAIScript
             lasttime = timer;
         }
 
-        void OnReachWP(uint32 iWaypointId, bool bForwards)
+        void OnReachWP(uint32 iWaypointId, bool bForwards) override
         {
 
             if (Phase == 0)
@@ -2376,7 +2313,6 @@ const uint32 CN_EMBEROFALAR = 19551;
 
 class EmberAlarAI : public CreatureAIScript
 {
-    public:
         ADD_CREATURE_FACTORY_FUNCTION(EmberAlarAI);
         SP_AI_Spell spells[1];
         bool m_spellcheck[1];
@@ -2394,10 +2330,9 @@ class EmberAlarAI : public CreatureAIScript
             spells[0].cooldown = 15;
             spells[0].perctrigger = 50.0f;
             spells[0].attackstoptimer = 1000;
-
         }
 
-        void OnCombatStart(Unit* mTarget)
+        void OnCombatStart(Unit* mTarget) override
         {
             CastTime();
             RegisterAIUpdateEvent(getCreature()->GetBaseAttackTime(MELEE));
@@ -2409,11 +2344,7 @@ class EmberAlarAI : public CreatureAIScript
                 spells[i].casttime = spells[i].cooldown;
         }
 
-        void OnTargetDied(Unit* mTarget)
-        {
-        }
-
-        void OnCombatStop(Unit* mTarget)
+        void OnCombatStop(Unit* mTarget) override
         {
             CastTime();
             setAIAgent(AGENT_NULL);
@@ -2437,9 +2368,8 @@ class EmberAlarAI : public CreatureAIScript
             return NULL;
         }
 
-        void OnDied(Unit* mKiller)
+        void OnDied(Unit* mKiller) override
         {
-
             getCreature()->CastSpell(getCreature(), spells[0].info, spells[0].instant);
             CastTime();
 
@@ -2469,7 +2399,6 @@ const uint32 CN_PATCHALAR = 20602;
 
 class PatchAlarAI : public CreatureAIScript
 {
-    public:
         ADD_CREATURE_FACTORY_FUNCTION(PatchAlarAI);
         SP_AI_Spell spells[1];
         bool m_spellcheck[1];
@@ -2496,7 +2425,7 @@ class PatchAlarAI : public CreatureAIScript
             getCreature()->Despawn(120000, 0);
         }
 
-        void OnCombatStart(Unit* mTarget)
+        void OnCombatStart(Unit* mTarget) override
         {
             CastTime();
             RegisterAIUpdateEvent(getCreature()->GetBaseAttackTime(MELEE));
@@ -2509,11 +2438,7 @@ class PatchAlarAI : public CreatureAIScript
                 spells[i].casttime = spells[i].cooldown;
         }
 
-        void OnTargetDied(Unit* mTarget)
-        {
-        }
-
-        void OnCombatStop(Unit* mTarget)
+        void OnCombatStop(Unit* mTarget) override
         {
             CastTime();
             setAIAgent(AGENT_NULL);
@@ -2521,8 +2446,7 @@ class PatchAlarAI : public CreatureAIScript
             RemoveAIUpdateEvent();
         }
 
-
-        void OnDied(Unit* mKiller)
+        void OnDied(Unit* mKiller) override
         {
             CastTime();
         }
@@ -2560,11 +2484,10 @@ const uint32 CN_DARKENER = 20064;
 const uint32 DARKENER_PSYCHIC_BLOW = 36966;
 const uint32 DARKENER_SILENCE = 29943;
 
-class DarkenerAI : public MoonScriptCreatureAI
+class DarkenerAI : public CreatureAIScript
 {
-    public:
-        MOONSCRIPT_FACTORY_FUNCTION(DarkenerAI, MoonScriptCreatureAI)
-        DarkenerAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(DarkenerAI);
+        DarkenerAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             AddSpell(DARKENER_PSYCHIC_BLOW, Target_Current, 10, 0, 20);
             AddSpell(DARKENER_SILENCE, Target_Current, 10, 0, 15);
@@ -2575,18 +2498,16 @@ class DarkenerAI : public MoonScriptCreatureAI
             mGazeSwitchTimer = 0;
         }
 
-        void OnCombatStart(Unit* mTarget)
+        void OnCombatStart(Unit* mTarget) override
         {
-            ParentClass::OnCombatStart(mTarget);
             setCanEnterCombat(true);
             SwitchTarget();
 
             mGazeSwitchTimer = _addTimer((RandomUInt(4) + 8) * 1000);
         }
 
-        void OnCombatStop(Unit* mTarget)
+        void OnCombatStop(Unit* mTarget) override
         {
-            ParentClass::OnCombatStop(mTarget);
             mCurrentTarget = NULL;
 
             if (isAlive())
@@ -2595,12 +2516,12 @@ class DarkenerAI : public MoonScriptCreatureAI
             }
         }
 
-        void OnTargetDied(Unit* mTarget)
+        void OnTargetDied(Unit* mTarget) override
         {
             SwitchTarget();
         }
 
-        void AIUpdate()
+        void AIUpdate() override
         {
             if (_isTimerFinished(mGazeSwitchTimer))
             {
@@ -2608,8 +2529,6 @@ class DarkenerAI : public MoonScriptCreatureAI
                 if (!SwitchTarget())
                     return;
             }
-
-            ParentClass::AIUpdate();
         }
 
         bool SwitchTarget()
@@ -2640,11 +2559,10 @@ class DarkenerAI : public MoonScriptCreatureAI
 const uint32 CN_SANGUINAR = 20060;
 const uint32 SANGUINAR_BELLOWING = 36922;
 
-class SanguinarAI : public MoonScriptCreatureAI
+class SanguinarAI : public CreatureAIScript
 {
-    public:
-        MOONSCRIPT_FACTORY_FUNCTION(SanguinarAI, MoonScriptCreatureAI)
-        SanguinarAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(SanguinarAI);
+        SanguinarAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             AddSpell(SANGUINAR_BELLOWING, Target_Self, 100, 0, 30);
             addEmoteForEvent(Event_OnCombatStart, 8879);
@@ -2652,16 +2570,13 @@ class SanguinarAI : public MoonScriptCreatureAI
             setCanEnterCombat(false);
         }
 
-        void OnCombatStart(Unit* mTarget)
+        void OnCombatStart(Unit* mTarget) override
         {
-            ParentClass::OnCombatStart(mTarget);
             setCanEnterCombat(true);
         }
 
-        void OnCombatStop(Unit* mTarget)
+        void OnCombatStop(Unit* mTarget) override
         {
-            ParentClass::OnCombatStop(mTarget);
-
             if (isAlive())
             {
                 setCanEnterCombat(false);
@@ -2675,11 +2590,10 @@ const uint32 CAPERNIAN_CONFLAGRATION = 37018;
 const uint32 CAPERNIAN_FIREBALL = 36971;
 const uint32 CAPERNIAN_ARCANE_BURST = 36970;
 
-class CapernianAI : public MoonScriptCreatureAI
+class CapernianAI : public CreatureAIScript
 {
-    public:
-        MOONSCRIPT_FACTORY_FUNCTION(CapernianAI, MoonScriptCreatureAI);
-        CapernianAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(CapernianAI);
+        CapernianAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             AddSpell(CAPERNIAN_CONFLAGRATION, Target_RandomPlayer, 7, 0, 10, 0, 30, true);
             AddSpell(CAPERNIAN_FIREBALL, Target_Current, 73, 2, 0);
@@ -2689,9 +2603,8 @@ class CapernianAI : public MoonScriptCreatureAI
             setCanEnterCombat(false);
         }
 
-        void OnCombatStart(Unit* mTarget)
+        void OnCombatStart(Unit* mTarget) override
         {
-            ParentClass::OnCombatStart(mTarget);
             setCanEnterCombat(true);
 
             if (getRangeToObject(mTarget) <= 30.0f)
@@ -2701,17 +2614,15 @@ class CapernianAI : public MoonScriptCreatureAI
             }
         }
 
-        void OnCombatStop(Unit* mTarget)
+        void OnCombatStop(Unit* mTarget) override
         {
-            ParentClass::OnCombatStop(mTarget);
-
             if (isAlive())
             {
                 setCanEnterCombat(false);
             }
         }
 
-        void AIUpdate()
+        void AIUpdate() override
         {
             setAIAgent(AGENT_NULL);
             setRooted(false);
@@ -2724,7 +2635,7 @@ class CapernianAI : public MoonScriptCreatureAI
             Unit* pTarget = getCreature()->GetAIInterface()->getNextTarget();
             if (pTarget != NULL && getRangeToObject(pTarget) <= 30.0f)
             {
-                ParentClass::AIUpdate();
+                
                 if (getAIAgent() != AGENT_SPELL)
                 {
                     setAIAgent(AGENT_SPELL);
@@ -2741,11 +2652,10 @@ const uint32 CN_TELONICUS = 20063;
 const uint32 TELONICUS_BOMB = 37036;
 const uint32 TELONICUS_REMOTE_TOY = 37027;    // doesn't seems to work like it should
 
-class TelonicusAI : public MoonScriptCreatureAI
+class TelonicusAI : public CreatureAIScript
 {
-    public:
-        MOONSCRIPT_FACTORY_FUNCTION(TelonicusAI, MoonScriptCreatureAI);
-        TelonicusAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(TelonicusAI);
+        TelonicusAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             AddSpell(TELONICUS_BOMB, Target_RandomPlayerDestination, 10, 1.5f, 15, 0, 30);
             AddSpell(TELONICUS_REMOTE_TOY, Target_RandomPlayer, 10, 0, 15, 0, 30);
@@ -2754,16 +2664,13 @@ class TelonicusAI : public MoonScriptCreatureAI
             setCanEnterCombat(false);
         }
 
-        void OnCombatStart(Unit* mTarget)
+        void OnCombatStart(Unit* mTarget) override
         {
-            ParentClass::OnCombatStart(mTarget);
             setCanEnterCombat(true);
         }
 
-        void OnCombatStop(Unit* mTarget)
+        void OnCombatStop(Unit* mTarget) override
         {
-            ParentClass::OnCombatStop(mTarget);
-
             if (isAlive())
             {
                 setCanEnterCombat(false);
@@ -2776,11 +2683,10 @@ const uint32 CN_FLAME_STRIKE_TRIGGER = 21369;
 const uint32 FLAME_STRIKE_TRIGGER_FLAME_STRIKE = 36731;
 const uint32 FLAME_STRIKE_TRIGGER_FLAME_STRIKE_EFFECT = 36730;
 
-class FlameStrikeAI : public MoonScriptCreatureAI
+class FlameStrikeAI : public CreatureAIScript
 {
-    public:
-        MOONSCRIPT_FACTORY_FUNCTION(FlameStrikeAI, MoonScriptCreatureAI);
-        FlameStrikeAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(FlameStrikeAI);
+        FlameStrikeAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             _applyAura(FLAME_STRIKE_TRIGGER_FLAME_STRIKE_EFFECT);
             RegisterAIUpdateEvent(5000);
@@ -2790,14 +2696,13 @@ class FlameStrikeAI : public MoonScriptCreatureAI
             getCreature()->setUInt64Value(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
         }
 
-        void OnDied(Unit* mKiller)
+        void OnDied(Unit* mKiller) override
         {
-            ParentClass::OnDied(mKiller);
             _removeAura(FLAME_STRIKE_TRIGGER_FLAME_STRIKE_EFFECT);
             despawn(500);
         }
 
-        void AIUpdate()
+        void AIUpdate() override
         {
             getCreature()->setUInt64Value(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_2);
             _applyAura(FLAME_STRIKE_TRIGGER_FLAME_STRIKE);
@@ -2811,11 +2716,10 @@ const uint32 CN_PHOENIX = 21362;
 const uint32 PHOENIX_BURN = 36721;
 const uint32 PHOENIX_REBIRTH = 35369;        // used as instant cast - but it does not show animation now (maybe it would be good to move it to trigger?)
 
-class PhoenixAI : public MoonScriptCreatureAI
+class PhoenixAI : public CreatureAIScript
 {
-    public:
-        MOONSCRIPT_FACTORY_FUNCTION(PhoenixAI, MoonScriptCreatureAI);
-        PhoenixAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(PhoenixAI);
+        PhoenixAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             RegisterAIUpdateEvent(1000);
             Unit* pTarget = GetBestPlayerTarget();
@@ -2827,18 +2731,13 @@ class PhoenixAI : public MoonScriptCreatureAI
             mBurnTimer = _addTimer(3000);
         }
 
-        void OnCombatStart(Unit* mTarget) {}
-
-        void OnCombatStop(Unit* pTarget) {}
-
-        void OnTargetDied(Unit* mTarget)
+        void OnTargetDied(Unit* mTarget) override
         {
-            ParentClass::OnTargetDied(mTarget);
             Unit* pTarget = GetBestPlayerTarget(TargetFilter_Closest);
             if (pTarget != NULL)
             {
                 getCreature()->GetAIInterface()->AttackReaction(pTarget, 500);
-                ParentClass::OnCombatStart(pTarget);
+                
             }
             else
             {
@@ -2846,15 +2745,14 @@ class PhoenixAI : public MoonScriptCreatureAI
             }
         }
 
-        void OnDied(Unit* mKiller)
+        void OnDied(Unit* mKiller) override
         {
-            ParentClass::OnDied(mKiller);
             _applyAura(PHOENIX_REBIRTH);
             spawnCreature(21364, getCreature()->GetPositionX(), getCreature()->GetPositionY(), getCreature()->GetPositionZ(), getCreature()->GetOrientation());
             despawn(500);
         }
 
-        void AIUpdate()
+        void AIUpdate() override
         {
             double CurrentHP = (double)getCreature()->getUInt32Value(UNIT_FIELD_HEALTH);
             double PercMaxHP = (double)getCreature()->getUInt32Value(UNIT_FIELD_MAXHEALTH) * 0.05;
@@ -2868,10 +2766,7 @@ class PhoenixAI : public MoonScriptCreatureAI
             {
                 spawnCreature(21364, getCreature()->GetPositionX(), getCreature()->GetPositionY(), getCreature()->GetPositionZ(), getCreature()->GetOrientation());
                 despawn(500);
-                return;
-            }
-
-            ParentClass::AIUpdate();
+            }            
         }
 
         int32    mBurnTimer;
@@ -2880,11 +2775,10 @@ class PhoenixAI : public MoonScriptCreatureAI
 //Phoenix Egg AI
 const uint32 CN_PHOENIX_EGG = 21364;
 
-class PhoenixEggAI : public MoonScriptCreatureAI
+class PhoenixEggAI : public CreatureAIScript
 {
-    public:
-        MOONSCRIPT_FACTORY_FUNCTION(PhoenixEggAI, MoonScriptCreatureAI);
-        PhoenixEggAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(PhoenixEggAI);
+        PhoenixEggAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             RegisterAIUpdateEvent(15000);
             setCanEnterCombat(false);
@@ -2892,13 +2786,12 @@ class PhoenixEggAI : public MoonScriptCreatureAI
             setRooted(true);
         }
 
-        void OnDied(Unit* mKiller)
+        void OnDied(Unit* mKiller) override
         {
-            ParentClass::OnDied(mKiller);
             despawn(500);
         }
 
-        void AIUpdate()
+        void AIUpdate() override
         {
             spawnCreature(CN_PHOENIX, getCreature()->GetPositionX(), getCreature()->GetPositionY(), getCreature()->GetPositionZ(), getCreature()->GetOrientation());
             despawn(0);
@@ -2915,11 +2808,10 @@ const uint32 WARP_SLICER = 21272;
 const uint32 PHASESHIFT_BULWARK = 21273;
 const uint32 STAFF_OF_DISINTEGRATION = 21274;
 
-class WeaponsAI : public MoonScriptCreatureAI
+class WeaponsAI : public CreatureAIScript
 {
-    public:
-        MOONSCRIPT_FACTORY_FUNCTION(WeaponsAI, MoonScriptCreatureAI);
-        WeaponsAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(WeaponsAI);
+        WeaponsAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             getCreature()->m_noRespawn = true;
 
@@ -2930,7 +2822,7 @@ class WeaponsAI : public MoonScriptCreatureAI
             }
         }
 
-        void OnCombatStop(Unit* mTarget)
+        void OnCombatStop(Unit* mTarget) override
         {
             Unit* pTarget = GetBestPlayerTarget();
             if (pTarget != NULL)
@@ -3028,11 +2920,10 @@ enum AdvisorPhase
 void SpellFunc_KaelThasArcaneDisruption(SpellDesc* pThis, CreatureAIScript* pCreatureAI, Unit* pTarget, TargetType pType);
 void SpellFunc_KaelThasFlameStrike(SpellDesc* pThis, CreatureAIScript* pCreatureAI, Unit* pTarget, TargetType pType);
 
-class KaelThasAI : public MoonScriptCreatureAI
+class KaelThasAI : public CreatureAIScript
 {
-    public:
-        MOONSCRIPT_FACTORY_FUNCTION(KaelThasAI, MoonScriptCreatureAI);
-        KaelThasAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(KaelThasAI);
+        KaelThasAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             for (uint8 i = 1; i < 4; ++i)
             {
@@ -3045,7 +2936,7 @@ class KaelThasAI : public MoonScriptCreatureAI
 
             // Other spells
             mSummonWeapons = AddSpell(KAELTHAS_SUMMON_WEAPONS, Target_Self, 0, 3, 0);
-            mSummonWeapons->AddEmote("As you see, I have many weapons in my arsenal...", CHAT_MSG_MONSTER_YELL, 11261);
+            mSummonWeapons->addEmote("As you see, I have many weapons in my arsenal...", CHAT_MSG_MONSTER_YELL, 11261);
 
             // Common spells
             mArcaneDisruption = AddSpell(KAELTHAS_ARCANE_DISRUPTION, Target_Self, 0, 0, 0);
@@ -3057,13 +2948,13 @@ class KaelThasAI : public MoonScriptCreatureAI
             // 1st phase
             mPyroblast = AddSpell(KAELTHAS_PYROBLAST, Target_Current, 0, 4, 0);
             SpellDesc* mMindControl = AddPhaseSpell(7, AddSpell(KAELTHAS_MIND_CONTROL, Target_Self, 100, 0, 30));
-            mMindControl->AddEmote("Obey me.", CHAT_MSG_MONSTER_YELL, 11268);
-            mMindControl->AddEmote("Bow to my will.", CHAT_MSG_MONSTER_YELL, 11269);
+            mMindControl->addEmote("Obey me.", CHAT_MSG_MONSTER_YELL, 11268);
+            mMindControl->addEmote("Bow to my will.", CHAT_MSG_MONSTER_YELL, 11269);
             mFlameStrike = AddSpell(KAELTHAS_FLAME_STRIKE_SUMMON, Target_RandomPlayerNotCurrent, 0, 0, 0);
             mFlameStrikeFunc = AddSpellFunc(&SpellFunc_KaelThasFlameStrike, Target_RandomPlayerNotCurrent, 0, 0, 0);
             mPhoenix = AddSpell(KAELTHAS_PHOENIX, Target_Self, 0, 0, 0);
-            mPhoenix->AddEmote("Anara'nel belore!", CHAT_MSG_MONSTER_YELL, 11267);
-            mPhoenix->AddEmote("By the power of the sun!", CHAT_MSG_MONSTER_YELL, 11266);
+            mPhoenix->addEmote("Anara'nel belore!", CHAT_MSG_MONSTER_YELL, 11267);
+            mPhoenix->addEmote("By the power of the sun!", CHAT_MSG_MONSTER_YELL, 11266);
 
             // After powering up + Nether Vapor + Additional spells
             mNetherBeam = AddPhaseSpell(8, AddSpell(KAELTHAS_NETHER_BEAM, Target_RandomPlayer, 0, 0, 0));
@@ -3094,11 +2985,11 @@ class KaelThasAI : public MoonScriptCreatureAI
 
         }
 
-        void OnCombatStart(Unit* mTarget)
+        void OnCombatStart(Unit* mTarget) override
         {
             getCreature()->setUInt64Value(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9);
             SetAIUpdateFreq(24000);
-            ParentClass::OnCombatStart(mTarget);
+            
             setAIAgent(AGENT_SPELL);
             setRooted(true);
 
@@ -3116,10 +3007,9 @@ class KaelThasAI : public MoonScriptCreatureAI
             mAdvCoords.clear();
         }
 
-        void OnCombatStop(Unit* mTarget)
+        void OnCombatStop(Unit* mTarget) override
         {
             setRooted(false);
-            ParentClass::OnCombatStop(mTarget);
             getCreature()->setUInt64Value(UNIT_FIELD_FLAGS, 0);
 
             if (isAlive())
@@ -3204,7 +3094,7 @@ class KaelThasAI : public MoonScriptCreatureAI
             }
         }
 
-        void AIUpdate()
+        void AIUpdate() override
         {
             if (getScriptPhase() < 5)
             {
@@ -3284,7 +3174,7 @@ class KaelThasAI : public MoonScriptCreatureAI
                             pCreature->setUInt64Value(UNIT_FIELD_FLAGS, 0);
                             if (pCreature->GetScript() != nullptr)
                             {
-                                static_cast< MoonScriptCreatureAI* >(pCreature->GetScript())->AggroNearestUnit(200);
+                                static_cast< CreatureAIScript* >(pCreature->GetScript())->AggroNearestUnit(200);
                             }
                         }
                     }
@@ -3295,13 +3185,13 @@ class KaelThasAI : public MoonScriptCreatureAI
                     mAdvCoords.clear();
                 }
 
-                ParentClass::AIUpdate();
+                
                 setAIAgent(AGENT_SPELL);
                 setRooted(true);
             }
             if (isScriptPhase(6))
             {
-                ParentClass::AIUpdate();
+                
                 if (_isTimerFinished(mEventTimer))
                 {
                     mArcaneDisruptionTimer = _addTimer(20000);
@@ -3357,7 +3247,7 @@ class KaelThasAI : public MoonScriptCreatureAI
                     _removeTimer(mPhoenixTimer);
                 }
 
-                ParentClass::AIUpdate();
+                
             }
         }
 

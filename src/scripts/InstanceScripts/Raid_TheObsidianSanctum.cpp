@@ -32,7 +32,7 @@ class ObsidianSanctumScript : public InstanceScript
 
         static InstanceScript* Create(MapMgr* pMapMgr) { return new ObsidianSanctumScript(pMapMgr); }
 
-        void OnCreaturePushToWorld(Creature* pCreature)
+        void OnCreaturePushToWorld(Creature* pCreature) override
         {
             switch (pCreature->GetEntry())
             {
@@ -53,7 +53,7 @@ class ObsidianSanctumScript : public InstanceScript
             }
         }
 
-        void OnCreatureDeath(Creature* pVictim, Unit* pKiller)
+        void OnCreatureDeath(Creature* pVictim, Unit* pKiller) override
         {
             switch (pVictim->GetEntry())
             {
@@ -155,10 +155,10 @@ void SpellFunc_LavaSpawn(SpellDesc* pThis, CreatureAIScript* pCreatureAI, Unit* 
     }
 }
 
-class SartharionAI : public MoonScriptCreatureAI
+class SartharionAI : public CreatureAIScript
 {
-        MOONSCRIPT_FACTORY_FUNCTION(SartharionAI, MoonScriptCreatureAI);
-        SartharionAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(SartharionAI);
+        SartharionAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             mInstance = dynamic_cast<ObsidianSanctumScript*>(getInstanceScript());
 
@@ -177,7 +177,7 @@ class SartharionAI : public MoonScriptCreatureAI
             }
 
             if (mFlame != nullptr)
-                mFlame->AddEmote("Burn, you miserable wretches!", CHAT_MSG_MONSTER_YELL, 14098);
+                mFlame->addEmote("Burn, you miserable wretches!", CHAT_MSG_MONSTER_YELL, 14098);
             
             mFlameTsunami = AddSpellFunc(&SpellFunc_FlameTsunami, Target_Self, 99, 0, 25);
             mSummonLava = AddSpellFunc(&SpellFunc_LavaSpawn, Target_RandomUnitNotCurrent, 25, 0, 8);
@@ -198,10 +198,10 @@ class SartharionAI : public MoonScriptCreatureAI
             m_iDrakeCount = 0;
         }
 
-        void OnCombatStart(Unit* pTarget)
+        void OnCombatStart(Unit* pTarget) override
         {
             m_bEnraged = false;
-            mFlameTsunami->TriggerCooldown();
+            mFlameTsunami->setTriggerCooldown();
             CheckDrakes();
 
             if (m_iDrakeCount >= 1)   //HardMode!
@@ -211,11 +211,9 @@ class SartharionAI : public MoonScriptCreatureAI
                 _removeAuraOnPlayers(SARTHARION_AURA);   // unproper hackfix
                 _regenerateHealth();// Lets heal him as aura increase his hp for 25%
             }
-
-            ParentClass::OnCombatStart(pTarget);
         }
 
-        void AIUpdate()
+        void AIUpdate() override
         {
             if (m_iDrakeCount >= 1)
             {
@@ -239,8 +237,6 @@ class SartharionAI : public MoonScriptCreatureAI
 
                 m_bEnraged = true;
             }
-
-            ParentClass::AIUpdate();
         }
 
         void CheckDrakes()
@@ -295,10 +291,9 @@ class SartharionAI : public MoonScriptCreatureAI
             m_bDrakes[DRAKE_VESPERON] = false;
         }
 
-        void OnDied(Unit* pKiller)
+        void OnDied(Unit* pKiller) override
         {
             sendDBChatMessage(3984);         //Such is the price... of failure...
-            ParentClass::OnDied(pKiller);
         }
 
     private:
@@ -313,71 +308,62 @@ class SartharionAI : public MoonScriptCreatureAI
         SpellDesc* mFlameTsunami, *mSummonLava;
 };
 
-class TsunamiAI : public MoonScriptCreatureAI
+class TsunamiAI : public CreatureAIScript
 {
-        MOONSCRIPT_FACTORY_FUNCTION(TsunamiAI, MoonScriptCreatureAI);
-        TsunamiAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature) {};
+        ADD_CREATURE_FACTORY_FUNCTION(TsunamiAI);
+        TsunamiAI(Creature* pCreature) : CreatureAIScript(pCreature) {};
 
-        void OnLoad()
+        void OnLoad() override
         {
             RegisterAIUpdateEvent(1000);
             setFlyMode(true);
             setCanEnterCombat(false);
             getCreature()->setUInt64Value(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
             despawn(11500, 0);
-
-            ParentClass::OnLoad();
         }
 
-        void AIUpdate()
+        void AIUpdate() override
         {
             _applyAura(TSUNAMI);
             _applyAura(TSUNAMI_VISUAL);
             RegisterAIUpdateEvent(11000);
-
-            ParentClass::OnLoad();
         }
-
 };
 
-class CyclonAI : public MoonScriptCreatureAI
+class CyclonAI : public CreatureAIScript
 {
     public:
-        MOONSCRIPT_FACTORY_FUNCTION(CyclonAI, MoonScriptCreatureAI);
-        CyclonAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(CyclonAI);
+        CyclonAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {}
 
-        void OnLoad()
+        void OnLoad() override
         {
             setRooted(true);
             setCanEnterCombat(false);
             getCreature()->setUInt64Value(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
             _applyAura(CYCLON_SPELL);
             _applyAura(CYCLON_AURA);
-
-            ParentClass::OnLoad();
         }
 };
 
-class LavaBlazeAI : public MoonScriptCreatureAI
+class LavaBlazeAI : public CreatureAIScript
 {
-    public:
-        MOONSCRIPT_FACTORY_FUNCTION(LavaBlazeAI, MoonScriptCreatureAI);
-        LavaBlazeAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(LavaBlazeAI);
+        LavaBlazeAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {}
 
-        void OnLoad()
+        void OnLoad() override
         {
             AggroNearestPlayer(1);
-            ParentClass::OnLoad();
         }
 
-        void OnCombatStop(Unit* pTarget)
+        void OnCombatStop(Unit* pTarget) override
         {
             despawn(1000, 0);
         }
 
-        void OnDied(Unit* pKiller)
+        void OnDied(Unit* pKiller) override
         {
             despawn(1000, 0);
         }

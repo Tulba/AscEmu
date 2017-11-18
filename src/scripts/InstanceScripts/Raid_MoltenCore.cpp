@@ -31,7 +31,6 @@ const uint32 MANGLE = 19820; // 1 target
 // Golemagg AI
 class CoreRagerAI : public CreatureAIScript
 {
-    public:
         ADD_CREATURE_FACTORY_FUNCTION(CoreRagerAI);
         CoreRagerAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
@@ -40,19 +39,19 @@ class CoreRagerAI : public CreatureAIScript
             info_mangle = sSpellCustomizations.GetSpellInfo(MANGLE);
         }
 
-        void OnCombatStart(Unit* mTarget)
+        void OnCombatStart(Unit* mTarget) override
         {
             RegisterAIUpdateEvent(getCreature()->GetBaseAttackTime(MELEE));
         }
 
-        void OnCombatStop(Unit* mTarget)
+        void OnCombatStop(Unit* mTarget) override
         {
             setAIAgent(AGENT_NULL);
             getCreature()->GetAIInterface()->setAiState(AI_STATE_IDLE);
             RemoveAIUpdateEvent();
         }
 
-        void AIUpdate()
+        void AIUpdate() override
         {
             uint32 val = RandomUInt(1000);
             SpellCast(val);
@@ -94,7 +93,6 @@ const uint32 FLAME_SPEAR = 19781;
 // Sulfuron Harbringer AI
 class SulfuronAI : public CreatureAIScript
 {
-    public:
         ADD_CREATURE_FACTORY_FUNCTION(SulfuronAI);
         SulfuronAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
@@ -105,19 +103,19 @@ class SulfuronAI : public CreatureAIScript
             info_flamespear = sSpellCustomizations.GetSpellInfo(FLAME_SPEAR);
         }
 
-        void OnCombatStart(Unit* mTarget)
+        void OnCombatStart(Unit* mTarget) override
         {
             RegisterAIUpdateEvent(getCreature()->GetBaseAttackTime(MELEE));
         }
 
-        void OnCombatStop(Unit* mTarget)
+        void OnCombatStop(Unit* mTarget) override
         {
             setAIAgent(AGENT_NULL);
             getCreature()->GetAIInterface()->setAiState(AI_STATE_IDLE);
             RemoveAIUpdateEvent();
         }
 
-        void AIUpdate()
+        void AIUpdate() override
         {
             uint32 val = RandomUInt(1000);
             SpellCast(val);
@@ -207,7 +205,6 @@ const uint32 SUMMON_SONS_OF_FLAMES = 21108; //\todo  DUMMY :P summon the sons of
 // Ragnaros AI
 class RagnarosAI : public CreatureAIScript
 {
-    public:
         ADD_CREATURE_FACTORY_FUNCTION(RagnarosAI);
         RagnarosAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
@@ -221,25 +218,25 @@ class RagnarosAI : public CreatureAIScript
             getCreature()->setMoveRoot(true);
         }
 
-        void OnCombatStart(Unit* mTarget)
+        void OnCombatStart(Unit* mTarget) override
         {
             RegisterAIUpdateEvent(getCreature()->GetBaseAttackTime(MELEE));
             getCreature()->GetAIInterface()->skip_reset_hp = true;
         }
 
-        void OnCombatStop(Unit* mTarget)
+        void OnCombatStop(Unit* mTarget) override
         {
             setAIAgent(AGENT_NULL);
             getCreature()->GetAIInterface()->setAiState(AI_STATE_IDLE);
             RemoveAIUpdateEvent();
         }
 
-        void OnTargetDied(Unit* mTarget)
+        void OnTargetDied(Unit* mTarget) override
         {
             sendDBChatMessage(3053);     // Die, insect!
         }
 
-        void AIUpdate()
+        void AIUpdate() override
         {
             uint32 val = RandomUInt(1000);
             SpellCast(val);
@@ -326,10 +323,10 @@ const uint32 CN_MOLTENGIANT = 11658;
 const uint32 MOLTENGIANT_STOMP = 31900;   //to verify
 const uint32 MOLTENGIANT_KNOCKBACK = 30056;   //to verify
 
-class MoltenGiantAI : public MoonScriptCreatureAI
+class MoltenGiantAI : public CreatureAIScript
 {
-        MOONSCRIPT_FACTORY_FUNCTION(MoltenGiantAI, MoonScriptCreatureAI);
-        MoltenGiantAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(MoltenGiantAI);
+        MoltenGiantAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             AddSpell(MOLTENGIANT_STOMP, Target_Current, 10, 0, 5);
             AddSpell(MOLTENGIANT_KNOCKBACK, Target_Self, 10, 0, 5);
@@ -343,10 +340,10 @@ const uint32 MOLTENDESTROYER_MASSIVE_TREMOR = 19129;    //to verify
 //const uint32 MOLTENDESTROYER_SMASH_ATTACK    ?
 const uint32 MOLTENDESTROYER_KNOCKDOWN = 13360;    //wrong, fixme!
 
-class MoltenDestroyerAI : public MoonScriptCreatureAI
+class MoltenDestroyerAI : public CreatureAIScript
 {
-        MOONSCRIPT_FACTORY_FUNCTION(MoltenDestroyerAI, MoonScriptCreatureAI);
-        MoltenDestroyerAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(MoltenDestroyerAI);
+        MoltenDestroyerAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             AddSpell(MOLTENDESTROYER_MASSIVE_TREMOR, Target_Self, 12.5f, 0, 0);
 //        AddSpell(MOLTENDESTROYER_SMASH_ATTACK, Target_Self, 10, 0, 0);
@@ -360,10 +357,10 @@ const uint32 CN_FIRELORD = 11668;
 const uint32 FIRELORD_SUMMON_LAVA_SPAWN = 19392;
 const uint32 FIRELORD_SOUL_BURN = 19393;
 
-class FirelordAI : public MoonScriptCreatureAI
+class FirelordAI : public CreatureAIScript
 {
-        MOONSCRIPT_FACTORY_FUNCTION(FirelordAI, MoonScriptCreatureAI);
-        FirelordAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(FirelordAI);
+        FirelordAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             AddSpell(FIRELORD_SUMMON_LAVA_SPAWN, Target_Self, 20, 0, 10);
             AddSpell(FIRELORD_SOUL_BURN, Target_RandomPlayer, 20, 0, 5);
@@ -374,10 +371,10 @@ class FirelordAI : public MoonScriptCreatureAI
 //Lava Annihilator AI Script
 const uint32 CN_LAVAANNIHILATOR = 11665;
 
-class LavaAnnihilatorAI : public MoonScriptCreatureAI
+class LavaAnnihilatorAI : public CreatureAIScript
 {
-        MOONSCRIPT_FACTORY_FUNCTION(LavaAnnihilatorAI, MoonScriptCreatureAI);
-        LavaAnnihilatorAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(LavaAnnihilatorAI);
+        LavaAnnihilatorAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             AddSpellFunc(&SpellFunc_ClearHateList, Target_Self, 20, 0, 0);
         }
@@ -395,10 +392,10 @@ const uint32 ANCIENTCOREHOUND_CAUTERIZING_FLAMES = 19366;
 const uint32 ANCIENTCOREHOUND_WITHERING_HEAT = 19367;
 const uint32 ANCIENTCOREHOUND_ANCIENT_HYSTERIA = 19372;
 
-class AncientCoreHoundAI : public MoonScriptCreatureAI
+class AncientCoreHoundAI : public CreatureAIScript
 {
-        MOONSCRIPT_FACTORY_FUNCTION(AncientCoreHoundAI, MoonScriptCreatureAI);
-        AncientCoreHoundAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(AncientCoreHoundAI);
+        AncientCoreHoundAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             AddSpell(ANCIENTCOREHOUND_LAVA_BREATH, Target_Self, 20, 0, 3);
             AddSpell(ANCIENTCOREHOUND_VICIOUS_BITE, Target_Self, 20, 0, 0);
@@ -433,10 +430,10 @@ class AncientCoreHoundAI : public MoonScriptCreatureAI
 const uint32 CN_LAVASURGER = 12101;
 const uint32 LAVASURGER_SURGE = 25787;
 
-class LavaSurgerAI : public MoonScriptCreatureAI
+class LavaSurgerAI : public CreatureAIScript
 {
-        MOONSCRIPT_FACTORY_FUNCTION(LavaSurgerAI, MoonScriptCreatureAI);
-        LavaSurgerAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(LavaSurgerAI);
+        LavaSurgerAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             AddSpell(LAVASURGER_SURGE, Target_RandomUnit, 20, 0, 5, 0, 40);
         }
@@ -447,10 +444,10 @@ class LavaSurgerAI : public MoonScriptCreatureAI
 const uint32 CN_FLAMEIMP = 11669;
 const uint32 FLAMEIMP_FIRE_NOVA = 20602;   //corrected http://www.wowhead.com/?npc=11669#abilities
 
-class FlameImpAI : public MoonScriptCreatureAI
+class FlameImpAI : public CreatureAIScript
 {
-        MOONSCRIPT_FACTORY_FUNCTION(FlameImpAI, MoonScriptCreatureAI);
-        FlameImpAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(FlameImpAI);
+        FlameImpAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             AddSpell(FLAMEIMP_FIRE_NOVA, Target_Current, 25, 0, 0);
         }
@@ -461,10 +458,10 @@ class FlameImpAI : public MoonScriptCreatureAI
 const uint32 CN_COREHOUND = 11671;
 const uint32 COREHOUND_SERRATED_BITE = 19771;
 
-class CoreHoundAI : public MoonScriptCreatureAI
+class CoreHoundAI : public CreatureAIScript
 {
-        MOONSCRIPT_FACTORY_FUNCTION(CoreHoundAI, MoonScriptCreatureAI);
-        CoreHoundAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(CoreHoundAI);
+        CoreHoundAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             AddSpell(COREHOUND_SERRATED_BITE, Target_RandomPlayer, 10, 0, 0, 0, 10);
         }
@@ -475,10 +472,10 @@ class CoreHoundAI : public MoonScriptCreatureAI
 const uint32 CN_LAVAREAVER = 12100;
 const uint32 LAVAREAVER_CLEAVE = 20691;
 
-class LavaReaverAI : public MoonScriptCreatureAI
+class LavaReaverAI : public CreatureAIScript
 {
-        MOONSCRIPT_FACTORY_FUNCTION(LavaReaverAI, MoonScriptCreatureAI);
-        LavaReaverAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(LavaReaverAI);
+        LavaReaverAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             AddSpell(LAVAREAVER_CLEAVE, Target_Current, 20, 0, 0, 0, 15);
         }
@@ -489,10 +486,10 @@ class LavaReaverAI : public MoonScriptCreatureAI
 const uint32 CN_LAVAELEMENTAL = 12076;
 const uint32 LAVAELEMENTAL_PYROCLAST_BARRAGE = 19641;
 
-class LavaElementalAI : public MoonScriptCreatureAI
+class LavaElementalAI : public CreatureAIScript
 {
-        MOONSCRIPT_FACTORY_FUNCTION(LavaElementalAI, MoonScriptCreatureAI);
-        LavaElementalAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(LavaElementalAI);
+        LavaElementalAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             AddSpell(LAVAELEMENTAL_PYROCLAST_BARRAGE, Target_Self, 10, 0, 10);
         }
@@ -504,19 +501,18 @@ const uint32 CN_FLAMEGUARD = 11667;
 const uint32 FLAMEGUARD_FIRE_SHIELD = 19627;
 const uint32 FLAMEGUARD_FLAMES = 19628;
 
-class FlameguardAI : public MoonScriptCreatureAI
+class FlameguardAI : public CreatureAIScript
 {
-        MOONSCRIPT_FACTORY_FUNCTION(FlameguardAI, MoonScriptCreatureAI);
-        FlameguardAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(FlameguardAI);
+        FlameguardAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             AddSpell(FLAMEGUARD_FIRE_SHIELD, Target_Self, 100, 0, 0);
             mFlames = AddSpell(FLAMEGUARD_FLAMES, Target_Self, 0, 0, 0);
         }
 
-        void OnDied(Unit* pKiller)
+        void OnDied(Unit* pKiller) override
         {
             CastSpellNowNoScheduling(mFlames);
-            ParentClass::OnDied(pKiller);
         }
 
         SpellDesc* mFlames;
@@ -529,10 +525,10 @@ const uint32 FIREWALKER_MELT_ARMOR = 19631;
 const uint32 FIREWALKER_INCITE_FLAMES = 19635;
 const uint32 FIREWALKER_FIRE_BLOSSOM = 19636; //Added
 
-class FirewalkerAI : public MoonScriptCreatureAI
+class FirewalkerAI : public CreatureAIScript
 {
-        MOONSCRIPT_FACTORY_FUNCTION(FirewalkerAI, MoonScriptCreatureAI);
-        FirewalkerAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(FirewalkerAI);
+        FirewalkerAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             AddSpell(FIREWALKER_MELT_ARMOR, Target_Self, 10, 0, 0);
             AddSpell(FIREWALKER_INCITE_FLAMES, Target_Self, 10, 0, 0);
@@ -547,10 +543,10 @@ const uint32 LUCIFRON_IMPEDING_DOOM = 19702;
 const uint32 LUCIFRON_LUCIFRONS_CURSE = 19703;
 const uint32 LUCIFRON_SHADOW_SHOCK = 20603;
 
-class LucifronAI : public MoonScriptCreatureAI
+class LucifronAI : public CreatureAIScript
 {
-        MOONSCRIPT_FACTORY_FUNCTION(LucifronAI, MoonScriptCreatureAI);
-        LucifronAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(LucifronAI);
+        LucifronAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             AddSpell(LUCIFRON_IMPEDING_DOOM, Target_Self, 8, 0, 0);
             AddSpell(LUCIFRON_LUCIFRONS_CURSE, Target_Self, 8, 0, 0);
@@ -564,10 +560,10 @@ const uint32 CN_FLAMEWAKERPROTECTOR = 12119;
 const uint32 FLAMEWAKERPROTECTOR_CLEAVE = 20691;
 const uint32 FLAMEWAKERPROTECTOR_DOMINATE_MIND = 20740;    //to verify
 
-class FlamewakerProtectorAI : public MoonScriptCreatureAI
+class FlamewakerProtectorAI : public CreatureAIScript
 {
-        MOONSCRIPT_FACTORY_FUNCTION(FlamewakerProtectorAI, MoonScriptCreatureAI);
-        FlamewakerProtectorAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(FlamewakerProtectorAI);
+        FlamewakerProtectorAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             AddSpell(FLAMEWAKERPROTECTOR_CLEAVE, Target_Current, 8, 0, 0, 0, 15);
             AddSpell(FLAMEWAKERPROTECTOR_DOMINATE_MIND, Target_RandomPlayer, 4, 0, 0, 0, 20);
@@ -582,10 +578,10 @@ const uint32 MAGMADAR_LAVA_BREATH = 19272;   //to verify
 const uint32 MAGMADAR_PANIC = 19408;
 const uint32 MAGMADAR_LAVA_BOMB = 19411;    //need dummy spell
 
-class MagmadarAI : public MoonScriptCreatureAI
+class MagmadarAI : public CreatureAIScript
 {
-        MOONSCRIPT_FACTORY_FUNCTION(MagmadarAI, MoonScriptCreatureAI);
-        MagmadarAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(MagmadarAI);
+        MagmadarAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             AddSpell(MAGMADAR_MAGMA_SPIT, Target_Self, 8, 0, 0);
             AddSpell(MAGMADAR_LAVA_BREATH, Target_Self, 8, 0, 0);
@@ -601,10 +597,10 @@ const uint32 GEHENNAS_SHADOW_BOLT = 29317;   //to verify
 const uint32 GEHENNAS_GEHENNAS_CURSE = 19716;
 const uint32 GEHENNAS_RAIN_OF_FIRE = 19717;
 
-class GehennasAI : public MoonScriptCreatureAI
+class GehennasAI : public CreatureAIScript
 {
-        MOONSCRIPT_FACTORY_FUNCTION(GehennasAI, MoonScriptCreatureAI);
-        GehennasAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(GehennasAI);
+        GehennasAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             AddSpell(GEHENNAS_SHADOW_BOLT, Target_RandomPlayer, 8, 0, 0, 0, 45);
             AddSpell(GEHENNAS_GEHENNAS_CURSE, Target_Self, 8, 0, 0);
@@ -619,10 +615,10 @@ const uint32 FLAMEWAKER_SUNDER_ARMOR = 25051;
 const uint32 FLAMEWAKER_FIST_OF_RAGNAROS = 20277;
 const uint32 FLAMEWAKER_STRIKE = 11998;
 
-class FlamewakerAI : public MoonScriptCreatureAI
+class FlamewakerAI : public CreatureAIScript
 {
-        MOONSCRIPT_FACTORY_FUNCTION(FlamewakerAI, MoonScriptCreatureAI);
-        FlamewakerAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(FlamewakerAI);
+        FlamewakerAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             AddSpell(FLAMEWAKER_SUNDER_ARMOR, Target_Current, 8, 0, 0);
             AddSpell(FLAMEWAKER_FIST_OF_RAGNAROS, Target_Self, 8, 0, 0);
@@ -636,10 +632,10 @@ const uint32 CN_GARR = 12057;
 const uint32 GARR_ANTIMAGIC_PULSE = 19492;
 const uint32 GARR_MAGMA_SHACKES = 19496;
 
-class GarrAI : public MoonScriptCreatureAI
+class GarrAI : public CreatureAIScript
 {
-        MOONSCRIPT_FACTORY_FUNCTION(GarrAI, MoonScriptCreatureAI);
-        GarrAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(GarrAI);
+        GarrAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             AddSpell(GARR_ANTIMAGIC_PULSE, Target_Self, 10, 0, 0);
             AddSpell(GARR_MAGMA_SHACKES, Target_Self, 10, 0, 0);
@@ -653,10 +649,10 @@ const uint32 FIRESWORN_IMMOLATE = 20294;
 const uint32 FIRESWORN_ERUPTION = 19497;
 const uint32 FIRESWORN_SEPARATION_ANXIETY = 23492;
 
-class FireswornAI : public MoonScriptCreatureAI
+class FireswornAI : public CreatureAIScript
 {
-        MOONSCRIPT_FACTORY_FUNCTION(FireswornAI, MoonScriptCreatureAI);
-        FireswornAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(FireswornAI);
+        FireswornAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             mGarr = nullptr;
 
@@ -666,25 +662,22 @@ class FireswornAI : public MoonScriptCreatureAI
             mSeparationAnxiety = AddSpell(FIRESWORN_SEPARATION_ANXIETY, Target_Self, 0, 5, 5);
         }
 
-        void OnCombatStart(Unit* pTarget)
+        void OnCombatStart(Unit* pTarget) override
         {
             mGarr = getNearestCreatureAI(CN_GARR);
-            ParentClass::OnCombatStart(pTarget);
         }
 
-        void OnDied(Unit* pKiller)
+        void OnDied(Unit* pKiller) override
         {
             CastSpellNowNoScheduling(mEruption);
-            ParentClass::OnDied(pKiller);
         }
 
-        void AIUpdate()
+        void AIUpdate() override
         {
             if (mGarr && mGarr->isAlive() && getRangeToObject(mGarr->getCreature()) > 100)
             {
                 CastSpell(mSeparationAnxiety);
             }
-            ParentClass::AIUpdate();
         }
 
         SpellDesc* mEruption;
@@ -699,10 +692,10 @@ const uint32 BARONGEDDON_INFERNO = 19698;    //35268
 const uint32 BARONGEDDON_IGNITE_MANA = 19659;
 const uint32 BARONGEDDON_LIVING_BOMB = 20475;
 
-class BaronGeddonAI : public MoonScriptCreatureAI
+class BaronGeddonAI : public CreatureAIScript
 {
-        MOONSCRIPT_FACTORY_FUNCTION(BaronGeddonAI, MoonScriptCreatureAI);
-        BaronGeddonAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(BaronGeddonAI);
+        BaronGeddonAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             AddSpell(BARONGEDDON_INFERNO, Target_Self, 8, 0, 0);
             AddSpell(BARONGEDDON_IGNITE_MANA, Target_Self, 8, 0, 0);
@@ -721,10 +714,10 @@ const uint32 SHAZZRAH_BLINK = 29883;    //dummy spell, need to be coded in core
 
 void SpellFunc_ShazzrahBlinkArcaneExplosions(SpellDesc* pThis, CreatureAIScript* pCreatureAI, Unit* pTarget, TargetType pType);
 
-class ShazzrahAI : public MoonScriptCreatureAI
+class ShazzrahAI : public CreatureAIScript
 {
-        MOONSCRIPT_FACTORY_FUNCTION(ShazzrahAI, MoonScriptCreatureAI);
-        ShazzrahAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(ShazzrahAI);
+        ShazzrahAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             AddSpell(SHAZZRAH_SHAZZRAHS_CURSE, Target_Self, 8, 0, 0);
             AddSpell(SHAZZRAH_MAGIC_GROUNDING, Target_Self, 6, 0, 0);
@@ -759,10 +752,10 @@ const uint32 GOLEMAGG_MAGMA_SPLASH = 13880;
 const uint32 GOLEMAGG_PYROBLAST = 20228;
 const uint32 GOLEMAGG_EARTHQUAKE = 19798;
 
-class GolemaggAI : public MoonScriptCreatureAI
+class GolemaggAI : public CreatureAIScript
 {
-        MOONSCRIPT_FACTORY_FUNCTION(GolemaggAI, MoonScriptCreatureAI);
-        GolemaggAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(GolemaggAI);
+        GolemaggAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             AddSpell(GOLEMAGG_GOLEMAGGS_TRUST, Target_Self, 8, 0, 0);
             AddSpell(GOLEMAGG_MAGMA_SPLASH, Target_Self, 8, 0, 0);

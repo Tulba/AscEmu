@@ -26,12 +26,10 @@
 
 //////////////////////////////////////////////////////////////////////////////////////////
 ///Anomalus
-class AnomalusAI : public MoonScriptCreatureAI
+class AnomalusAI : public CreatureAIScript
 {
-    public:
-
-        MOONSCRIPT_FACTORY_FUNCTION(AnomalusAI, MoonScriptCreatureAI);
-        AnomalusAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(AnomalusAI);
+        AnomalusAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             mInstance = getInstanceScript();
 
@@ -44,22 +42,19 @@ class AnomalusAI : public MoonScriptCreatureAI
             mRift = false;
             mSummonTimer = 0;
 
+            // new
+            addEmoteForEvent(Event_OnCombatStart, 4317);     // Chaos beckons.
+            addEmoteForEvent(Event_OnDied, 4318);     // Of course.
         }
 
-        void OnCombatStart(Unit* mTarget)
+        void OnCombatStart(Unit* mTarget) override
         {
-            sendDBChatMessage(4317);     // Chaos beckons.
             mSummon = 0;
             mRift = false;
             mSummonTimer = _addTimer(_isHeroic() ? 14000 : 18000);   // check heroic
-
-            ParentClass::OnCombatStart(mTarget);
-
-            if (mInstance)
-                mInstance->setData(NEXUS_ANOMALUS, InProgress);
         }
 
-        void AIUpdate()
+        void AIUpdate() override
         {
             if ((_getHealthPercent() <= 50 && mSummon == 0))
                 mSummon += 1;
@@ -78,8 +73,6 @@ class AnomalusAI : public MoonScriptCreatureAI
                 _removeAura(47748);
                 mRift = false;
             }
-
-            ParentClass::AIUpdate();
         }
 
         void SummonRift(bool bToCharge)
@@ -109,14 +102,10 @@ class AnomalusAI : public MoonScriptCreatureAI
             mSummon += 1;
         }
 
-        void OnDied(Unit* pKiller)
+        void OnDied(Unit* pKiller) override
         {
-            sendDBChatMessage(4318);     // Of course.
-
             if (mInstance)
             {
-                mInstance->setData(NEXUS_ANOMALUS, Finished);
-
                 GameObjectSet sphereSet = mInstance->getGameObjectsSetForEntry(ANOMALUS_CS);
                 for (auto goSphere : sphereSet)
                 {
@@ -124,16 +113,6 @@ class AnomalusAI : public MoonScriptCreatureAI
                         goSphere->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_UNCLICKABLE);
                 }
             }
-
-            ParentClass::OnDied(pKiller);
-        }
-
-        void OnCombatStop(Unit* pTarget)
-        {
-            if (mInstance)
-                mInstance->setData(NEXUS_ANOMALUS, Performed);
-
-            ParentClass::OnCombatStop(pTarget);
         }
 
     private:
@@ -144,12 +123,10 @@ class AnomalusAI : public MoonScriptCreatureAI
         InstanceScript* mInstance;
 };
 
-class ChaoticRiftAI : public MoonScriptCreatureAI
+class ChaoticRiftAI : public CreatureAIScript
 {
-    public:
-
-        MOONSCRIPT_FACTORY_FUNCTION(ChaoticRiftAI, MoonScriptCreatureAI);
-        ChaoticRiftAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(ChaoticRiftAI);
+        ChaoticRiftAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             getCreature()->GetAIInterface()->SetAllowedToEnterCombat(false);
             auto spell_mana_wrath = sSpellCustomizations.GetSpellInfo(SUMMON_MANA_WRAITH);
@@ -161,43 +138,38 @@ class ChaoticRiftAI : public MoonScriptCreatureAI
                 AddSpell(CHAOTIC_ENERGY_BURST, Target_RandomPlayer, 30, 0, spell_energy_burst->getRecoveryTime());
         }
 
-        void OnLoad()
+        void OnLoad() override
         {
             _applyAura(CHAOTIC_RIFT_AURA);
             despawn(40000, 0);
-            ParentClass::OnLoad();
         }
 
-        void OnDied(Unit* mKiller)
+        void OnDied(Unit* mKiller) override
         {
             despawn(2000, 0);
-            ParentClass::OnDied(mKiller);
         }
 
-        void OnCombatStop(Unit* pTarget)
+        void OnCombatStop(Unit* pTarget) override
         {
             despawn(2000, 0);
-            ParentClass::OnCombatStop(pTarget);
         }
 };
 
-class CraziedManaWrathAI : public MoonScriptCreatureAI
+class CraziedManaWrathAI : public CreatureAIScript
 {
     public:
 
-        MOONSCRIPT_FACTORY_FUNCTION(CraziedManaWrathAI, MoonScriptCreatureAI);
-        CraziedManaWrathAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature) {};
+        ADD_CREATURE_FACTORY_FUNCTION(CraziedManaWrathAI);
+        CraziedManaWrathAI(Creature* pCreature) : CreatureAIScript(pCreature) {};
 
-        void OnCombatStop(Unit* pTarget)
+        void OnCombatStop(Unit* pTarget) override
         {
             despawn(2000, 0);
-            ParentClass::OnCombatStop(pTarget);
         }
 
-        void OnDied(Unit* mKiller)
+        void OnDied(Unit* mKiller) override
         {
             despawn(2000, 0);
-            ParentClass::OnDied(mKiller);
         }
 };
 
@@ -212,12 +184,10 @@ static Movement::Location FormSpawns[] =
 };
 
 
-class TelestraBossAI : public MoonScriptCreatureAI
+class TelestraBossAI : public CreatureAIScript
 {
-    public:
-
-        MOONSCRIPT_FACTORY_FUNCTION(TelestraBossAI, MoonScriptCreatureAI);
-        TelestraBossAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(TelestraBossAI);
+        TelestraBossAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             mInstance = getInstanceScript();
 
@@ -240,9 +210,14 @@ class TelestraBossAI : public MoonScriptCreatureAI
             mPhaseRepeat = 2;
 
             mAddArray[0] = mAddArray[1] = mAddArray[2] = NULL;
+
+            // new
+            addEmoteForEvent(Event_OnCombatStart, 4326);      // You know what they say about curiosity....
+            addEmoteForEvent(Event_OnTargetDied, 4327);      // Death becomes you.
+            addEmoteForEvent(Event_OnDied, 4328);      // Damn the... luck.
         }
 
-        void AIUpdate()
+        void AIUpdate() override
         {
             if (isScriptPhase(1) && _getHealthPercent() <= (mPhaseRepeat * 25))
             {
@@ -269,7 +244,6 @@ class TelestraBossAI : public MoonScriptCreatureAI
                     if (mAddArray[i] != NULL)
                         ++mAddCount;
                 }
-
             }
 
             if (isScriptPhase(2))
@@ -294,26 +268,9 @@ class TelestraBossAI : public MoonScriptCreatureAI
                 mPhaseRepeat = 1;
                 setScriptPhase(_isHeroic() ? 1 : 3);   //3 disables p2
             }
-
-            ParentClass::AIUpdate();
         }
 
-        void OnCombatStart(Unit* pTarget)
-        {
-            sendDBChatMessage(4326);      // You know what they say about curiosity....
-
-            if (mInstance)
-                mInstance->setData(NEXUS_TELESTRA, InProgress);
-
-            ParentClass::OnCombatStart(pTarget);
-        }
-
-        void OnTargetDied(Unit* pTarget)
-        {
-            sendDBChatMessage(4327);      // Death becomes you.
-        }
-
-        void OnCombatStop(Unit* pTarget)
+        void OnCombatStop(Unit* pTarget) override
         {
             for (uint8 i = 0; i < 3; ++i)
             {
@@ -323,17 +280,10 @@ class TelestraBossAI : public MoonScriptCreatureAI
                     mAddArray[i] = NULL;
                 }
             }
-
-            ParentClass::OnCombatStop(pTarget);
-
-            if (mInstance)
-                mInstance->setData(NEXUS_TELESTRA, Performed);
         }
 
-        void OnDied(Unit* pKiller)
+        void OnDied(Unit* pKiller) override
         {
-            sendDBChatMessage(4328);      // Damn the... luck.
-
             for (uint8 i = 0; i < 3; ++i)
             {
                 if (mAddArray[i] != NULL)
@@ -353,8 +303,6 @@ class TelestraBossAI : public MoonScriptCreatureAI
                         goSphere->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_UNCLICKABLE);
                 }
             }
-
-            ParentClass::OnDied(pKiller);
         }
 
     private:
@@ -367,12 +315,10 @@ class TelestraBossAI : public MoonScriptCreatureAI
         InstanceScript* mInstance;
 };
 
-class TelestraFireAI : public MoonScriptCreatureAI
+class TelestraFireAI : public CreatureAIScript
 {
-    public:
-
-        MOONSCRIPT_FACTORY_FUNCTION(TelestraFireAI, MoonScriptCreatureAI);
-        TelestraFireAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(TelestraFireAI);
+        TelestraFireAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             if (_isHeroic())
             {
@@ -386,19 +332,16 @@ class TelestraFireAI : public MoonScriptCreatureAI
             }
         }
 
-        void OnLoad()
+        void OnLoad() override
         {
             AggroNearestUnit();
-            ParentClass::OnLoad();
         }
 };
 
-class TelestraFrostAI : public MoonScriptCreatureAI
+class TelestraFrostAI : public CreatureAIScript
 {
-    public:
-
-        MOONSCRIPT_FACTORY_FUNCTION(TelestraFrostAI, MoonScriptCreatureAI);
-        TelestraFrostAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(TelestraFrostAI);
+        TelestraFrostAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             if (_isHeroic())
             {
@@ -412,38 +355,34 @@ class TelestraFrostAI : public MoonScriptCreatureAI
             }
         }
 
-        void OnLoad()
+        void OnLoad() override
         {
             AggroNearestUnit();
-            ParentClass::OnLoad();
         }
 };
 
-class TelestraArcaneAI : public MoonScriptCreatureAI
+class TelestraArcaneAI : public CreatureAIScript
 {
-    public:
-
-        MOONSCRIPT_FACTORY_FUNCTION(TelestraArcaneAI, MoonScriptCreatureAI);
-        TelestraArcaneAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+        ADD_CREATURE_FACTORY_FUNCTION(TelestraArcaneAI);
+        TelestraArcaneAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             AddSpell(TIME_STOP, Target_Self, 30, 1.5, 30);
             AddSpell(CRITTER, Target_RandomPlayer, 25, 0, 20);
         }
 
-        void OnLoad()
+        void OnLoad() override
         {
             AggroNearestUnit();
-            ParentClass::OnLoad();
         }
 };
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// Ormorok the Tree-Shaper
-class OrmorokAI : public MoonScriptCreatureAI
+class OrmorokAI : public CreatureAIScript
 {
-    MOONSCRIPT_FACTORY_FUNCTION(OrmorokAI, MoonScriptCreatureAI);
-    OrmorokAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+    ADD_CREATURE_FACTORY_FUNCTION(OrmorokAI);
+    OrmorokAI(Creature* pCreature) : CreatureAIScript(pCreature)
     {
         mInstance = getInstanceScript();
 
@@ -454,19 +393,21 @@ class OrmorokAI : public MoonScriptCreatureAI
 
         AddSpell(SPELL_REFLECTION, Target_Self, 35, 2.0f, 15);
         mCrystalSpikes = AddSpell(CRYSTAL_SPIKES, Target_Self, 25, 0, 12);
-        mCrystalSpikes->AddEmote("Bleed!", CHAT_MSG_MONSTER_YELL, 13332);
+        mCrystalSpikes->addEmote("Bleed!", CHAT_MSG_MONSTER_YELL, 13332);
 
         mEnraged = false;
+
+        // new
+        addEmoteForEvent(Event_OnCombatStart, 1943);     // Noo!
+        addEmoteForEvent(Event_OnDied, 1944);     // Aaggh!
     }
 
-    void OnCombatStart(Unit* pTarget)
+    void OnCombatStart(Unit* pTarget) override
     {
-        sendDBChatMessage(1943);     // Noo!
         mEnraged = false;
-        ParentClass::OnCombatStart(pTarget);
     }
 
-    void AIUpdate()
+    void AIUpdate() override
     {
         if (_getHealthPercent() <= 25 && mEnraged == false)
         {
@@ -474,17 +415,12 @@ class OrmorokAI : public MoonScriptCreatureAI
             sendAnnouncement("Ormorok the Tree-Shaper goes into a frenzy!");
             mEnraged = true;
         }
-
-        ParentClass::AIUpdate();
     }
 
-    void OnDied(Unit* pKiller)
+    void OnDied(Unit* pKiller) override
     {
-        sendDBChatMessage(1944);     // Aaggh!
-
         if (mInstance)
         {
-            mInstance->setData(NEXUS_ORMOROK, Finished);
             GameObjectSet sphereSet = mInstance->getGameObjectsSetForEntry(ORMOROK_CS);
             for (auto goSphere : sphereSet)
             {
@@ -492,8 +428,6 @@ class OrmorokAI : public MoonScriptCreatureAI
                     goSphere->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_UNCLICKABLE);
             }
         }
-
-        ParentClass::OnDied(pKiller);
     }
 
     private:
@@ -504,15 +438,15 @@ class OrmorokAI : public MoonScriptCreatureAI
         InstanceScript* mInstance;
 };
 
-class CrystalSpikeAI : public MoonScriptCreatureAI
+class CrystalSpikeAI : public CreatureAIScript
 {
-    MOONSCRIPT_FACTORY_FUNCTION(CrystalSpikeAI, MoonScriptCreatureAI);
-    CrystalSpikeAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+    ADD_CREATURE_FACTORY_FUNCTION(CrystalSpikeAI);
+    CrystalSpikeAI(Creature* pCreature) : CreatureAIScript(pCreature)
     {
         m_part = 0;
     }
 
-    void OnLoad()
+    void OnLoad() override
     {
         setCanEnterCombat(false);
         setRooted(true);
@@ -520,11 +454,9 @@ class CrystalSpikeAI : public MoonScriptCreatureAI
 
         despawn(4500, 0);
         RegisterAIUpdateEvent(500);
-
-        ParentClass::OnLoad();
     }
 
-    void AIUpdate()
+    void AIUpdate() override
     {
         m_part += 1;
 
@@ -554,10 +486,10 @@ class CrystalSpikeAI : public MoonScriptCreatureAI
 //////////////////////////////////////////////////////////////////////////////////////////
 /// Keristrasza
 /// \todo currently unfinished
-class KeristraszaAI : public MoonScriptCreatureAI
+class KeristraszaAI : public CreatureAIScript
 {
-    MOONSCRIPT_FACTORY_FUNCTION(KeristraszaAI, MoonScriptCreatureAI);
-    KeristraszaAI(Creature* pCreature) : MoonScriptCreatureAI(pCreature)
+    ADD_CREATURE_FACTORY_FUNCTION(KeristraszaAI);
+    KeristraszaAI(Creature* pCreature) : CreatureAIScript(pCreature)
     {
         if (_isHeroic())
             AddSpell(CRYSTALFIRE_BREATH_HC, Target_Self, 30, 1, 14);
@@ -568,34 +500,23 @@ class KeristraszaAI : public MoonScriptCreatureAI
         AddSpell(TAIL_SWEEP, Target_Self, 40, 0, 8);
 
         mCrystalize = AddSpell(CRYSTALLIZE, Target_Self, 25, 0, 22);
-        mCrystalize->AddEmote("Stay. Enjoy your final moments.", CHAT_MSG_MONSTER_YELL, 13451);
+        mCrystalize->addEmote("Stay. Enjoy your final moments.", CHAT_MSG_MONSTER_YELL, 13451);
 
         mEnraged = false;
         setCanEnterCombat(false);
+
+        // new
+        addEmoteForEvent(Event_OnCombatStart, 4321);     // Preserve? Why? There's no truth in it. No no no... only in the taking! I see that now!
+        addEmoteForEvent(Event_OnTargetDied, 4322);     // Now we've come to the truth! )
+        addEmoteForEvent(Event_OnDied, 4324);     // Dragonqueen... Life-Binder... preserve... me.
     }
 
-    void OnLoad()
+    void OnLoad() override
     {
         _applyAura(47543);   // frozen prison
-        ParentClass::OnLoad();
     }
 
-    void OnCombatStart(Unit* pTarget)
-    {
-        sendDBChatMessage(4321);     // Preserve? Why? There's no truth in it. No no no... only in the taking! I see that now!
-    }
-
-    void OnTargetDied(Unit* pTarget)
-    {
-        sendDBChatMessage(4322);     // Now we've come to the truth! 
-    }
-
-    void OnDied(Unit* pKiller)
-    {
-        sendDBChatMessage(4324);     // Dragonqueen... Life-Binder... preserve... me.
-    }
-
-    void AIUpdate()
+    void AIUpdate() override
     {
         if (mEnraged == false && _getHealthPercent() <= 25)
         {
@@ -681,7 +602,7 @@ class NexusScript : public InstanceScript
             }
         }
 
-        void OnCreaturePushToWorld(Creature* pCreature)
+        void OnCreaturePushToWorld(Creature* pCreature) override
         {
             switch (pCreature->GetEntry())
             {
@@ -700,7 +621,7 @@ class NexusScript : public InstanceScript
             }
         }
 
-        void OnGameObjectPushToWorld(GameObject* pGameObject)
+        void OnGameObjectPushToWorld(GameObject* pGameObject) override
         {
             switch (pGameObject->GetEntry())
             {
@@ -716,7 +637,7 @@ class NexusScript : public InstanceScript
             }
         }
 
-        void OnGameObjectActivate(GameObject* pGameObject, Player* pPlayer)
+        void OnGameObjectActivate(GameObject* pGameObject, Player* pPlayer) override
         {
             switch (pGameObject->GetEntry())
             {
@@ -750,7 +671,7 @@ class NexusScript : public InstanceScript
             }
         }
 
-        void OnPlayerEnter(Player* player)
+        void OnPlayerEnter(Player* player) override
         {
             if (!spawnsCreated())
             {
