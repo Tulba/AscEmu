@@ -16,7 +16,7 @@ uint32_t GenerateWPWaitTime(float speed, float newX, float currentX, float newY,
     float distanceY = (newY - currentY) * (newY - currentY);
     float distance = sqrt(distanceX + distanceY);
     // we dont have flying creatures here, using only walk/run speeds
-    return  static_cast<uint32_t>((1000 * std::abs(distance / speed)) - 1000);
+    return  static_cast<uint32_t>((1000 * std::abs(distance / speed)));
 }
 
 /// ESCORT/GOSSIP EVENT
@@ -1009,12 +1009,12 @@ public:
         float walkSpeed = pCreature->GetCreatureProperties()->walk_speed;
         for (uint8_t i = 0; i < MoraggPathSize; i++)
         {
-            uint32_t waitTime = 1000;
+            uint32_t waitTime = 0;
             // First wp
             if (i == 0)
-                waitTime += GenerateWPWaitTime(walkSpeed, MoraggPath[i].x, pCreature->GetPositionX(), MoraggPath[i].y, pCreature->GetPositionY());
+                waitTime = GenerateWPWaitTime(walkSpeed, MoraggPath[i].x, pCreature->GetPositionX(), MoraggPath[i].y, pCreature->GetPositionY());
             else
-                waitTime += GenerateWPWaitTime(walkSpeed, MoraggPath[i].x, MoraggPath[i - 1].x, MoraggPath[i].y, MoraggPath[i - 1].y);
+                waitTime = GenerateWPWaitTime(walkSpeed, MoraggPath[i].x, MoraggPath[i - 1].x, MoraggPath[i].y, MoraggPath[i - 1].y);
 
             pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_WALK, MoraggPath[i]));
         }
