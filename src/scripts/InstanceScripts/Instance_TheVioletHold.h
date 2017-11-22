@@ -667,24 +667,24 @@ public:
 
     uint32_t GetInstanceData(uint32_t pIndex);
 
-    void OnLoad();
+    void OnLoad() override;
 
-    void OnGameObjectPushToWorld(GameObject* pGo);
+    void OnGameObjectPushToWorld(GameObject* pGo) override;
 
-    void OnGameObjectActivate(GameObject* pGo, Player* plr);
+    void OnGameObjectActivate(GameObject* pGo, Player* plr) override;
 
 
     //void SaveInstanceData(uint32_t spawnId);
 
     //Instance* GetSavedInstance();
 
-    void OnCreaturePushToWorld(Creature* pCreature);
+    void OnCreaturePushToWorld(Creature* pCreature) override;
 
     //void OnCreatureDeath(Creature* pCreature, Unit* pKiller);
 
-    void OnPlayerEnter(Player* plr);
+    void OnPlayerEnter(Player* plr) override;
 
-    void UpdateEvent();
+    void UpdateEvent() override;
 
     // Generate very basic portal info
     void GenerateRandomPortal(VHPortalInfo & newPortal);
