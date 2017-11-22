@@ -1043,6 +1043,33 @@ public:
         }
     }
 
+    void OnDespawn() override
+    {
+        if (TheVioletHoldInstance* VH_Instance = static_cast<TheVioletHoldInstance*>(getCreature()->GetMapMgr()->GetScript()))
+        {
+            if (VH_Instance->GetInstanceData(INDEX_MORAGG) != Finished)
+            {
+                VH_Instance->SetInstanceData(INDEX_MORAGG, State_Failed);
+            }
+        }
+    }
+
+    void OnCombatStop(Unit* /*pEnemy*/) override
+    {
+        if (getCreature()->isAlive())
+        {
+            despawn(3 * 60 * 1000); // 3 min
+        }
+    }
+
+    void OnCombatStart(Unit* /*pEnemy*/) override
+    {
+        if (sEventMgr.HasEvent(getCreature(), EVENT_CREATURE_RESPAWN))
+        {
+            sEventMgr.RemoveEvents(getCreature(), EVENT_CREATURE_RESPAWN);
+        }
+    }
+
     void OnReachWP(uint32 iWaypointId, bool /*bForwards*/) override
     {
         if (iWaypointId == MoraggPathSize - 1)
@@ -1074,6 +1101,33 @@ public:
             pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_WALK, ZuramatPath[i]));
         }
         pCreature->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
+    }
+
+    void OnDespawn() override
+    {
+        if (TheVioletHoldInstance* VH_Instance = static_cast<TheVioletHoldInstance*>(getCreature()->GetMapMgr()->GetScript()))
+        {
+            if (VH_Instance->GetInstanceData(INDEX_ZURAMAT) != Finished)
+            {
+                VH_Instance->SetInstanceData(INDEX_ZURAMAT, State_Failed);
+            }
+        }
+    }
+
+    void OnCombatStop(Unit* /*pEnemy*/) override
+    {
+        if (getCreature()->isAlive())
+        {
+            despawn(3 * 60 * 1000); // 3 min
+        }
+    }
+
+    void OnCombatStart(Unit* /*pEnemy*/) override
+    {
+        if (sEventMgr.HasEvent(getCreature(), EVENT_CREATURE_RESPAWN))
+        {
+            sEventMgr.RemoveEvents(getCreature(), EVENT_CREATURE_RESPAWN);
+        }
     }
 
     void OnReachWP(uint32 iWaypointId, bool /*bForwards*/) override
@@ -1109,6 +1163,33 @@ public:
         pCreature->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
     }
 
+    void OnDespawn() override
+    {
+        if (TheVioletHoldInstance* VH_Instance = static_cast<TheVioletHoldInstance*>(getCreature()->GetMapMgr()->GetScript()))
+        {
+            if (VH_Instance->GetInstanceData(INDEX_ICHORON) != Finished)
+            {
+                VH_Instance->SetInstanceData(INDEX_ICHORON, State_Failed);
+            }
+        }
+    }
+
+    void OnCombatStop(Unit* /*pEnemy*/) override
+    {
+        if (getCreature()->isAlive())
+        {
+            despawn(3 * 60 * 1000); // 3 min
+        }
+    }
+
+    void OnCombatStart(Unit* /*pEnemy*/) override
+    {
+        if (sEventMgr.HasEvent(getCreature(), EVENT_CREATURE_RESPAWN))
+        {
+            sEventMgr.RemoveEvents(getCreature(), EVENT_CREATURE_RESPAWN);
+        }
+    }
+
     void OnReachWP(uint32 iWaypointId, bool /*bForwards*/) override
     {
         if (iWaypointId == IchoronPathSize - 1)
@@ -1142,6 +1223,33 @@ public:
         pCreature->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
     }
 
+    void OnDespawn() override
+    {
+        if (TheVioletHoldInstance* VH_Instance = static_cast<TheVioletHoldInstance*>(getCreature()->GetMapMgr()->GetScript()))
+        {
+            if (VH_Instance->GetInstanceData(INDEX_LAVANTHOR) != Finished)
+            {
+                VH_Instance->SetInstanceData(INDEX_LAVANTHOR, State_Failed);
+            }
+        }
+    }
+
+    void OnCombatStop(Unit* /*pEnemy*/) override
+    {
+        if (getCreature()->isAlive())
+        {
+            despawn(3 * 60 * 1000); // 3 min
+        }
+    }
+
+    void OnCombatStart(Unit* /*pEnemy*/) override
+    {
+        if (sEventMgr.HasEvent(getCreature(), EVENT_CREATURE_RESPAWN))
+        {
+            sEventMgr.RemoveEvents(getCreature(), EVENT_CREATURE_RESPAWN);
+        }
+    }
+
     void OnReachWP(uint32 iWaypointId, bool /*bForwards*/) override
     {
         if (iWaypointId == LavanthorPathSize - 1)
@@ -1173,6 +1281,33 @@ public:
             pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_WALK, XevozzPath[i]));
         }
         pCreature->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
+    }
+
+    void OnDespawn() override
+    {
+        if (TheVioletHoldInstance* VH_Instance = static_cast<TheVioletHoldInstance*>(getCreature()->GetMapMgr()->GetScript()))
+        {
+            if (VH_Instance->GetInstanceData(INDEX_XEVOZZ) != Finished)
+            {
+                VH_Instance->SetInstanceData(INDEX_XEVOZZ, State_Failed);
+            }
+        }
+    }
+
+    void OnCombatStop(Unit* /*pEnemy*/) override
+    {
+        if (getCreature()->isAlive())
+        {
+            despawn(3* 60 * 1000); // 3 min
+        }
+    }
+
+    void OnCombatStart(Unit* /*pEnemy*/) override
+    {
+        if (sEventMgr.HasEvent(getCreature(), EVENT_CREATURE_RESPAWN))
+        {
+            sEventMgr.RemoveEvents(getCreature(), EVENT_CREATURE_RESPAWN);
+        }
     }
 
     void OnReachWP(uint32 iWaypointId, bool /*bForwards*/) override
