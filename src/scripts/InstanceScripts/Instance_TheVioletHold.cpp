@@ -1044,6 +1044,171 @@ public:
     }
 };
 
+class ZuramatAI : public CreatureAIScript
+{
+public:
+
+    static CreatureAIScript* Create(Creature* c) { return new ZuramatAI(c); }
+    ZuramatAI(Creature* pCreature) : CreatureAIScript(pCreature)
+    {
+        // Prepare waypoints
+        float walkSpeed = pCreature->GetCreatureProperties()->walk_speed;
+        for (uint8_t i = 0; i < ZuramatPathSize; i++)
+        {
+            uint32_t waitTime = 0;
+            // First wp
+            if (i == 0)
+                waitTime = GenerateWPWaitTime(walkSpeed, ZuramatPath[i].x, pCreature->GetPositionX(), ZuramatPath[i].y, pCreature->GetPositionY());
+            else
+                waitTime = GenerateWPWaitTime(walkSpeed, ZuramatPath[i].x, ZuramatPath[i - 1].x, ZuramatPath[i].y, ZuramatPath[i - 1].y);
+
+            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_WALK, ZuramatPath[i]));
+        }
+        pCreature->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
+    }
+
+    void OnReachWP(uint32 iWaypointId, bool /*bForwards*/) override
+    {
+        if (iWaypointId == ZuramatPathSize - 1)
+        {
+            // Make him targetable and able to enter to combat
+            getCreature()->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9 | UNIT_FLAG_NOT_SELECTABLE);
+        }
+    }
+};
+
+class IchoronAI : public CreatureAIScript
+{
+public:
+
+    static CreatureAIScript* Create(Creature* c) { return new IchoronAI(c); }
+    IchoronAI(Creature* pCreature) : CreatureAIScript(pCreature)
+    {
+        // Prepare waypoints
+        float walkSpeed = pCreature->GetCreatureProperties()->walk_speed;
+        for (uint8_t i = 0; i < IchoronPathSize; i++)
+        {
+            uint32_t waitTime = 0;
+            // First wp
+            if (i == 0)
+                waitTime = GenerateWPWaitTime(walkSpeed, IchoronPath[i].x, pCreature->GetPositionX(), IchoronPath[i].y, pCreature->GetPositionY());
+            else
+                waitTime = GenerateWPWaitTime(walkSpeed, IchoronPath[i].x, IchoronPath[i - 1].x, IchoronPath[i].y, IchoronPath[i - 1].y);
+
+            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_WALK, IchoronPath[i]));
+        }
+        pCreature->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
+    }
+
+    void OnReachWP(uint32 iWaypointId, bool /*bForwards*/) override
+    {
+        if (iWaypointId == IchoronPathSize - 1)
+        {
+            // Make him targetable and able to enter to combat
+            getCreature()->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9 | UNIT_FLAG_NOT_SELECTABLE);
+        }
+    }
+};
+
+class LavanthorAI : public CreatureAIScript
+{
+public:
+
+    static CreatureAIScript* Create(Creature* c) { return new LavanthorAI(c); }
+    LavanthorAI(Creature* pCreature) : CreatureAIScript(pCreature)
+    {
+        // Prepare waypoints
+        float walkSpeed = pCreature->GetCreatureProperties()->walk_speed;
+        for (uint8_t i = 0; i < LavanthorPathSize; i++)
+        {
+            uint32_t waitTime = 0;
+            // First wp
+            if (i == 0)
+                waitTime = GenerateWPWaitTime(walkSpeed, LavanthorPath[i].x, pCreature->GetPositionX(), LavanthorPath[i].y, pCreature->GetPositionY());
+            else
+                waitTime = GenerateWPWaitTime(walkSpeed, LavanthorPath[i].x, LavanthorPath[i - 1].x, LavanthorPath[i].y, LavanthorPath[i - 1].y);
+
+            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_WALK, LavanthorPath[i]));
+        }
+        pCreature->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
+    }
+
+    void OnReachWP(uint32 iWaypointId, bool /*bForwards*/) override
+    {
+        if (iWaypointId == LavanthorPathSize - 1)
+        {
+            // Make him targetable and able to enter to combat
+            getCreature()->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9 | UNIT_FLAG_NOT_SELECTABLE);
+        }
+    }
+};
+
+class XevozzAI : public CreatureAIScript
+{
+public:
+
+    static CreatureAIScript* Create(Creature* c) { return new XevozzAI(c); }
+    XevozzAI(Creature* pCreature) : CreatureAIScript(pCreature)
+    {
+        // Prepare waypoints
+        float walkSpeed = pCreature->GetCreatureProperties()->walk_speed;
+        for (uint8_t i = 0; i < XevozzPathSize; i++)
+        {
+            uint32_t waitTime = 0;
+            // First wp
+            if (i == 0)
+                waitTime = GenerateWPWaitTime(walkSpeed, XevozzPath[i].x, pCreature->GetPositionX(), XevozzPath[i].y, pCreature->GetPositionY());
+            else
+                waitTime = GenerateWPWaitTime(walkSpeed, XevozzPath[i].x, XevozzPath[i - 1].x, XevozzPath[i].y, XevozzPath[i - 1].y);
+
+            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_WALK, XevozzPath[i]));
+        }
+        pCreature->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
+    }
+
+    void OnReachWP(uint32 iWaypointId, bool /*bForwards*/) override
+    {
+        if (iWaypointId == XevozzPathSize - 1)
+        {
+            // Make him targetable and able to enter to combat
+            getCreature()->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9 | UNIT_FLAG_NOT_SELECTABLE);
+        }
+    }
+};
+
+class ErekemAI : public CreatureAIScript
+{
+public:
+
+    static CreatureAIScript* Create(Creature* c) { return new ErekemAI(c); }
+    ErekemAI(Creature* pCreature) : CreatureAIScript(pCreature)
+    {
+        // Prepare waypoints
+        float walkSpeed = pCreature->GetCreatureProperties()->walk_speed;
+        for (uint8_t i = 0; i < ErekemPathSize; i++)
+        {
+            uint32_t waitTime = 0;
+            // First wp
+            if (i == 0)
+                waitTime = GenerateWPWaitTime(walkSpeed, ErekemPath[i].x, pCreature->GetPositionX(), ErekemPath[i].y, pCreature->GetPositionY());
+            else
+                waitTime = GenerateWPWaitTime(walkSpeed, ErekemPath[i].x, ErekemPath[i - 1].x, ErekemPath[i].y, ErekemPath[i - 1].y);
+
+            pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_WALK, ErekemPath[i]));
+        }
+        pCreature->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
+    }
+
+    void OnReachWP(uint32 iWaypointId, bool /*bForwards*/) override
+    {
+        if (iWaypointId == ErekemPathSize - 1)
+        {
+            // Make him targetable and able to enter to combat
+            getCreature()->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9 | UNIT_FLAG_NOT_SELECTABLE);
+        }
+    }
+};
+
 // Spells
 bool TeleportPlayerInEffect(uint32 /*i*/, Spell* pSpell)
 {
@@ -2201,6 +2366,10 @@ void SetupTheVioletHold(ScriptMgr* mgr)
 
     // Bosses
     mgr->register_creature_script(CN_MORAGG, &MoraggAI::Create);
+    mgr->register_creature_script(CN_ICHORON, &IchoronAI::Create);
+    mgr->register_creature_script(CN_ZURAMAT, &ZuramatAI::Create);
+    mgr->register_creature_script(CN_LAVANTHOR, &LavanthorAI::Create);
+    mgr->register_creature_script(CN_EREKEM, &ErekemAI::Create);
 
     // Spells
     mgr->register_script_effect(SPELL_VH_TELEPORT_PLAYER, &TeleportPlayerInEffect);
