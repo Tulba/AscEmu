@@ -1236,8 +1236,6 @@ bool TeleportPlayerInEffect(uint32 /*i*/, Spell* pSpell)
 
 TheVioletHoldInstance::TheVioletHoldInstance(MapMgr* pMapMgr) :
     InstanceScript(pMapMgr),
-    m_isZuramatAchievFailed(false),
-    m_isDefAchievFailed(false),
     m_mainGatesGUID(0),
     m_sinclariGUID(0),
     m_ErekemGUID(0),
@@ -1256,13 +1254,22 @@ TheVioletHoldInstance::TheVioletHoldInstance(MapMgr* pMapMgr) :
     ResetInstanceData();
     //pMapMgr->pInstance = sInstanceMgr.GetInstanceByIds(MAP_VIOLET_HOLD, pMapMgr->GetInstanceID());
     generateBossDataState();
+
+    m_VHencounterData[DATA_GROUP1_BOSS_ENTRY] = getData(DATA_GROUP1_BOSS_ENTRY);
+    m_VHencounterData[DATA_GROUP2_BOSS_ENTRY] = getData(DATA_GROUP2_BOSS_ENTRY);
+
+    // Achievement data
+    if (GetInstance()->iInstanceMode == MODE_HEROIC)
+    {
+        m_VHencounterData[INDEX_ACHIEV_DEFENSELESS] = getData(INDEX_ACHIEV_DEFENSELESS);
+        m_VHencounterData[INDEX_ACHIEV_VOID_DANCE] = getData(INDEX_ACHIEV_VOID_DANCE);
+    }
 }
 
 //TODO: this should be redone by checking actual saved data for heroic mode
 void TheVioletHoldInstance::ResetInstanceData()
 {
     memset(m_VHencounterData, NotStarted, sizeof(m_VHencounterData));
-
     m_activePortal.ResetData();
     m_activePortal.summonsList.clear(); // listed spawns are already removed by using m_eventSpawns container
 }
@@ -1560,6 +1567,13 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
                 }break;
             }
         }break;
+        case DATA_GROUP1_BOSS_ENTRY:
+        case DATA_GROUP2_BOSS_ENTRY:
+        case INDEX_ACHIEV_DEFENSELESS:
+        case INDEX_ACHIEV_VOID_DANCE:
+        {
+            setData(pIndex, pData);
+        }break;
         default:
             break;
     }
@@ -1607,19 +1621,51 @@ void TheVioletHoldInstance::GenerateRandomPortal(VHPortalInfo & newPortal)
     else
     {
         newPortal.type = VH_PORTAL_TYPE_BOSS;
-        // Generate random boss entry
-        while (newPortal.bossEntry == 0 || getData(newPortal.bossEntry) == Finished)
+
+        // Last boss
+        if ((currentPortalCount + 1) == 18)
         {
-            newPortal.bossEntry = randomVHBossArray[RandomUInt(maxVHBosses - 1)];
+            newPortal.bossEntry = CN_CYANIGOSA;
         }
+        // Other bosses
+        else
+        {
+            // First boss
+            if ((currentPortalCount + 1) == 6)
+            {
+                if (GetInstanceData(DATA_GROUP1_BOSS_ENTRY) == 0)
+                {
+                    // Generate random boss entry
+                    while (newPortal.bossEntry == 0 || getData(newPortal.bossEntry) == Finished)
+                    {
+                        newPortal.bossEntry = randomVHBossArray[RandomUInt(maxVHBosses - 1)];
+                    }
+                    SetInstanceData(DATA_GROUP1_BOSS_ENTRY, newPortal.bossEntry);
+                }
+                else
+                {
+                    newPortal.bossEntry = GetInstanceData(DATA_GROUP1_BOSS_ENTRY);
+                }
+            }
 
-        // First boss
-        if ((currentPortalCount + 1) == 6)
-            SetInstanceData(DATA_GROUP1_BOSS_ENTRY, newPortal.bossEntry);
-
-        // Second boss
-        if ((currentPortalCount + 1) == 12)
-            SetInstanceData(DATA_GROUP2_BOSS_ENTRY, newPortal.bossEntry);
+            // Second boss
+            if ((currentPortalCount + 1) == 12)
+            {
+                if (GetInstanceData(DATA_GROUP2_BOSS_ENTRY) == 0)
+                {
+                    // Generate random boss entry
+                    while (newPortal.bossEntry == 0 || getData(newPortal.bossEntry) == Finished)
+                    {
+                        newPortal.bossEntry = randomVHBossArray[RandomUInt(maxVHBosses - 1)];
+                    }
+                    SetInstanceData(DATA_GROUP2_BOSS_ENTRY, newPortal.bossEntry);
+                }
+                else
+                {
+                    newPortal.bossEntry = GetInstanceData(DATA_GROUP2_BOSS_ENTRY);
+                }
+            }
+        }
     }
 }
 
@@ -1632,7 +1678,9 @@ void TheVioletHoldInstance::SpawnPortal()
 
     ++portalCount;
 
-    float x, y, z, o;
+    float x = 0, y = 0, z = 0, o = 0;
+
+    // Group portals
     if (m_activePortal.type != VH_PORTAL_TYPE_BOSS)
     {
         GenerateRandomPortal(m_activePortal);
@@ -1641,12 +1689,26 @@ void TheVioletHoldInstance::SpawnPortal()
         z = PortalPositions[m_activePortal.id].z;
         o = PortalPositions[m_activePortal.id].o;
     }
+    // Boss portals
     else
     {
-        x = BossPortalLoc.x;
-        y = BossPortalLoc.y;
-        z = BossPortalLoc.z;
-        o = BossPortalLoc.o;
+        // Last boss
+        if (portalCount == 18)
+        {
+            // Use top edge location
+            x = PortalPositions[3].x;
+            y = PortalPositions[3].y;
+            z = PortalPositions[3].z;
+            o = PortalPositions[3].o;
+        }
+        // Other bosses
+        else
+        {
+            x = SaboteurPortalLoc.x;
+            y = SaboteurPortalLoc.y;
+            z = SaboteurPortalLoc.z;
+            o = SaboteurPortalLoc.o;
+        }
     }
 
     if (!spawnCreature(CN_PORTAL, x, y, z, o))
@@ -2075,9 +2137,9 @@ void TheVioletHoldInstance::OnGameObjectActivate(GameObject* pGo, Player* plr)
     if (pGo->GetEntry() == GO_ACTIVATION_CRYSTAL)
     {
         // Mark achiev as failed
-        if (!m_isDefAchievFailed)
+        if (GetInstance()->iInstanceMode == MODE_HEROIC)
         {
-            m_isDefAchievFailed = true;
+            SetInstanceData(INDEX_ACHIEV_DEFENSELESS, State_Failed);
         }
 
         // Make object not selectable
@@ -2094,90 +2156,90 @@ void TheVioletHoldInstance::OnCreaturePushToWorld(Creature* pCreature)
 
     switch (pCreature->GetEntry())
     {
-    case CN_DOOR_SEAL:
-    {
-        // HACKY INVISIBLE
-        // invisible display id
-        // this is required to make visual effect
-        if (pCreature->GetDisplayId() != 11686)
-            pCreature->SetDisplayId(11686);
-    }break;
-    case CN_VIOLET_HOLD_GUARD:
-    {
-        m_guardsGuids.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
-        pCreature->setByteFlag(UNIT_FIELD_BYTES_2, 0, SHEATH_STATE_MELEE);
-        pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLUS_MOB | UNIT_FLAG_UNKNOWN_16);
-        pCreature->SetFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_ENABLE_POWER_REGEN);
-        pCreature->setUInt32Value(UNIT_DYNAMIC_FLAGS, 0);
-    }break;
-    case CN_LIEUTNANT_SINCLARI:
-    {
-        m_sinclariGUID = GET_LOWGUID_PART(pCreature->GetGUID());
-        pCreature->setByteFlag(UNIT_FIELD_BYTES_2, 0, SHEATH_STATE_MELEE);
-        pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLUS_MOB | UNIT_FLAG_UNKNOWN_16);
-    }break;
-    case CN_PORTAL_INTRO:
-    {
-        m_introSpawns.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
-        pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNKNOWN_16);
-    }break;
-    case CN_INTRO_AZURE_BINDER_ARCANE:
-    case CN_INTRO_AZURE_INVADER_ARMS:
-    case CN_INTRO_AZURE_MAGE_SLAYER_MELEE:
-    case CN_INTRO_AZURE_SPELLBREAKER_ARCANE:
-    {
-        m_introSpawns.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
-        pCreature->setByteFlag(UNIT_FIELD_BYTES_2, 0, SHEATH_STATE_MELEE);
-        pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNKNOWN_16);
-    }break;
-    case CN_DEFENSE_SYSTEM_TRIGGER:
-    {
-        m_defenseTriggers.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
-    }break;
-    case CN_PORTAL:
-    {
-        m_portalGUID = GET_LOWGUID_PART(pCreature->GetGUID());
-        pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-    }break;
-    // Main portal event related
-    case CN_AZURE_INVADER:
-    case CN_AZURE_SPELLBREAKER:
-    case CN_AZURE_BINDER:
-    case CN_AZURE_MAGE_SLAYER:
-    case CN_AZURE_CAPTAIN:
-    case CN_AZURE_SORCERER:
-    case CN_AZURE_RAIDER:
-    case CN_AZURE_STALKER:
-    {
-        m_eventSpawns.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
-    }break;
-    case CN_PORTAL_GUARDIAN:
-    case CN_PORTAL_KEEPER:
-    {
-        m_portalGuardianGUID = GET_LOWGUID_PART(pCreature->GetGUID());
-    }break;
-    case CN_MORAGG:
-    {
-        m_MoraggGUID = GET_LOWGUID_PART(pCreature->GetGUID());
-    }break;
-    case CN_ICHORON:
-    {
-        m_IchoronGUID = GET_LOWGUID_PART(pCreature->GetGUID());
-    }break;
-    case CN_XEVOZZ:
-    {
-        m_XevozzGUID = GET_LOWGUID_PART(pCreature->GetGUID());
-    }break;
-    case CN_LAVANTHOR:
-    {
-        m_LavanthorGUID = GET_LOWGUID_PART(pCreature->GetGUID());
-    }break;
-    case CN_ZURAMAT:
-    {
-        m_ZuramatGUID = GET_LOWGUID_PART(pCreature->GetGUID());
-    }break;
-    default:
-        break;
+        case CN_DOOR_SEAL:
+        {
+            // HACKY INVISIBLE
+            // invisible display id
+            // this is required to make visual effect
+            if (pCreature->GetDisplayId() != 11686)
+                pCreature->SetDisplayId(11686);
+        }break;
+        case CN_VIOLET_HOLD_GUARD:
+        {
+            m_guardsGuids.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
+            pCreature->setByteFlag(UNIT_FIELD_BYTES_2, 0, SHEATH_STATE_MELEE);
+            pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLUS_MOB | UNIT_FLAG_UNKNOWN_16);
+            pCreature->SetFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_ENABLE_POWER_REGEN);
+            pCreature->setUInt32Value(UNIT_DYNAMIC_FLAGS, 0);
+        }break;
+        case CN_LIEUTNANT_SINCLARI:
+        {
+            m_sinclariGUID = GET_LOWGUID_PART(pCreature->GetGUID());
+            pCreature->setByteFlag(UNIT_FIELD_BYTES_2, 0, SHEATH_STATE_MELEE);
+            pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLUS_MOB | UNIT_FLAG_UNKNOWN_16);
+        }break;
+        case CN_PORTAL_INTRO:
+        {
+            m_introSpawns.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
+            pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNKNOWN_16);
+        }break;
+        case CN_INTRO_AZURE_BINDER_ARCANE:
+        case CN_INTRO_AZURE_INVADER_ARMS:
+        case CN_INTRO_AZURE_MAGE_SLAYER_MELEE:
+        case CN_INTRO_AZURE_SPELLBREAKER_ARCANE:
+        {
+            m_introSpawns.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
+            pCreature->setByteFlag(UNIT_FIELD_BYTES_2, 0, SHEATH_STATE_MELEE);
+            pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNKNOWN_16);
+        }break;
+        case CN_DEFENSE_SYSTEM_TRIGGER:
+        {
+            m_defenseTriggers.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
+        }break;
+        case CN_PORTAL:
+        {
+            m_portalGUID = GET_LOWGUID_PART(pCreature->GetGUID());
+            pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+        }break;
+        // Main portal event related
+        case CN_AZURE_INVADER:
+        case CN_AZURE_SPELLBREAKER:
+        case CN_AZURE_BINDER:
+        case CN_AZURE_MAGE_SLAYER:
+        case CN_AZURE_CAPTAIN:
+        case CN_AZURE_SORCERER:
+        case CN_AZURE_RAIDER:
+        case CN_AZURE_STALKER:
+        {
+            m_eventSpawns.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
+        }break;
+        case CN_PORTAL_GUARDIAN:
+        case CN_PORTAL_KEEPER:
+        {
+            m_portalGuardianGUID = GET_LOWGUID_PART(pCreature->GetGUID());
+        }break;
+        case CN_MORAGG:
+        {
+            m_MoraggGUID = GET_LOWGUID_PART(pCreature->GetGUID());
+        }break;
+        case CN_ICHORON:
+        {
+            m_IchoronGUID = GET_LOWGUID_PART(pCreature->GetGUID());
+        }break;
+        case CN_XEVOZZ:
+        {
+            m_XevozzGUID = GET_LOWGUID_PART(pCreature->GetGUID());
+        }break;
+        case CN_LAVANTHOR:
+        {
+            m_LavanthorGUID = GET_LOWGUID_PART(pCreature->GetGUID());
+        }break;
+        case CN_ZURAMAT:
+        {
+            m_ZuramatGUID = GET_LOWGUID_PART(pCreature->GetGUID());
+        }break;
+        default:
+            break;
     }
 }
 
@@ -2187,7 +2249,7 @@ void TheVioletHoldInstance::OnCreatureDeath(Creature* pCreature, Unit* pKiller)
     {
         case CN_ZURAMAT:
         {
-            if (!m_isZuramatAchievFailed)
+            if (GetInstanceData(INDEX_ACHIEV_VOID_DANCE) != State_Failed)
             {
                 UpdateAchievCriteriaForPlayers(ACHIEV_CRIT_VOID_DANCE, 1);
             }
@@ -2195,7 +2257,7 @@ void TheVioletHoldInstance::OnCreatureDeath(Creature* pCreature, Unit* pKiller)
         }break;
         case CN_VOID_SENTRY:
         {
-            m_isZuramatAchievFailed = true;
+            SetInstanceData(INDEX_ACHIEV_VOID_DANCE, State_Failed);
         }break;
         case CN_PORTAL_INTRO:
         case CN_INTRO_AZURE_BINDER_ARCANE:
@@ -2207,7 +2269,7 @@ void TheVioletHoldInstance::OnCreatureDeath(Creature* pCreature, Unit* pKiller)
         }break;
         case CN_CYANIGOSA:
         {
-            if (!m_isDefAchievFailed)
+            if (GetInstance()->iInstanceMode == MODE_HEROIC && GetInstanceData(INDEX_ACHIEV_DEFENSELESS) != State_Failed)
             {
                 UpdateAchievCriteriaForPlayers(ACHIEV_CRIT_DEFENSELES, 1);
             }

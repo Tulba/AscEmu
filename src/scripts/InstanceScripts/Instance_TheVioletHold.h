@@ -15,10 +15,13 @@ enum DataIndex : uint8_t
     // MAIN EVENT DATA
     // First two bosses are random
     // There is total 3 bosses, if players wipes on first two bosses, ghost will replace boss
+    // These DATA indexes NEVER CONTAINS BOSS STATE!
+    // These two data indexes are saved to database
     DATA_GROUP1_BOSS_ENTRY,         // This INDEX value will contain first boss entry
     DATA_GROUP2_BOSS_ENTRY,         // This INDEX value will contain second boss entry
 
     // Portal data
+    // These three data indexes aren't saved to database
     DATA_PERVIOUS_PORTAL_ID,        // This INDEX value will contain perviously used portal id
     DATA_PORTAL_COUNT,              // This INDEX value will increased every time when portal is summoned
     DATA_SEAL_HEALTH,               // This INDEX value will contain health percent of "doors"
@@ -277,7 +280,7 @@ const Movement::Location PortalPositions[MaxPortalPositions] =
     { 1922.464f, 847.0699f, 48.50161f, 3.961897f }  // 7, left side, near Zuramat boss
 };
 
-const Movement::Location BossPortalLoc = { 1890.73f, 803.309f, 38.4001f, 2.4139f };  // center
+const Movement::Location SaboteurPortalLoc = { 1890.73f, 803.309f, 38.4001f, 2.4139f };  // center
 
 // Saboteur waypoints
 const uint8_t MaxWpToMoragg = 6;
@@ -611,10 +614,6 @@ const Movement::Location DefaultPortalWPs = { 1843.567017f, 804.288208f, 44.1390
 class TheVioletHoldInstance : public InstanceScript
 {
     uint32_t m_VHencounterData[INDEX_MAX];
-
-    // Achievements
-    bool m_isZuramatAchievFailed;
-    bool m_isDefAchievFailed;
 
     // Low guids of gameobjects
     uint32_t m_mainGatesGUID;
