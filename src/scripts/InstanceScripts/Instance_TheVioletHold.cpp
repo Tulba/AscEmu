@@ -1208,23 +1208,11 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
     }break;
     case INDEX_MORAGG:
     {
-        // Open his gates
         switch (pData)
         {
             case Performed:
             {
-                if (GameObject* pGates = GetInstance()->GetGameObject(m_MorragCellGUID))
-                {
-                    pGates->SetState(GO_STATE_OPEN);
-                }
-                if (Creature* pMoragg = GetInstance()->GetCreature(m_MoraggGUID))
-                {
-                    if (pMoragg->isAlive())
-                    {
-                        pMoragg->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
-                        pMoragg->GetAIInterface()->setWayPointToMove(1);
-                    }
-                }
+                ReleaseBoss(m_MorragCellGUID, m_MoraggGUID);
                 SetInstanceData(INDEX_MORAGG, PreProgress);
             }break;
             case State_Failed:
@@ -1236,37 +1224,24 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
 
                 if (Creature* pMoragg = GetInstance()->GetCreature(m_MoraggGUID))
                 {
-                    spawnCreature(BossReplacements[6].ghostEntry, pMoragg->GetSpawnX(), pMoragg->GetSpawnY(), pMoragg->GetSpawnZ(), pMoragg->GetSpawnO());
+                    SpawnGhostlyReplacement(CN_MORAGG, pMoragg->GetSpawnX(), pMoragg->GetSpawnY(), pMoragg->GetSpawnZ(), pMoragg->GetSpawnO());
                     pMoragg->Despawn(1000, 0);
                 }
-                // Reset whole dungeon
-                SetInstanceData(INDEX_INSTANCE_PROGRESS, State_Failed);
             }break;
             case Finished:
             {
+                // Start timer for next portal
                 SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
             }break;
         }
     }break;
     case INDEX_ICHORON:
     {
-        // Open his gates
         switch (pData)
         {
         case Performed:
         {
-            if (GameObject* pGates = GetInstance()->GetGameObject(m_IchoronCellGUID))
-            {
-                pGates->SetState(GO_STATE_OPEN);
-            }
-            if (Creature* pIchoron = GetInstance()->GetCreature(m_IchoronGUID))
-            {
-                if (pIchoron->isAlive())
-                {
-                    pIchoron->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
-                    pIchoron->GetAIInterface()->setWayPointToMove(1);
-                }
-            }
+            ReleaseBoss(m_IchoronCellGUID, m_IchoronGUID);
             SetInstanceData(INDEX_ICHORON, PreProgress);
         }break;
         case State_Failed:
@@ -1278,14 +1253,132 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
 
             if (Creature* pIchoron = GetInstance()->GetCreature(m_IchoronGUID))
             {
-                spawnCreature(BossReplacements[6].ghostEntry, pIchoron->GetSpawnX(), pIchoron->GetSpawnY(), pIchoron->GetSpawnZ(), pIchoron->GetSpawnO());
+                SpawnGhostlyReplacement(CN_ICHORON, pIchoron->GetSpawnX(), pIchoron->GetSpawnY(), pIchoron->GetSpawnZ(), pIchoron->GetSpawnO());
                 pIchoron->Despawn(1000, 0);
             }
-            // Reset whole dungeon
-            SetInstanceData(INDEX_INSTANCE_PROGRESS, State_Failed);
         }break;
         case Finished:
         {
+            // Start timer for next portal
+            SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
+        }break;
+        }
+    }break;
+    case INDEX_ZURAMAT:
+    {
+        switch (pData)
+        {
+        case Performed:
+        {
+            ReleaseBoss(m_ZuramatCellGUID, m_ZuramatGUID);
+            SetInstanceData(INDEX_ZURAMAT, PreProgress);
+        }break;
+        case State_Failed:
+        {
+            if (GameObject* pGates = GetInstance()->GetGameObject(m_ZuramatCellGUID))
+            {
+                pGates->SetState(GO_STATE_CLOSED);
+            }
+
+            if (Creature* pZuramat = GetInstance()->GetCreature(m_IchoronGUID))
+            {
+                SpawnGhostlyReplacement(CN_ZURAMAT, pZuramat->GetSpawnX(), pZuramat->GetSpawnY(), pZuramat->GetSpawnZ(), pZuramat->GetSpawnO());
+                pZuramat->Despawn(1000, 0);
+            }
+        }break;
+        case Finished:
+        {
+            // Start timer for next portal
+            SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
+        }break;
+        }
+    }break;
+    case INDEX_EREKEM:
+    {
+        switch (pData)
+        {
+        case Performed:
+        {
+            // TODO: add text and add movement to his guards
+            ReleaseBoss(m_ErekemCellGUID, m_ErekemGUID);
+            SetInstanceData(INDEX_ZURAMAT, PreProgress);
+        }break;
+        case State_Failed:
+        {
+            if (GameObject* pGates = GetInstance()->GetGameObject(m_ZuramatCellGUID))
+            {
+                pGates->SetState(GO_STATE_CLOSED);
+            }
+
+            if (Creature* pErekem = GetInstance()->GetCreature(m_ErekemGUID))
+            {
+                SpawnGhostlyReplacement(CN_ZURAMAT, pErekem->GetSpawnX(), pErekem->GetSpawnY(), pErekem->GetSpawnZ(), pErekem->GetSpawnO());
+                pErekem->Despawn(1000, 0);
+            }
+        }break;
+        case Finished:
+        {
+            // Start timer for next portal
+            SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
+        }break;
+        }
+    }break;
+    case INDEX_LAVANTHOR:
+    {
+        switch (pData)
+        {
+        case Performed:
+        {
+            // TODO: add sound/emote mimic
+            ReleaseBoss(m_LavanthorCellGUID, m_LavanthorGUID);
+            SetInstanceData(INDEX_LAVANTHOR, PreProgress);
+        }break;
+        case State_Failed:
+        {
+            if (GameObject* pGates = GetInstance()->GetGameObject(m_LavanthorCellGUID))
+            {
+                pGates->SetState(GO_STATE_CLOSED);
+            }
+
+            if (Creature* pLavanthor = GetInstance()->GetCreature(m_IchoronGUID))
+            {
+                SpawnGhostlyReplacement(CN_ZURAMAT, pLavanthor->GetSpawnX(), pLavanthor->GetSpawnY(), pLavanthor->GetSpawnZ(), pLavanthor->GetSpawnO());
+                pLavanthor->Despawn(1000, 0);
+            }
+        }break;
+        case Finished:
+        {
+            // Start timer for next portal
+            SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
+        }break;
+        }
+    }break;
+    case INDEX_XEVOZZ:
+    {
+        switch (pData)
+        {
+        case Performed:
+        {
+            // TODO: add text and add movement to his guards
+            ReleaseBoss(m_XevozzCellGUID, m_XevozzGUID);
+            SetInstanceData(INDEX_XEVOZZ, PreProgress);
+        }break;
+        case State_Failed:
+        {
+            if (GameObject* pGates = GetInstance()->GetGameObject(m_XevozzCellGUID))
+            {
+                pGates->SetState(GO_STATE_CLOSED);
+            }
+
+            if (Creature* pXevozz = GetInstance()->GetCreature(m_XevozzGUID))
+            {
+                SpawnGhostlyReplacement(CN_ZURAMAT, pXevozz->GetSpawnX(), pXevozz->GetSpawnY(), pXevozz->GetSpawnZ(), pXevozz->GetSpawnO());
+                pXevozz->Despawn(1000, 0);
+            }
+        }break;
+        case Finished:
+        {
+            // Start timer for next portal
             SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
         }break;
         }
@@ -1486,94 +1579,122 @@ void TheVioletHoldInstance::OnCreatureDeath(Creature* pCreature, Unit* pKiller)
 {
     switch (pCreature->GetEntry())
     {
-    case CN_ZURAMAT:
-    {
-        if (!m_isZuramatAchievFailed)
+        case CN_ZURAMAT:
         {
-            UpdateAchievCriteriaForPlayers(ACHIEV_CRIT_VOID_DANCE, 1);
-        }
-        setData(pCreature->GetEntry(), Finished);
-    }break;
-    case CN_VOID_SENTRY:
-    {
-        m_isZuramatAchievFailed = true;
-    }break;
-    case CN_PORTAL_INTRO:
-    case CN_INTRO_AZURE_BINDER_ARCANE:
-    case CN_INTRO_AZURE_INVADER_ARMS:
-    case CN_INTRO_AZURE_MAGE_SLAYER_MELEE:
-    case CN_INTRO_AZURE_SPELLBREAKER_ARCANE:
-    {
-        //TODO: replace this with basic despawn
-        if (pCreature->IsInWorld())
+            if (!m_isZuramatAchievFailed)
+            {
+                UpdateAchievCriteriaForPlayers(ACHIEV_CRIT_VOID_DANCE, 1);
+            }
+            setData(pCreature->GetEntry(), Finished);
+        }break;
+        case CN_VOID_SENTRY:
         {
-            pCreature->Despawn(0, 0);
-        }
-    }break;
-    case CN_CYANIGOSA:
-    {
-        if (!m_isDefAchievFailed)
+            m_isZuramatAchievFailed = true;
+        }break;
+        case CN_PORTAL_INTRO:
+        case CN_INTRO_AZURE_BINDER_ARCANE:
+        case CN_INTRO_AZURE_INVADER_ARMS:
+        case CN_INTRO_AZURE_MAGE_SLAYER_MELEE:
+        case CN_INTRO_AZURE_SPELLBREAKER_ARCANE:
         {
-            UpdateAchievCriteriaForPlayers(ACHIEV_CRIT_DEFENSELES, 1);
-        }
-        SetInstanceData(INDEX_INSTANCE_PROGRESS, Finished);
-    }break;
-    case CN_VIOLET_HOLD_GUARD:
-    {
-    }break;
-    case CN_MORAGG:
-    {
-        SetInstanceData(INDEX_MORAGG, Finished);
-    }break;
-    case CN_ICHORON:
-    {
-        SetInstanceData(INDEX_ICHORON, Finished);
-    }break;
-    case CN_XEVOZZ:
-    {
-        SetInstanceData(INDEX_XEVOZZ, Finished);
-    }break;
-    case CN_LAVANTHOR:
-    {
-        SetInstanceData(INDEX_LAVANTHOR, Finished);
-    }break;
-    case CN_EREKEM:
-    {
-        SetInstanceData(INDEX_EREKEM, Finished);
-    }break;
-    // Main portal event related
-    case CN_AZURE_INVADER:
-    case CN_AZURE_SPELLBREAKER:
-    case CN_AZURE_BINDER:
-    case CN_AZURE_MAGE_SLAYER:
-    case CN_AZURE_CAPTAIN:
-    case CN_AZURE_SORCERER:
-    case CN_AZURE_RAIDER:
-    case CN_AZURE_STALKER:
-    {
-        if (m_activePortal.type == VH_PORTAL_TYPE_SQUAD && GetInstanceData(INDEX_PORTAL_PROGRESS) == InProgress)
+            pCreature->Despawn(1000, 0);
+        }break;
+        case CN_CYANIGOSA:
         {
-            m_activePortal.DelSummonDataByGuid(GET_LOWGUID_PART(pCreature->GetGUID()));
-            if (m_activePortal.summonsList.empty())
+            if (!m_isDefAchievFailed)
+            {
+                UpdateAchievCriteriaForPlayers(ACHIEV_CRIT_DEFENSELES, 1);
+            }
+            SetInstanceData(INDEX_INSTANCE_PROGRESS, Finished);
+        }break;
+        case CN_VIOLET_HOLD_GUARD:
+        {
+        }break;
+        case CN_MORAGG:
+        {
+            SetInstanceData(INDEX_MORAGG, Finished);
+        }break;
+        case CN_ICHORON:
+        {
+            SetInstanceData(INDEX_ICHORON, Finished);
+        }break;
+        case CN_XEVOZZ:
+        {
+            SetInstanceData(INDEX_XEVOZZ, Finished);
+        }break;
+        case CN_LAVANTHOR:
+        {
+            SetInstanceData(INDEX_LAVANTHOR, Finished);
+        }break;
+        case CN_EREKEM:
+        {
+            SetInstanceData(INDEX_EREKEM, Finished);
+        }break;
+        // Main portal event related
+        case CN_AZURE_INVADER:
+        case CN_AZURE_SPELLBREAKER:
+        case CN_AZURE_BINDER:
+        case CN_AZURE_MAGE_SLAYER:
+        case CN_AZURE_CAPTAIN:
+        case CN_AZURE_SORCERER:
+        case CN_AZURE_RAIDER:
+        case CN_AZURE_STALKER:
+        {
+            if (m_activePortal.type == VH_PORTAL_TYPE_SQUAD && GetInstanceData(INDEX_PORTAL_PROGRESS) == InProgress)
+            {
+                m_activePortal.DelSummonDataByGuid(GET_LOWGUID_PART(pCreature->GetGUID()));
+                if (m_activePortal.summonsList.empty())
+                {
+                    SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
+                }
+            }
+        }break;
+        case CN_PORTAL_GUARDIAN:
+        case CN_PORTAL_KEEPER:
+        {
+            if (m_activePortal.type == VH_PORTAL_TYPE_GUARDIAN)
             {
                 SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
             }
-        }
-    }break;
-    case CN_PORTAL_GUARDIAN:
-    case CN_PORTAL_KEEPER:
-    {
-        if (m_activePortal.type == VH_PORTAL_TYPE_GUARDIAN)
+            m_portalGuardianGUID = 0;
+        }break;
+        // Ghostly replacements
+        case CN_ARAKKOA:
+        case CN_VOID_LORD:
+        case CN_ETHERAL:
+        case CN_SWIRLING:
+        case CN_LAVA_HOUND:
+        case CN_WATCHER:
         {
-            SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
-        }
-        m_portalGuardianGUID = 0;
-    }break;
-    default:
-    {
-        LOG_ERROR("UNHANDLED CREATURE %u", pCreature->GetEntry());
+            switch (GetBossEntryByGhost(pCreature->GetEntry()))
+            {
+                case CN_MORAGG:
+                {
+                    SetInstanceData(INDEX_MORAGG, Finished);
+                }break;
+                case CN_ICHORON:
+                {
+                    SetInstanceData(INDEX_ICHORON, Finished);
+                }break;
+                case CN_XEVOZZ:
+                {
+                    SetInstanceData(INDEX_XEVOZZ, Finished);
+                }break;
+                case CN_LAVANTHOR:
+                {
+                    SetInstanceData(INDEX_LAVANTHOR, Finished);
+                }break;
+                case CN_EREKEM:
+                {
+                    SetInstanceData(INDEX_EREKEM, Finished);
+                }break;
+            }
+        }break;
+        default:
+        {
+            LOG_ERROR("UNHANDLED CREATURE %u", pCreature->GetEntry());
 
-    }break;
+        }break;
     }
 }
 
@@ -1584,13 +1705,6 @@ void TheVioletHoldInstance::OnPlayerEnter(Player* plr)
 
 void TheVioletHoldInstance::UpdateEvent()
 {
-    if (GetInstanceData(INDEX_INSTANCE_PROGRESS) != InProgress || GetInstanceData(INDEX_INSTANCE_PROGRESS) != Finished)
-    {
-
-        //RemoveIntroNpcs(true);
-        //UpdateGuards();
-
-    }
     if (GetInstanceData(INDEX_INSTANCE_PROGRESS) == InProgress)
     {
         if (GetInstanceData(INDEX_PORTAL_PROGRESS) == NotStarted)
@@ -1779,6 +1893,76 @@ void TheVioletHoldInstance::ResetIntro()
         // GUID will be set at OnCreaturePushToWorld event
         spawnCreature(CN_LIEUTNANT_SINCLARI, SinclariSpawnLoc.x, SinclariSpawnLoc.y, SinclariSpawnLoc.z, SinclariSpawnLoc.o);
     }
+
+    // Close prison cells depending on instance data
+
+    if (GetInstanceData(INDEX_EREKEM) != Finished)
+    {
+        if (GameObject* pGo = GetInstance()->GetGameObject(m_ErekemCellGUID))
+        {
+            if (pGo->GetState() == GO_STATE_OPEN)
+            {
+                pGo->SetState(GO_STATE_CLOSED);
+            }
+        }
+    }
+
+    if (GetInstanceData(INDEX_ZURAMAT) != Finished)
+    {
+        if (GameObject* pGo = GetInstance()->GetGameObject(m_ZuramatCellGUID))
+        {
+            if (pGo->GetState() == GO_STATE_OPEN)
+            {
+                pGo->SetState(GO_STATE_CLOSED);
+            }
+        }
+    }
+
+    if (GetInstanceData(INDEX_MORAGG) != Finished)
+    {
+        if (GameObject* pGo = GetInstance()->GetGameObject(m_MorragCellGUID))
+        {
+            if (pGo->GetState() == GO_STATE_OPEN)
+            {
+                pGo->SetState(GO_STATE_CLOSED);
+            }
+        }
+    }
+
+    if (GetInstanceData(INDEX_ICHORON) != Finished)
+    {
+        if (GameObject* pGo = GetInstance()->GetGameObject(m_IchoronCellGUID))
+        {
+            if (pGo->GetState() == GO_STATE_OPEN)
+            {
+                pGo->SetState(GO_STATE_CLOSED);
+            }
+        }
+    }
+
+    if (GetInstanceData(INDEX_LAVANTHOR) != Finished)
+    {
+        if (GameObject* pGo = GetInstance()->GetGameObject(m_LavanthorCellGUID))
+        {
+            if (pGo->GetState() == GO_STATE_OPEN)
+            {
+                pGo->SetState(GO_STATE_CLOSED);
+            }
+        }
+    }
+
+    if (GetInstanceData(INDEX_XEVOZZ) != Finished)
+    {
+        if (GameObject* pGo = GetInstance()->GetGameObject(m_XevozzCellGUID))
+        {
+            if (pGo->GetState() == GO_STATE_OPEN)
+            {
+                pGo->SetState(GO_STATE_CLOSED);
+            }
+        }
+    }
+
+    // Do base stuff
     SpawnIntro();
     ResetCrystals(false);
 }
@@ -1931,16 +2115,55 @@ uint32_t TheVioletHoldInstance::GetGhostlyReplacement(uint32_t bossEntry)
             return BossReplacements[i].ghostEntry;
         }
     }
+
+    return 0;
 }
 
 // Returns boss entry by ghost entry
-uint32_t TheVioletHoldInstance::GetBossReplacedBy(uint32_t ghostEntry)
+uint32_t TheVioletHoldInstance::GetBossEntryByGhost(uint32_t ghostEntry)
 {
     for (uint8_t i = 0; i < MaxBossReplacements; i++)
     {
         if (BossReplacements[i].ghostEntry == ghostEntry)
         {
             return BossReplacements[i].bossEntry;
+        }
+    }
+
+    return 0;
+}
+
+void TheVioletHoldInstance::SpawnGhostlyReplacement(uint32_t bossEntry, float x, float y, float z, float o)
+{
+    uint32_t replacementEntry = GetGhostlyReplacement(bossEntry);
+    if (replacementEntry != 0)
+    {
+        if (!spawnCreature(replacementEntry, x, y, z, o))
+        {
+            LOG_ERROR("Violet Hold: failed to spawn ghostly replacement for boss entry %u", bossEntry);
+        }
+    }
+    else
+    {
+        LOG_ERROR("Violet Hold: failed to get ghostly replacement for boss entry %u", bossEntry);
+    }
+}
+
+void TheVioletHoldInstance::ReleaseBoss(uint32_t gatesGuid, uint32_t bossGuid)
+{
+    // Open gates
+    if (GameObject* pGates = GetInstance()->GetGameObject(gatesGuid))
+    {
+        pGates->SetState(GO_STATE_OPEN);
+    }
+
+    // Start Creature movement
+    if (Creature* pBoss = GetInstance()->GetCreature(bossGuid))
+    {
+        if (pBoss->isAlive())
+        {
+            pBoss->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
+            pBoss->GetAIInterface()->setWayPointToMove(1);
         }
     }
 }

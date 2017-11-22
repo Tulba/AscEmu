@@ -114,7 +114,8 @@ enum VHTimers : uint32_t
     VH_NEXT_PORTAL_SPAWN_TIME       = 10
 };
 
-// Our custom state used by instance script
+// Custom state used by instance script
+// This state indicates that dungeon event state is failed
 const uint32_t State_Failed = 5;
 
 enum VH_achievements : uint32_t
@@ -700,7 +701,7 @@ public:
     // Resets activation crystals
     void ResetCrystals(bool isSelectable);
 
-    /// Update achievement criteria for all players by id
+    // Update achievement criteria for all players by id
     void UpdateAchievCriteriaForPlayers(uint32_t id, uint32_t criteriaCount);
 
     // Calls guards out
@@ -710,7 +711,13 @@ public:
     uint32_t GetGhostlyReplacement(uint32_t bossEntry);
 
     // Returns boss entry by ghost entry
-    uint32_t GetBossReplacedBy(uint32_t ghostEntry);
+    uint32_t GetBossEntryByGhost(uint32_t ghostEntry);
+
+    // Spawns ghostly replacement for boss entry
+    void SpawnGhostlyReplacement(uint32_t bossEntry, float x, float y, float z, float o);
+
+    // Releases boss from its cell and starts boss movement
+    void ReleaseBoss(uint32_t gatesGuid, uint32_t bossGuid);
 
     // Virtual event functions
     void OnCreaturePushToWorld(Creature* pCreature) override;
