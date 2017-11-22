@@ -953,7 +953,7 @@ class AzureSaboteurAI : public CreatureAIScript
                             }break;
                             case CN_ICHORON:
                             {
-                                pInstance->SetInstanceData(INDEX_ICHONOR, PreProgress);
+                                pInstance->SetInstanceData(INDEX_ICHORON, PreProgress);
                             }break;
                             case CN_XEVOZZ:
                             {
@@ -1066,7 +1066,7 @@ TheVioletHoldInstance::TheVioletHoldInstance(MapMgr* pMapMgr) :
     m_sinclariGUID(0),
     m_ErekemGUID(0),
     m_MoraggGUID(0),
-    m_IchonorGUID(0),
+    m_IchoronGUID(0),
     m_XevozzGUID(0),
     m_LavanthorGUID(0),
     m_ZuramatGUID(0),
@@ -1239,10 +1239,55 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
                     spawnCreature(BossReplacements[6].ghostEntry, pMoragg->GetSpawnX(), pMoragg->GetSpawnY(), pMoragg->GetSpawnZ(), pMoragg->GetSpawnO());
                     pMoragg->Despawn(1000, 0);
                 }
+                // Reset whole dungeon
+                SetInstanceData(INDEX_INSTANCE_PROGRESS, State_Failed);
             }break;
             case Finished:
             {
+                SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
             }break;
+        }
+    }break;
+    case INDEX_ICHORON:
+    {
+        // Open his gates
+        switch (pData)
+        {
+        case Performed:
+        {
+            if (GameObject* pGates = GetInstance()->GetGameObject(m_IchoronCellGUID))
+            {
+                pGates->SetState(GO_STATE_OPEN);
+            }
+            if (Creature* pIchoron = GetInstance()->GetCreature(m_IchoronGUID))
+            {
+                if (pIchoron->isAlive())
+                {
+                    pIchoron->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
+                    pIchoron->GetAIInterface()->setWayPointToMove(1);
+                }
+            }
+            SetInstanceData(INDEX_ICHORON, PreProgress);
+        }break;
+        case State_Failed:
+        {
+            if (GameObject* pGates = GetInstance()->GetGameObject(m_IchoronCellGUID))
+            {
+                pGates->SetState(GO_STATE_CLOSED);
+            }
+
+            if (Creature* pIchoron = GetInstance()->GetCreature(m_IchoronGUID))
+            {
+                spawnCreature(BossReplacements[6].ghostEntry, pIchoron->GetSpawnX(), pIchoron->GetSpawnY(), pIchoron->GetSpawnZ(), pIchoron->GetSpawnO());
+                pIchoron->Despawn(1000, 0);
+            }
+            // Reset whole dungeon
+            SetInstanceData(INDEX_INSTANCE_PROGRESS, State_Failed);
+        }break;
+        case Finished:
+        {
+            SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
+        }break;
         }
     }break;
     default:
@@ -1299,7 +1344,7 @@ void TheVioletHoldInstance::OnGameObjectPushToWorld(GameObject* pGo)
     }break;
     case GO_ICHORON_CELL:
     {
-        m_IchnonorCellGUID = pGo->GetLowGUID();
+        m_IchoronCellGUID = pGo->GetLowGUID();
     }break;
     case GO_ZURAMAT_CELL:
     {
@@ -1342,25 +1387,6 @@ void TheVioletHoldInstance::OnGameObjectActivate(GameObject* pGo, Player* plr)
         DoCrystalActivation();
     }
 }
-
-
-/*void TheVioletHoldInstance::SaveInstanceData(uint32_t spawnId)
-{
-    if (GetInstance()->iInstanceMode != MODE_HEROIC)
-        return;
-
-    if (GetInstance()->pInstance->m_killedNpcs.find(spawnId) == GetInstance()->pInstance->m_killedNpcs.end())
-    {
-        GetSavedInstance()->m_killedNpcs.insert(spawnId);
-        GetSavedInstance()->SaveToDB();
-    }
-
-
-Instance* GetSavedInstance()
-{
-    return GetInstance()->pInstance;
-}
-*/
 
 void TheVioletHoldInstance::OnCreaturePushToWorld(Creature* pCreature)
 {
@@ -1437,7 +1463,7 @@ void TheVioletHoldInstance::OnCreaturePushToWorld(Creature* pCreature)
     }break;
     case CN_ICHORON:
     {
-        m_IchonorGUID = GET_LOWGUID_PART(pCreature->GetGUID());
+        m_IchoronGUID = GET_LOWGUID_PART(pCreature->GetGUID());
     }break;
     case CN_XEVOZZ:
     {
@@ -1455,7 +1481,7 @@ void TheVioletHoldInstance::OnCreaturePushToWorld(Creature* pCreature)
         break;
     }
 }
-/*
+
 void TheVioletHoldInstance::OnCreatureDeath(Creature* pCreature, Unit* pKiller)
 {
     switch (pCreature->GetEntry())
@@ -1501,7 +1527,7 @@ void TheVioletHoldInstance::OnCreatureDeath(Creature* pCreature, Unit* pKiller)
     }break;
     case CN_ICHORON:
     {
-        SetInstanceData(INDEX_ICHONOR, Finished);
+        SetInstanceData(INDEX_ICHORON, Finished);
     }break;
     case CN_XEVOZZ:
     {
@@ -1550,7 +1576,7 @@ void TheVioletHoldInstance::OnCreatureDeath(Creature* pCreature, Unit* pKiller)
     }break;
     }
 }
-*/
+
 void TheVioletHoldInstance::OnPlayerEnter(Player* plr)
 {
     UpdateWorldStates();
@@ -1601,23 +1627,6 @@ void TheVioletHoldInstance::UpdateEvent()
             SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
         }
     }
-/*
-    if (!m_eventSpawns.empty())
-    {
-        for (std::list<uint32_t>::iterator itr = m_eventSpawns.begin(); itr != m_eventSpawns.end();)
-        {
-            Creature* pSummon = GetInstance()->GetCreature(*itr);
-            if (!pSummon || !pSummon->isAlive())
-            {
-                // Let players get their skinning loots
-                pSummon->Despawn(2 * 60 * 1000, 0); // 2 mins
-                itr = m_eventSpawns.erase(itr);
-                continue;
-            }
-            ++itr;
-        }
-    }
-*/
 }
 
 // Generate very basic portal info
@@ -1913,35 +1922,6 @@ void TheVioletHoldInstance::CallGuardsOut()
     }
 }
 
-    // Huge HACK
-#ifdef ENABLE_VH_HACKS
-void TheVioletHoldInstance::UpdateGuards()
-{
-    if (m_guardsGuids.empty())
-        return;
-
-    for (std::list<uint32_t>::iterator itr = m_guardsGuids.begin(); itr != m_guardsGuids.end(); ++itr)
-    {
-        if (Creature* pGuard = GetInstance()->GetCreature(*itr))
-        {
-            // hack fix to get his respawn properly
-            if (pGuard->IsDead())
-            {
-                pGuard->Despawn(1000, 1000);
-                pGuard->setDeathState(ALIVE);   // This prevents him from respawn/despawn loop
-            }
-
-            // hack fix to set their original facing
-            if (pGuard->IsInInstance() && pGuard->isAlive() && !pGuard->getcombatstatus()->IsInCombat() && pGuard->GetAIInterface()->MoveDone())
-            {
-                if (pGuard->GetOrientation() != pGuard->GetSpawnO())
-                    pGuard->SetFacing(pGuard->GetSpawnO());
-            }
-        }
-    }
-}
-#endif //#ifdef ENABLE_VH_HACKS
-
 uint32_t TheVioletHoldInstance::GetGhostlyReplacement(uint32_t bossEntry)
 {
     for (uint8_t i = 0; i < MaxBossReplacements; i++)
@@ -1954,7 +1934,7 @@ uint32_t TheVioletHoldInstance::GetGhostlyReplacement(uint32_t bossEntry)
 }
 
 // Returns boss entry by ghost entry
-uint32_t TheVioletHoldInstance::GetBossReplaceBy(uint32_t ghostEntry)
+uint32_t TheVioletHoldInstance::GetBossReplacedBy(uint32_t ghostEntry)
 {
     for (uint8_t i = 0; i < MaxBossReplacements; i++)
     {

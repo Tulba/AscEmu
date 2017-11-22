@@ -31,7 +31,7 @@ enum DataIndex : uint8_t
 
     // BOSS DATA
     INDEX_MORAGG,
-    INDEX_ICHONOR,
+    INDEX_ICHORON,
     INDEX_ZURAMAT,
     INDEX_EREKEM,
     INDEX_LAVANTHOR,
@@ -602,8 +602,10 @@ const Movement::Location SixthPoralWPs[MaxSixhtPortalWPS] =
     {}
 };
 
+// Default location used for attackers
 const Movement::Location DefaultPortalWPs = { 1843.567017f, 804.288208f, 44.139091f, 0 };
 
+// Common instance events tasks are handled by SetInstanceData function
 class TheVioletHoldInstance : public InstanceScript
 {
     uint32_t m_VHencounterData[INDEX_MAX];
@@ -615,7 +617,7 @@ class TheVioletHoldInstance : public InstanceScript
     // Low guids of gameobjects
     uint32_t m_mainGatesGUID;
     uint32_t m_MorragCellGUID;
-    uint32_t m_IchnonorCellGUID;
+    uint32_t m_IchoronCellGUID;
     uint32_t m_XevozzCellGUID;
     uint32_t m_LavanthorCellGUID;
     uint32_t m_ZuramatCellGUID;
@@ -626,7 +628,7 @@ class TheVioletHoldInstance : public InstanceScript
     uint32_t m_sinclariGUID;
     uint32_t m_ErekemGUID;
     uint32_t m_MoraggGUID;
-    uint32_t m_IchonorGUID;
+    uint32_t m_IchoronGUID;
     uint32_t m_XevozzGUID;
     uint32_t m_LavanthorGUID;
     uint32_t m_ZuramatGUID;
@@ -659,52 +661,37 @@ public:
     static InstanceScript* Create(MapMgr* pMapMgr) { return new TheVioletHoldInstance(pMapMgr); }
     TheVioletHoldInstance(MapMgr* pMapMgr);
 
-    //TODO: this should be redone by checking actual saved data for heroic mode
+    // Sets base instance data
     void ResetInstanceData();
 
+    // Sets instance data - used for events handling
     void SetInstanceData(uint32_t pIndex, uint32_t pData);
 
+    // Gets instance data - used for events handling
     uint32_t GetInstanceData(uint32_t pIndex);
-
-    void OnLoad() override;
-
-    void OnGameObjectPushToWorld(GameObject* pGo) override;
-
-    void OnGameObjectActivate(GameObject* pGo, Player* plr) override;
-
-
-    //void SaveInstanceData(uint32_t spawnId);
-
-    //Instance* GetSavedInstance();
-
-    void OnCreaturePushToWorld(Creature* pCreature) override;
-
-    //void OnCreatureDeath(Creature* pCreature, Unit* pKiller);
-
-    void OnPlayerEnter(Player* plr) override;
-
-    void UpdateEvent() override;
 
     // Generate very basic portal info
     void GenerateRandomPortal(VHPortalInfo & newPortal);
 
     // SpawnPortal
     void SpawnPortal();
-    /////////////////////////////////////////////////////////
-    /// Helper functions
-    ///
 
+    // Activates crystal event
     void DoCrystalActivation();
 
+    // Resets whole dungeon and starts intro npcs summoning
     void ResetIntro();
 
     // Removes all dead intro npcs
     void RemoveIntroNpcs(bool deadOnly);
 
+    // Removed intro npcs by low guid
     void RemoveIntroNpcByGuid(uint32_t guid);
 
+    // Updates world states based on instance data
     void UpdateWorldStates();
 
+    // Send worldstates packet to players
     void UpdateInstanceWorldState(uint32_t field, uint32_t value);
 
     // Spawn instance intro
@@ -723,5 +710,14 @@ public:
     uint32_t GetGhostlyReplacement(uint32_t bossEntry);
 
     // Returns boss entry by ghost entry
-    uint32_t GetBossReplaceBy(uint32_t ghostEntry);
+    uint32_t GetBossReplacedBy(uint32_t ghostEntry);
+
+    // Virtual event functions
+    void OnCreaturePushToWorld(Creature* pCreature) override;
+    void OnCreatureDeath(Creature* pCreature, Unit* pKiller) override;
+    void OnPlayerEnter(Player* plr) override;
+    void UpdateEvent() override;
+    void OnLoad() override;
+    void OnGameObjectPushToWorld(GameObject* pGo) override;
+    void OnGameObjectActivate(GameObject* pGo, Player* plr) override;
 };
