@@ -1101,290 +1101,290 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
 
     switch (pIndex)
     {
-    case INDEX_INSTANCE_PROGRESS:
-    {
-        if (pData == Performed)
+        case INDEX_INSTANCE_PROGRESS:
         {
-            DoCrystalActivation();
-        }
-
-        if (pData == PreProgress)
-        {
-            //RemoveIntroNpcs(false);
-            // Close the gates
-            if (GameObject* pGO = GetInstance()->GetGameObject(m_mainGatesGUID))
+            switch (pData)
             {
-                pGO->SetState(GO_STATE_CLOSED);
-            }
-
-            // Update crystals
-            ResetCrystals(true);
-
-            // Set HP
-            SetInstanceData(DATA_SEAL_HEALTH, 100);
-        }
-
-        if (pData == InProgress)
-        {
-            m_portalSummonTimer = VH_INITIAL_PORTAL_TIME;
-        }
-
-        if (pData == State_Failed)
-        {
-            ResetIntro();
-            ResetInstanceData();
-        }
-
-        if (pData == Finished)
-        {
-            // Open gates
-            GameObject* pGates = GetInstance()->GetGameObject(m_mainGatesGUID);
-            if (pGates && pGates->GetState() == GO_STATE_CLOSED)
-            {
-                pGates->SetState(GO_STATE_OPEN);
-            }
-
-            // Start her outro event
-            Creature* pSinclari = GetInstance()->GetCreature(m_sinclariGUID);
-            if (pSinclari && pSinclari->GetScript())
-            {
-                pSinclari->GetScript()->RegisterAIUpdateEvent(1000);
-            }
-        }
-    }break;
-    case INDEX_PORTAL_PROGRESS:
-    {
-        if (pData == Finished)
-        {
-            if (Creature* pPortal = GetInstance()->GetCreature(m_portalGUID))
-            {
-                pPortal->Despawn(1000, 0);
-            }
-            m_portalGUID = 0;
-
-            // Lets reset event
-            SetInstanceData(INDEX_PORTAL_PROGRESS, NotStarted);
-            SetInstanceData(DATA_ARE_SUMMONS_MADE, 0);
-            m_activePortal.ResetData();
-        }
-    }break;
-    case DATA_SEAL_HEALTH:
-    {
-        if (GetInstanceData(INDEX_INSTANCE_PROGRESS) == InProgress)
-        {
-            if (pData <= 75 && !emote75pct)
-            {
-                if (Creature* pCreature = GetInstance()->GetCreature(m_sinclariGUID))
+                case Performed:
                 {
-                    pCreature->SendChatMessage(CHAT_MSG_MONSTER_SAY, LANG_UNIVERSAL, SEAL_PCT_75);
+                    DoCrystalActivation();
+                }break;
+                case PreProgress:
+                {
+                    //RemoveIntroNpcs(false);
+                    // Close the gates
+                    if (GameObject* pGO = GetInstance()->GetGameObject(m_mainGatesGUID))
+                    {
+                        pGO->SetState(GO_STATE_CLOSED);
+                    }
+
+                    // Update crystals
+                    ResetCrystals(true);
+
+                    // Set HP
+                    SetInstanceData(DATA_SEAL_HEALTH, 100);
+                }break;
+                case InProgress:
+                {
+                    m_portalSummonTimer = VH_INITIAL_PORTAL_TIME;
+                }break;
+                case State_Failed:
+                {
+                    ResetIntro();
+                    ResetInstanceData();
+                }break;
+                case Finished:
+                {
+                    // Open gates
+                    GameObject* pGates = GetInstance()->GetGameObject(m_mainGatesGUID);
+                    if (pGates && pGates->GetState() == GO_STATE_CLOSED)
+                    {
+                        pGates->SetState(GO_STATE_OPEN);
+                    }
+
+                    // Start her outro event
+                    Creature* pSinclari = GetInstance()->GetCreature(m_sinclariGUID);
+                    if (pSinclari && pSinclari->GetScript())
+                    {
+                        pSinclari->GetScript()->RegisterAIUpdateEvent(1000);
+                    }
+                }break;
+            }
+        }break;
+        case INDEX_PORTAL_PROGRESS:
+        {
+            if (pData == Finished)
+            {
+                if (Creature* pPortal = GetInstance()->GetCreature(m_portalGUID))
+                {
+                    pPortal->Despawn(1000, 0);
                 }
-                emote75pct = true;
-            }
+                m_portalGUID = 0;
 
-            if (pData <= 50 && !emote50pct)
-            {
-                if (Creature* pCreature = GetInstance()->GetCreature(m_sinclariGUID))
-                {
-                    pCreature->SendChatMessage(CHAT_MSG_MONSTER_SAY, LANG_UNIVERSAL, SEAL_PCT_50);
-                }
-                emote50pct = true;
+                // Lets reset event
+                SetInstanceData(INDEX_PORTAL_PROGRESS, NotStarted);
+                SetInstanceData(DATA_ARE_SUMMONS_MADE, 0);
+                m_activePortal.ResetData();
             }
-
-            if (pData <= 5 && !emote5pct)
-            {
-                if (Creature* pCreature = GetInstance()->GetCreature(m_sinclariGUID))
-                {
-                    pCreature->SendChatMessage(CHAT_MSG_MONSTER_SAY, LANG_UNIVERSAL, SEAL_PCT_5);
-                }
-                emote5pct = true;
-            }
-
-            if (pData == 0)
-            {
-                SetInstanceData(INDEX_INSTANCE_PROGRESS, State_Failed);
-            }
-            UpdateWorldStates();
-        }
-    }break;
-    case INDEX_MORAGG:
-    {
-        switch (pData)
+        }break;
+        case DATA_SEAL_HEALTH:
         {
-            case Performed:
+            if (GetInstanceData(INDEX_INSTANCE_PROGRESS) == InProgress)
             {
-                ReleaseBoss(m_MorragCellGUID, m_MoraggGUID);
-                SetInstanceData(INDEX_MORAGG, PreProgress);
-            }break;
-            case State_Failed:
-            {
-                if (GameObject* pGates = GetInstance()->GetGameObject(m_MorragCellGUID))
+                if (pData <= 75 && !emote75pct)
                 {
-                    pGates->SetState(GO_STATE_CLOSED);
+                    if (Creature* pCreature = GetInstance()->GetCreature(m_sinclariGUID))
+                    {
+                        pCreature->SendChatMessage(CHAT_MSG_MONSTER_SAY, LANG_UNIVERSAL, SEAL_PCT_75);
+                    }
+                    emote75pct = true;
                 }
 
-                if (Creature* pMoragg = GetInstance()->GetCreature(m_MoraggGUID))
+                if (pData <= 50 && !emote50pct)
                 {
-                    SpawnGhostlyReplacement(CN_MORAGG, pMoragg->GetSpawnX(), pMoragg->GetSpawnY(), pMoragg->GetSpawnZ(), pMoragg->GetSpawnO());
-                    pMoragg->Despawn(1000, 0);
+                    if (Creature* pCreature = GetInstance()->GetCreature(m_sinclariGUID))
+                    {
+                        pCreature->SendChatMessage(CHAT_MSG_MONSTER_SAY, LANG_UNIVERSAL, SEAL_PCT_50);
+                    }
+                    emote50pct = true;
                 }
-            }break;
-            case Finished:
-            {
-                // Start timer for next portal
-                SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
-            }break;
-        }
-    }break;
-    case INDEX_ICHORON:
-    {
-        switch (pData)
-        {
-        case Performed:
-        {
-            ReleaseBoss(m_IchoronCellGUID, m_IchoronGUID);
-            SetInstanceData(INDEX_ICHORON, PreProgress);
-        }break;
-        case State_Failed:
-        {
-            if (GameObject* pGates = GetInstance()->GetGameObject(m_IchoronCellGUID))
-            {
-                pGates->SetState(GO_STATE_CLOSED);
-            }
 
-            if (Creature* pIchoron = GetInstance()->GetCreature(m_IchoronGUID))
-            {
-                SpawnGhostlyReplacement(CN_ICHORON, pIchoron->GetSpawnX(), pIchoron->GetSpawnY(), pIchoron->GetSpawnZ(), pIchoron->GetSpawnO());
-                pIchoron->Despawn(1000, 0);
-            }
-        }break;
-        case Finished:
-        {
-            // Start timer for next portal
-            SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
-        }break;
-        }
-    }break;
-    case INDEX_ZURAMAT:
-    {
-        switch (pData)
-        {
-        case Performed:
-        {
-            ReleaseBoss(m_ZuramatCellGUID, m_ZuramatGUID);
-            SetInstanceData(INDEX_ZURAMAT, PreProgress);
-        }break;
-        case State_Failed:
-        {
-            if (GameObject* pGates = GetInstance()->GetGameObject(m_ZuramatCellGUID))
-            {
-                pGates->SetState(GO_STATE_CLOSED);
-            }
+                if (pData <= 5 && !emote5pct)
+                {
+                    if (Creature* pCreature = GetInstance()->GetCreature(m_sinclariGUID))
+                    {
+                        pCreature->SendChatMessage(CHAT_MSG_MONSTER_SAY, LANG_UNIVERSAL, SEAL_PCT_5);
+                    }
+                    emote5pct = true;
+                }
 
-            if (Creature* pZuramat = GetInstance()->GetCreature(m_IchoronGUID))
-            {
-                SpawnGhostlyReplacement(CN_ZURAMAT, pZuramat->GetSpawnX(), pZuramat->GetSpawnY(), pZuramat->GetSpawnZ(), pZuramat->GetSpawnO());
-                pZuramat->Despawn(1000, 0);
+                // Seal is destroyed
+                if (pData == 0)
+                {
+                    SetInstanceData(INDEX_INSTANCE_PROGRESS, State_Failed);
+                }
+                UpdateWorldStates();
             }
         }break;
-        case Finished:
+        case INDEX_MORAGG:
         {
-            // Start timer for next portal
-            SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
-        }break;
-        }
-    }break;
-    case INDEX_EREKEM:
-    {
-        switch (pData)
-        {
-        case Performed:
-        {
-            // TODO: add text and add movement to his guards
-            ReleaseBoss(m_ErekemCellGUID, m_ErekemGUID);
-            SetInstanceData(INDEX_ZURAMAT, PreProgress);
-        }break;
-        case State_Failed:
-        {
-            if (GameObject* pGates = GetInstance()->GetGameObject(m_ZuramatCellGUID))
+            switch (pData)
             {
-                pGates->SetState(GO_STATE_CLOSED);
-            }
+                case Performed:
+                {
+                    ReleaseBoss(m_MorragCellGUID, m_MoraggGUID);
+                    SetInstanceData(INDEX_MORAGG, PreProgress);
+                }break;
+                case State_Failed:
+                {
+                    if (GameObject* pGates = GetInstance()->GetGameObject(m_MorragCellGUID))
+                    {
+                        pGates->SetState(GO_STATE_CLOSED);
+                    }
 
-            if (Creature* pErekem = GetInstance()->GetCreature(m_ErekemGUID))
-            {
-                SpawnGhostlyReplacement(CN_ZURAMAT, pErekem->GetSpawnX(), pErekem->GetSpawnY(), pErekem->GetSpawnZ(), pErekem->GetSpawnO());
-                pErekem->Despawn(1000, 0);
+                    if (Creature* pMoragg = GetInstance()->GetCreature(m_MoraggGUID))
+                    {
+                        SpawnGhostlyReplacement(CN_MORAGG, pMoragg->GetSpawnX(), pMoragg->GetSpawnY(), pMoragg->GetSpawnZ(), pMoragg->GetSpawnO());
+                        pMoragg->Despawn(1000, 0);
+                    }
+                }break;
+                case Finished:
+                {
+                    // Start timer for next portal
+                    SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
+                }break;
             }
         }break;
-        case Finished:
+        case INDEX_ICHORON:
         {
-            // Start timer for next portal
-            SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
-        }break;
-        }
-    }break;
-    case INDEX_LAVANTHOR:
-    {
-        switch (pData)
-        {
-        case Performed:
-        {
-            // TODO: add sound/emote mimic
-            ReleaseBoss(m_LavanthorCellGUID, m_LavanthorGUID);
-            SetInstanceData(INDEX_LAVANTHOR, PreProgress);
-        }break;
-        case State_Failed:
-        {
-            if (GameObject* pGates = GetInstance()->GetGameObject(m_LavanthorCellGUID))
+            switch (pData)
             {
-                pGates->SetState(GO_STATE_CLOSED);
-            }
+                case Performed:
+                {
+                    ReleaseBoss(m_IchoronCellGUID, m_IchoronGUID);
+                    SetInstanceData(INDEX_ICHORON, PreProgress);
+                }break;
+                case State_Failed:
+                {
+                    if (GameObject* pGates = GetInstance()->GetGameObject(m_IchoronCellGUID))
+                    {
+                        pGates->SetState(GO_STATE_CLOSED);
+                    }
 
-            if (Creature* pLavanthor = GetInstance()->GetCreature(m_IchoronGUID))
-            {
-                SpawnGhostlyReplacement(CN_ZURAMAT, pLavanthor->GetSpawnX(), pLavanthor->GetSpawnY(), pLavanthor->GetSpawnZ(), pLavanthor->GetSpawnO());
-                pLavanthor->Despawn(1000, 0);
+                    if (Creature* pIchoron = GetInstance()->GetCreature(m_IchoronGUID))
+                    {
+                        SpawnGhostlyReplacement(CN_ICHORON, pIchoron->GetSpawnX(), pIchoron->GetSpawnY(), pIchoron->GetSpawnZ(), pIchoron->GetSpawnO());
+                        pIchoron->Despawn(1000, 0);
+                    }
+                }break;
+                case Finished:
+                {
+                    // Start timer for next portal
+                    SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
+                }break;
             }
         }break;
-        case Finished:
+        case INDEX_ZURAMAT:
         {
-            // Start timer for next portal
-            SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
-        }break;
-        }
-    }break;
-    case INDEX_XEVOZZ:
-    {
-        switch (pData)
-        {
-        case Performed:
-        {
-            // TODO: add text and add movement to his guards
-            ReleaseBoss(m_XevozzCellGUID, m_XevozzGUID);
-            SetInstanceData(INDEX_XEVOZZ, PreProgress);
-        }break;
-        case State_Failed:
-        {
-            if (GameObject* pGates = GetInstance()->GetGameObject(m_XevozzCellGUID))
+            switch (pData)
             {
-                pGates->SetState(GO_STATE_CLOSED);
-            }
+                case Performed:
+                {
+                    ReleaseBoss(m_ZuramatCellGUID, m_ZuramatGUID);
+                    SetInstanceData(INDEX_ZURAMAT, PreProgress);
+                }break;
+                case State_Failed:
+                {
+                    if (GameObject* pGates = GetInstance()->GetGameObject(m_ZuramatCellGUID))
+                    {
+                        pGates->SetState(GO_STATE_CLOSED);
+                    }
 
-            if (Creature* pXevozz = GetInstance()->GetCreature(m_XevozzGUID))
-            {
-                SpawnGhostlyReplacement(CN_ZURAMAT, pXevozz->GetSpawnX(), pXevozz->GetSpawnY(), pXevozz->GetSpawnZ(), pXevozz->GetSpawnO());
-                pXevozz->Despawn(1000, 0);
+                    if (Creature* pZuramat = GetInstance()->GetCreature(m_IchoronGUID))
+                    {
+                        SpawnGhostlyReplacement(CN_ZURAMAT, pZuramat->GetSpawnX(), pZuramat->GetSpawnY(), pZuramat->GetSpawnZ(), pZuramat->GetSpawnO());
+                        pZuramat->Despawn(1000, 0);
+                    }
+                }break;
+                case Finished:
+                {
+                    // Start timer for next portal
+                    SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
+                }break;
             }
         }break;
-        case Finished:
+        case INDEX_EREKEM:
         {
-            // Start timer for next portal
-            SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
+            switch (pData)
+            {
+                case Performed:
+                {
+                    // TODO: add text and add movement to his guards
+                    ReleaseBoss(m_ErekemCellGUID, m_ErekemGUID);
+                    SetInstanceData(INDEX_ZURAMAT, PreProgress);
+                }break;
+                case State_Failed:
+                {
+                    if (GameObject* pGates = GetInstance()->GetGameObject(m_ZuramatCellGUID))
+                    {
+                        pGates->SetState(GO_STATE_CLOSED);
+                    }
+
+                    if (Creature* pErekem = GetInstance()->GetCreature(m_ErekemGUID))
+                    {
+                        SpawnGhostlyReplacement(CN_ZURAMAT, pErekem->GetSpawnX(), pErekem->GetSpawnY(), pErekem->GetSpawnZ(), pErekem->GetSpawnO());
+                        pErekem->Despawn(1000, 0);
+                    }
+                }break;
+                case Finished:
+                {
+                    // Start timer for next portal
+                    SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
+                }break;
+            }
         }break;
-        }
-    }break;
-    default:
-        break;
+        case INDEX_LAVANTHOR:
+        {
+            switch (pData)
+            {
+                case Performed:
+                {
+                    // TODO: add sound/emote mimic
+                    ReleaseBoss(m_LavanthorCellGUID, m_LavanthorGUID);
+                    SetInstanceData(INDEX_LAVANTHOR, PreProgress);
+                }break;
+                case State_Failed:
+                {
+                    if (GameObject* pGates = GetInstance()->GetGameObject(m_LavanthorCellGUID))
+                    {
+                        pGates->SetState(GO_STATE_CLOSED);
+                    }
+
+                    if (Creature* pLavanthor = GetInstance()->GetCreature(m_IchoronGUID))
+                    {
+                        SpawnGhostlyReplacement(CN_ZURAMAT, pLavanthor->GetSpawnX(), pLavanthor->GetSpawnY(), pLavanthor->GetSpawnZ(), pLavanthor->GetSpawnO());
+                        pLavanthor->Despawn(1000, 0);
+                    }
+                }break;
+                case Finished:
+                {
+                    // Start timer for next portal
+                    SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
+                }break;
+            }
+        }break;
+        case INDEX_XEVOZZ:
+        {
+            switch (pData)
+            {
+                case Performed:
+                {
+                    // TODO: add text
+                    ReleaseBoss(m_XevozzCellGUID, m_XevozzGUID);
+                    SetInstanceData(INDEX_XEVOZZ, PreProgress);
+                }break;
+                case State_Failed:
+                {
+                    if (GameObject* pGates = GetInstance()->GetGameObject(m_XevozzCellGUID))
+                    {
+                        pGates->SetState(GO_STATE_CLOSED);
+                    }
+
+                    if (Creature* pXevozz = GetInstance()->GetCreature(m_XevozzGUID))
+                    {
+                        SpawnGhostlyReplacement(CN_ZURAMAT, pXevozz->GetSpawnX(), pXevozz->GetSpawnY(), pXevozz->GetSpawnZ(), pXevozz->GetSpawnO());
+                        pXevozz->Despawn(1000, 0);
+                    }
+                }break;
+                case Finished:
+                {
+                    // Start timer for next portal
+                    SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
+                }break;
+            }
+        }break;
+        default:
+            break;
     }
 }
 
