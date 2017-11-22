@@ -214,7 +214,7 @@ class IntroPortalAI : public CreatureAIScript
         static CreatureAIScript* Create(Creature* c) { return new IntroPortalAI(c); }
         IntroPortalAI(Creature* pCreature) : CreatureAIScript(pCreature), portalId(-1)
         {
-            VH_instance = static_cast< TheVioletHoldInstance*>(pCreature->GetMapMgr()->GetScript());
+            VH_instance = static_cast<TheVioletHoldInstance*>(pCreature->GetMapMgr()->GetScript());
         }
 
         void OnDespawn() override
@@ -1421,48 +1421,48 @@ void TheVioletHoldInstance::OnGameObjectPushToWorld(GameObject* pGo)
 {
     switch (pGo->GetEntry())
     {
-    case GO_PRISON_SEAL:
-    {
-        m_mainGatesGUID = pGo->GetLowGUID();
-    }break;
-    case GO_ACTIVATION_CRYSTAL:
-    {
-        m_crystalGuids.push_back(pGo->GetLowGUID());
-    }break;
-    case GO_XEVOZZ_CELL:
-    {
-        m_XevozzCellGUID = pGo->GetLowGUID();
-    }break;
-    case GO_LAVANTHOR_CELL:
-    {
-        m_LavanthorCellGUID = pGo->GetLowGUID();
-    }break;
-    case GO_ICHORON_CELL:
-    {
-        m_IchoronCellGUID = pGo->GetLowGUID();
-    }break;
-    case GO_ZURAMAT_CELL:
-    {
-        m_ZuramatCellGUID = pGo->GetLowGUID();
-    }break;
-    case GO_EREKEM_CELL:
-    {
-        m_ErekemCellGUID = pGo->GetLowGUID();
-    }break;
-    case GO_EREKEM_GUARD_CELL1:
-    {
-        m_ErekemGuardCellGUID[0] = pGo->GetLowGUID();
-    }break;
-    case GO_EREKEM_GUARD_CELL2:
-    {
-        m_ErekemGuardCellGUID[1] = pGo->GetLowGUID();
-    }break;
-    case GO_MORAGG_DOOR:
-    {
-        m_MorragCellGUID = pGo->GetLowGUID();
-    }break;
-    default:
-        break;
+        case GO_PRISON_SEAL:
+        {
+            m_mainGatesGUID = pGo->GetLowGUID();
+        }break;
+        case GO_ACTIVATION_CRYSTAL:
+        {
+            m_crystalGuids.push_back(pGo->GetLowGUID());
+        }break;
+        case GO_XEVOZZ_CELL:
+        {
+            m_XevozzCellGUID = pGo->GetLowGUID();
+        }break;
+        case GO_LAVANTHOR_CELL:
+        {
+            m_LavanthorCellGUID = pGo->GetLowGUID();
+        }break;
+        case GO_ICHORON_CELL:
+        {
+            m_IchoronCellGUID = pGo->GetLowGUID();
+        }break;
+        case GO_ZURAMAT_CELL:
+        {
+            m_ZuramatCellGUID = pGo->GetLowGUID();
+        }break;
+        case GO_EREKEM_CELL:
+        {
+            m_ErekemCellGUID = pGo->GetLowGUID();
+        }break;
+        case GO_EREKEM_GUARD_CELL1:
+        {
+            m_ErekemGuardCellGUID[0] = pGo->GetLowGUID();
+        }break;
+        case GO_EREKEM_GUARD_CELL2:
+        {
+            m_ErekemGuardCellGUID[1] = pGo->GetLowGUID();
+        }break;
+        case GO_MORAGG_DOOR:
+        {
+            m_MorragCellGUID = pGo->GetLowGUID();
+        }break;
+        default:
+            break;
     }
 }
 
@@ -1490,90 +1490,90 @@ void TheVioletHoldInstance::OnCreaturePushToWorld(Creature* pCreature)
 
     switch (pCreature->GetEntry())
     {
-    case CN_DOOR_SEAL:
-    {
-        // HACKY INVISIBLE
-        // invisible display id
-        // this is required to make visual effect
-        if (pCreature->GetDisplayId() != 11686)
-            pCreature->SetDisplayId(11686);
-    }break;
-    case CN_VIOLET_HOLD_GUARD:
-    {
-        m_guardsGuids.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
-        pCreature->setByteFlag(UNIT_FIELD_BYTES_2, 0, SHEATH_STATE_MELEE);
-        pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLUS_MOB | UNIT_FLAG_UNKNOWN_16);
-        pCreature->SetFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_ENABLE_POWER_REGEN);
-        pCreature->setUInt32Value(UNIT_DYNAMIC_FLAGS, 0);
-    }break;
-    case CN_LIEUTNANT_SINCLARI:
-    {
-        m_sinclariGUID = GET_LOWGUID_PART(pCreature->GetGUID());
-        pCreature->setByteFlag(UNIT_FIELD_BYTES_2, 0, SHEATH_STATE_MELEE);
-        pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLUS_MOB | UNIT_FLAG_UNKNOWN_16);
-    }break;
-    case CN_PORTAL_INTRO:
-    {
-        m_introSpawns.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
-        pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNKNOWN_16);
-    }break;
-    case CN_INTRO_AZURE_BINDER_ARCANE:
-    case CN_INTRO_AZURE_INVADER_ARMS:
-    case CN_INTRO_AZURE_MAGE_SLAYER_MELEE:
-    case CN_INTRO_AZURE_SPELLBREAKER_ARCANE:
-    {
-        m_introSpawns.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
-        pCreature->setByteFlag(UNIT_FIELD_BYTES_2, 0, SHEATH_STATE_MELEE);
-        pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNKNOWN_16);
-    }break;
-    case CN_DEFENSE_SYSTEM_TRIGGER:
-    {
-        m_defenseTriggers.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
-    }break;
-    case CN_PORTAL:
-    {
-        m_portalGUID = GET_LOWGUID_PART(pCreature->GetGUID());
-        pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-    }break;
-    // Main portal event related
-    case CN_AZURE_INVADER:
-    case CN_AZURE_SPELLBREAKER:
-    case CN_AZURE_BINDER:
-    case CN_AZURE_MAGE_SLAYER:
-    case CN_AZURE_CAPTAIN:
-    case CN_AZURE_SORCERER:
-    case CN_AZURE_RAIDER:
-    case CN_AZURE_STALKER:
-    {
-        m_eventSpawns.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
-    }break;
-    case CN_PORTAL_GUARDIAN:
-    case CN_PORTAL_KEEPER:
-    {
-        m_portalGuardianGUID = GET_LOWGUID_PART(pCreature->GetGUID());
-    }break;
-    case CN_MORAGG:
-    {
-        m_MoraggGUID = GET_LOWGUID_PART(pCreature->GetGUID());
-    }break;
-    case CN_ICHORON:
-    {
-        m_IchoronGUID = GET_LOWGUID_PART(pCreature->GetGUID());
-    }break;
-    case CN_XEVOZZ:
-    {
-        m_XevozzGUID = GET_LOWGUID_PART(pCreature->GetGUID());
-    }break;
-    case CN_LAVANTHOR:
-    {
-        m_LavanthorGUID = GET_LOWGUID_PART(pCreature->GetGUID());
-    }break;
-    case CN_ZURAMAT:
-    {
-        m_ZuramatGUID = GET_LOWGUID_PART(pCreature->GetGUID());
-    }break;
-    default:
-        break;
+        case CN_DOOR_SEAL:
+        {
+            // HACKY INVISIBLE
+            // invisible display id
+            // this is required to make visual effect
+            if (pCreature->GetDisplayId() != 11686)
+                pCreature->SetDisplayId(11686);
+        }break;
+        case CN_VIOLET_HOLD_GUARD:
+        {
+            m_guardsGuids.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
+            pCreature->setByteFlag(UNIT_FIELD_BYTES_2, 0, SHEATH_STATE_MELEE);
+            pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLUS_MOB | UNIT_FLAG_UNKNOWN_16);
+            pCreature->SetFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_ENABLE_POWER_REGEN);
+            pCreature->setUInt32Value(UNIT_DYNAMIC_FLAGS, 0);
+        }break;
+        case CN_LIEUTNANT_SINCLARI:
+        {
+            m_sinclariGUID = GET_LOWGUID_PART(pCreature->GetGUID());
+            pCreature->setByteFlag(UNIT_FIELD_BYTES_2, 0, SHEATH_STATE_MELEE);
+            pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLUS_MOB | UNIT_FLAG_UNKNOWN_16);
+        }break;
+        case CN_PORTAL_INTRO:
+        {
+            m_introSpawns.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
+            pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNKNOWN_16);
+        }break;
+        case CN_INTRO_AZURE_BINDER_ARCANE:
+        case CN_INTRO_AZURE_INVADER_ARMS:
+        case CN_INTRO_AZURE_MAGE_SLAYER_MELEE:
+        case CN_INTRO_AZURE_SPELLBREAKER_ARCANE:
+        {
+            m_introSpawns.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
+            pCreature->setByteFlag(UNIT_FIELD_BYTES_2, 0, SHEATH_STATE_MELEE);
+            pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNKNOWN_16);
+        }break;
+        case CN_DEFENSE_SYSTEM_TRIGGER:
+        {
+            m_defenseTriggers.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
+        }break;
+        case CN_PORTAL:
+        {
+            m_portalGUID = GET_LOWGUID_PART(pCreature->GetGUID());
+            pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+        }break;
+        // Main portal event related
+        case CN_AZURE_INVADER:
+        case CN_AZURE_SPELLBREAKER:
+        case CN_AZURE_BINDER:
+        case CN_AZURE_MAGE_SLAYER:
+        case CN_AZURE_CAPTAIN:
+        case CN_AZURE_SORCERER:
+        case CN_AZURE_RAIDER:
+        case CN_AZURE_STALKER:
+        {
+            m_eventSpawns.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
+        }break;
+        case CN_PORTAL_GUARDIAN:
+        case CN_PORTAL_KEEPER:
+        {
+            m_portalGuardianGUID = GET_LOWGUID_PART(pCreature->GetGUID());
+        }break;
+        case CN_MORAGG:
+        {
+            m_MoraggGUID = GET_LOWGUID_PART(pCreature->GetGUID());
+        }break;
+        case CN_ICHORON:
+        {
+            m_IchoronGUID = GET_LOWGUID_PART(pCreature->GetGUID());
+        }break;
+        case CN_XEVOZZ:
+        {
+            m_XevozzGUID = GET_LOWGUID_PART(pCreature->GetGUID());
+        }break;
+        case CN_LAVANTHOR:
+        {
+            m_LavanthorGUID = GET_LOWGUID_PART(pCreature->GetGUID());
+        }break;
+        case CN_ZURAMAT:
+        {
+            m_ZuramatGUID = GET_LOWGUID_PART(pCreature->GetGUID());
+        }break;
+        default:
+            break;
     }
 }
 
