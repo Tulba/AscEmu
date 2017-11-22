@@ -1281,6 +1281,12 @@ public:
             pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_WALK, XevozzPath[i]));
         }
         pCreature->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
+
+        addEmoteForEvent(Event_OnCombatStart, YELL_XEVOZZ_AGROO);
+        addEmoteForEvent(Event_OnTargetDied, YELL_XEVOZZ_TARGET_DEATH1);
+        addEmoteForEvent(Event_OnTargetDied, YELL_XEVOZZ_TARGET_DEATH2);
+        addEmoteForEvent(Event_OnTargetDied, YELL_XEVOZZ_TARGET_DEATH3);
+        addEmoteForEvent(Event_OnDied, YELL_XEVOZZ_DEATH);
     }
 
     void OnDespawn() override
@@ -1387,7 +1393,6 @@ TheVioletHoldInstance::TheVioletHoldInstance(MapMgr* pMapMgr) :
     emote5pct(false)
 {
     ResetInstanceData();
-    //pMapMgr->pInstance = sInstanceMgr.GetInstanceByIds(MAP_VIOLET_HOLD, pMapMgr->GetInstanceID());
     generateBossDataState();
 
     m_VHencounterData[DATA_GROUP1_BOSS_ENTRY] = getData(DATA_GROUP1_BOSS_ENTRY);
@@ -1401,7 +1406,6 @@ TheVioletHoldInstance::TheVioletHoldInstance(MapMgr* pMapMgr) :
     }
 }
 
-//TODO: this should be redone by checking actual saved data for heroic mode
 void TheVioletHoldInstance::ResetInstanceData()
 {
     memset(m_VHencounterData, NotStarted, sizeof(m_VHencounterData));
@@ -1678,8 +1682,11 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
             {
                 case Performed:
                 {
-                    // TODO: add text
                     ReleaseBoss(m_XevozzCellGUID, m_XevozzGUID);
+                    if (Creature* pXevozz = GetInstance()->GetCreature(m_XevozzGUID))
+                    {
+                        pXevozz->SendScriptTextChatMessage(YELL_XEVOZZ_RELEASE);
+                    }
                     SetInstanceData(INDEX_XEVOZZ, PreProgress);
                 }break;
                 case State_Failed:
@@ -2190,6 +2197,7 @@ void TheVioletHoldInstance::ReleaseBoss(uint32_t gatesGuid, uint32_t bossGuid)
     {
         if (pBoss->isAlive())
         {
+            pBoss->GetAIInterface()->StopMovement(2000);
             pBoss->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
             pBoss->GetAIInterface()->setWayPointToMove(1);
         }

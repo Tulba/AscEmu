@@ -164,15 +164,27 @@ enum VH_Texts : uint32_t
     // Sinclari's texts
     YELL_SINCLARI_LEAVING       = 4522,     // "Prison guards, we are leaving! These adventurers are taking over! Go go go!"
     SAY_SINCLARI_CLOSING_GATES  = 8797,     // "I'm locking the door. Good luck, and thank you for doing this."
-    SAY_SINCLARI_INSTANCE_DONE  = 8798      // "You did it! You held the Blue Dragonflight back and defeated their commander. Amazing work!"
+    SAY_SINCLARI_INSTANCE_DONE  = 8798,     // "You did it! You held the Blue Dragonflight back and defeated their commander. Amazing work!"
+
+    // Xevozz texts
+    YELL_XEVOZZ_AGROO           = 4541,     // "It seems my freedom must be bought with blood!"
+    YELL_XEVOZZ_TARGET_DEATH1   = 4542,     // "Nothing personal."
+    YELL_XEVOZZ_TARGET_DEATH2   = 4543,     // "Business concluded."
+    YELL_XEVOZZ_TARGET_DEATH3   = 4544,     // "Profit!"
+    YELL_XEVOZZ_DEATH           = 4545,     // "This is an... unrecoverable... loss."
+    YELL_XEVOZZ_RELEASE         = 4546,     // "Back in business! Now, to execute an exit strategy."
+    YELL_XEVOZZ_CHARGE          = 4547,     // "It would seem that a renegotiation is in order."
+    YELL_XEVOZZ_ARCANE_SUMMON1  = 4548,     // "The air teems with latent energy... quite the harvest!"
+    YELL_XEVOZZ_ARCANE_SUMMON2  = 4549,     // "Plentiful, exploitable resources... primed for acquisition!"
+    YELL_XEVOZZ_ARCANE_SUMMON3  = 4550      // "Intriguing... a high quantity of arcane energy is near. Time for some prospecting..."
 };
 
 // Worldstate entries used in instance
 enum VH_WorldStateIds : uint32_t
 {
-    WORLD_STATE_VH_SHOW             = 3816,
-    WORLD_STATE_VH_PRISON_STATE     = 3815,
-    WORLD_STATE_VH_PORTAL_COUNT       = 3810,
+    WORLD_STATE_VH_SHOW                 = 3816,
+    WORLD_STATE_VH_PRISON_STATE         = 3815,
+    WORLD_STATE_VH_PORTAL_COUNT         = 3810,
 };
 
 enum VH_Spells : uint32_t
