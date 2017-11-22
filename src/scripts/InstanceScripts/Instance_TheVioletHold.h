@@ -404,18 +404,17 @@ struct VHBossReplaceStruct
 {
     uint32_t bossEntry;
     uint32_t ghostEntry;
-    float spawn_x, spawn_y, spawn_z, spawn_o;
 };
 
 const uint8_t MaxBossReplacements = 6;
-const VHBossReplaceStruct BossReplacements [] =
+const VHBossReplaceStruct BossReplacements [MaxBossReplacements] =
 {
-    { CN_EREKEM,    CN_ARAKKOA,   1877.03f, 853.84f, 43.33f, 0 },
-    { CN_ZURAMAT,   CN_VOID_LORD, 1922.41f, 847.95f, 47.15f, 0 },
-    { CN_XEVOZZ,    CN_ETHERAL,   1903.61f, 838.46f, 38.72f, 0 },
-    { CN_ICHORON,   CN_SWIRLING,  1915.52f, 779.13f, 35.94f, 0 },
-    { CN_LAVANTHOR, CN_LAVA_HOUND,1855.28f, 760.85f, 38.65f, 0 },
-    { CN_MORAGG,    CN_WATCHER,   1890.51f, 752.85f, 47.66f, 0 }
+    { CN_EREKEM,    CN_ARAKKOA    },
+    { CN_ZURAMAT,   CN_VOID_LORD  },
+    { CN_XEVOZZ,    CN_ETHERAL    },
+    { CN_ICHORON,   CN_SWIRLING   },
+    { CN_LAVANTHOR, CN_LAVA_HOUND },
+    { CN_MORAGG,    CN_WATCHER    }
 };
 
 // Boss intro waypoints
@@ -719,4 +718,10 @@ public:
 
     // Calls guards out
     void CallGuardsOut();
+
+    // Returns ghostly replacement entry for boss
+    uint32_t GetGhostlyReplacement(uint32_t bossEntry);
+
+    // Returns boss entry by ghost entry
+    uint32_t GetBossReplaceBy(uint32_t ghostEntry);
 };

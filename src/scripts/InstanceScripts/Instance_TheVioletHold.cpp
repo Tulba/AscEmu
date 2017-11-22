@@ -1233,6 +1233,12 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
                 {
                     pGates->SetState(GO_STATE_CLOSED);
                 }
+
+                if (Creature* pMoragg = GetInstance()->GetCreature(m_MoraggGUID))
+                {
+                    spawnCreature(BossReplacements[6].ghostEntry, pMoragg->GetSpawnX(), pMoragg->GetSpawnY(), pMoragg->GetSpawnZ(), pMoragg->GetSpawnO());
+                    pMoragg->Despawn(1000, 0);
+                }
             }break;
             case Finished:
             {
@@ -1935,6 +1941,29 @@ void TheVioletHoldInstance::UpdateGuards()
     }
 }
 #endif //#ifdef ENABLE_VH_HACKS
+
+uint32_t TheVioletHoldInstance::GetGhostlyReplacement(uint32_t bossEntry)
+{
+    for (uint8_t i = 0; i < MaxBossReplacements; i++)
+    {
+        if (BossReplacements[i].bossEntry == bossEntry)
+        {
+            return BossReplacements[i].ghostEntry;
+        }
+    }
+}
+
+// Returns boss entry by ghost entry
+uint32_t TheVioletHoldInstance::GetBossReplaceBy(uint32_t ghostEntry)
+{
+    for (uint8_t i = 0; i < MaxBossReplacements; i++)
+    {
+        if (BossReplacements[i].ghostEntry == ghostEntry)
+        {
+            return BossReplacements[i].bossEntry;
+        }
+    }
+}
 
 void SetupTheVioletHold(ScriptMgr* mgr)
 {
