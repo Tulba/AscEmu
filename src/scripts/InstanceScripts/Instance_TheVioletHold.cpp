@@ -1253,6 +1253,7 @@ TheVioletHoldInstance::TheVioletHoldInstance(MapMgr* pMapMgr) :
 void TheVioletHoldInstance::ResetInstanceData()
 {
     memset(m_VHencounterData, NotStarted, sizeof(m_VHencounterData));
+
     m_activePortal.ResetData();
     m_activePortal.summonsList.clear(); // listed spawns are already removed by using m_eventSpawns container
 }
