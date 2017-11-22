@@ -10,16 +10,13 @@ This file is released under the MIT license. See README-MIT for more information
 
 // Helper functions
 
-uint32_t GenerateWaitTime(Creature* pCreature, float newX, float currentX, float newY, float currentY, Movement::WaypointMoveType moveType = Movement::WP_MOVE_TYPE_RUN)
+uint32_t GenerateWPWaitTime(float speed, float newX, float currentX, float newY, float currentY)
 {
-    if (!pCreature)
-        return 0;
-
     float distanceX = (newX - currentX) * (newX - currentX);
     float distanceY = (newY - currentY) * (newY - currentY);
     float distance = sqrt(distanceX + distanceY);
     // we dont have flying creatures here, using only walk/run speeds
-    return  static_cast<uint32_t>((1000 * std::abs(distance / ((moveType == Movement::WP_MOVE_TYPE_RUN) ? pCreature->GetCreatureProperties()->run_speed : pCreature->GetCreatureProperties()->walk_speed))) - 1000);
+    return  static_cast<uint32_t>((1000 * std::abs(distance / speed)) - 1000);
 }
 
 /// ESCORT/GOSSIP EVENT
@@ -31,13 +28,14 @@ class SinclariAI : public CreatureAIScript
         SinclariAI(Creature* pCreature) : CreatureAIScript(pCreature), m_Step(0)
         {
             VH_instance = static_cast<TheVioletHoldInstance*>(pCreature->GetMapMgr()->GetScript());
+            float runSpeed = pCreature->GetCreatureProperties()->run_speed;
             for (uint8_t i = 0; i < MaxSinclariWps; i++)
             {
                 uint32_t waitTime = 0;
                 if (i == 0)
-                    waitTime = GenerateWaitTime(pCreature, SinclariWps[i].x, pCreature->GetPositionX(), SinclariWps[i].y, pCreature->GetPositionY(), Movement::WP_MOVE_TYPE_WALK);
+                    waitTime = GenerateWPWaitTime(runSpeed, SinclariWps[i].x, pCreature->GetPositionX(), SinclariWps[i].y, pCreature->GetPositionY());
                 else
-                    waitTime = GenerateWaitTime(pCreature, SinclariWps[i].x, FirstPortalWPs[i - 1].x, SinclariWps[i].y, SinclariWps[i - 1].y, Movement::WP_MOVE_TYPE_WALK);
+                    waitTime = GenerateWPWaitTime(runSpeed, SinclariWps[i].x, FirstPortalWPs[i - 1].x, SinclariWps[i].y, SinclariWps[i - 1].y);
                 pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_WALK, SinclariWps[i]));
                 pCreature->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
             }
@@ -246,6 +244,7 @@ class IntroPortalAI : public CreatureAIScript
                 ModifyAIUpdateEvent(RandomUInt(1) ? VH_TIMER_SPAWN_INTRO_MOB_MIN : VH_TIMER_SPAWN_INTRO_MOB_MAX);
                 if (Creature* pAttacker = spawnCreature(VHIntroMobs[RandomUInt(VHIntroMobCount - 1)], getCreature()->GetPositionX(), getCreature()->GetPositionY(), landHeight, getCreature()->GetOrientation()))
                 {
+                    float runSpeed = pAttacker->GetCreatureProperties()->run_speed;
                     switch (portalId)
                     {
                         case 0: // left
@@ -254,9 +253,9 @@ class IntroPortalAI : public CreatureAIScript
                             {
                                 uint32_t waitTime = 0;
                                 if (i == 0)
-                                    waitTime = GenerateWaitTime(getCreature(), FirstPortalWPs[i].x, getCreature()->GetPositionX(), FirstPortalWPs[i].y, getCreature()->GetPositionY());
+                                    waitTime = GenerateWPWaitTime(runSpeed, FirstPortalWPs[i].x, getCreature()->GetPositionX(), FirstPortalWPs[i].y, getCreature()->GetPositionY());
                                 else
-                                    waitTime = GenerateWaitTime(getCreature(), FirstPortalWPs[i].x, FirstPortalWPs[i - 1].x, FirstPortalWPs[i].y, FirstPortalWPs[i - 1].y);
+                                    waitTime = GenerateWPWaitTime(runSpeed, FirstPortalWPs[i].x, FirstPortalWPs[i - 1].x, FirstPortalWPs[i].y, FirstPortalWPs[i - 1].y);
 
                                 pAttacker->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_RUN, FirstPortalWPs[i]));
                             }
@@ -267,9 +266,9 @@ class IntroPortalAI : public CreatureAIScript
                             {
                                 uint32_t waitTime = 0;
                                 if (i == 0)
-                                    waitTime = GenerateWaitTime(getCreature(), FifthPortalWPs[i].x, getCreature()->GetPositionX(), FifthPortalWPs[i].y, getCreature()->GetPositionY());
+                                    waitTime = GenerateWPWaitTime(runSpeed, FifthPortalWPs[i].x, getCreature()->GetPositionX(), FifthPortalWPs[i].y, getCreature()->GetPositionY());
                                 else
-                                    waitTime = GenerateWaitTime(getCreature(), FifthPortalWPs[i].x, FifthPortalWPs[i - 1].x, FifthPortalWPs[i].y, FifthPortalWPs[i - 1].y);
+                                    waitTime = GenerateWPWaitTime(runSpeed, FifthPortalWPs[i].x, FifthPortalWPs[i - 1].x, FifthPortalWPs[i].y, FifthPortalWPs[i - 1].y);
 
                                 pAttacker->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_RUN, FifthPortalWPs[i]));
                             }
@@ -280,9 +279,9 @@ class IntroPortalAI : public CreatureAIScript
                             {
                                 uint32_t waitTime = 0;
                                 if (i == 0)
-                                    waitTime = GenerateWaitTime(getCreature(), ThirdPortalWPs[i].x, getCreature()->GetPositionX(), ThirdPortalWPs[i].y, getCreature()->GetPositionY());
+                                    waitTime = GenerateWPWaitTime(runSpeed, ThirdPortalWPs[i].x, getCreature()->GetPositionX(), ThirdPortalWPs[i].y, getCreature()->GetPositionY());
                                 else
-                                    waitTime = GenerateWaitTime(getCreature(), ThirdPortalWPs[i].x, ThirdPortalWPs[i - 1].x, ThirdPortalWPs[i].y, ThirdPortalWPs[i - 1].y);
+                                    waitTime = GenerateWPWaitTime(runSpeed, ThirdPortalWPs[i].x, ThirdPortalWPs[i - 1].x, ThirdPortalWPs[i].y, ThirdPortalWPs[i - 1].y);
 
                                 pAttacker->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_RUN, ThirdPortalWPs[i]));
                             }
@@ -618,6 +617,7 @@ class TeleportationPortalAI : public CreatureAIScript
                 return;
 
             // not a boss encounter
+            float runSpeed = pCreature->GetCreatureProperties()->run_speed;
             if (bossEntry == 0)
             {
                 switch (portalId)
@@ -628,9 +628,9 @@ class TeleportationPortalAI : public CreatureAIScript
                         {
                             uint32_t waitTime = 0;
                             if (i == 0)
-                                waitTime = GenerateWaitTime(pCreature, FirstPortalWPs[i].x, pCreature->GetPositionX(), FirstPortalWPs[i].y, pCreature->GetPositionY());
+                                waitTime = GenerateWPWaitTime(runSpeed, FirstPortalWPs[i].x, pCreature->GetPositionX(), FirstPortalWPs[i].y, pCreature->GetPositionY());
                             else
-                                waitTime = GenerateWaitTime(pCreature, FirstPortalWPs[i].x, FirstPortalWPs[i - 1].x, FirstPortalWPs[i].y, FirstPortalWPs[i - 1].y);
+                                waitTime = GenerateWPWaitTime(runSpeed, FirstPortalWPs[i].x, FirstPortalWPs[i - 1].x, FirstPortalWPs[i].y, FirstPortalWPs[i - 1].y);
 
                             pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_RUN, FirstPortalWPs[i]));
                         }
@@ -643,9 +643,9 @@ class TeleportationPortalAI : public CreatureAIScript
                             {
                                 uint32_t waitTime = 0;
                                 if (i == 0)
-                                    waitTime = GenerateWaitTime(pCreature, SecondPortalFirstWPs[i].x, pCreature->GetPositionX(), SecondPortalFirstWPs[i].y, pCreature->GetPositionY());
+                                    waitTime = GenerateWPWaitTime(runSpeed, SecondPortalFirstWPs[i].x, pCreature->GetPositionX(), SecondPortalFirstWPs[i].y, pCreature->GetPositionY());
                                 else
-                                    waitTime = GenerateWaitTime(pCreature, SecondPortalFirstWPs[i].x, SecondPortalFirstWPs[i - 1].x, SecondPortalFirstWPs[i].y, SecondPortalFirstWPs[i - 1].y);
+                                    waitTime = GenerateWPWaitTime(runSpeed, SecondPortalFirstWPs[i].x, SecondPortalFirstWPs[i - 1].x, SecondPortalFirstWPs[i].y, SecondPortalFirstWPs[i - 1].y);
 
                                 pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_RUN, SecondPortalFirstWPs[i]));
                             }
@@ -656,9 +656,9 @@ class TeleportationPortalAI : public CreatureAIScript
                             {
                                 uint32_t waitTime = 0;
                                 if (i == 0)
-                                    waitTime = GenerateWaitTime(pCreature, SecondPortalSecondWPs[i].x, pCreature->GetPositionX(), SecondPortalSecondWPs[i].y, pCreature->GetPositionY());
+                                    waitTime = GenerateWPWaitTime(runSpeed, SecondPortalSecondWPs[i].x, pCreature->GetPositionX(), SecondPortalSecondWPs[i].y, pCreature->GetPositionY());
                                 else
-                                    waitTime = GenerateWaitTime(pCreature, SecondPortalSecondWPs[i].x, SecondPortalSecondWPs[i - 1].x, SecondPortalSecondWPs[i].y, SecondPortalSecondWPs[i - 1].y);
+                                    waitTime = GenerateWPWaitTime(runSpeed, SecondPortalSecondWPs[i].x, SecondPortalSecondWPs[i - 1].x, SecondPortalSecondWPs[i].y, SecondPortalSecondWPs[i - 1].y);
 
                                 pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_RUN, SecondPortalSecondWPs[i]));
                             }
@@ -671,9 +671,9 @@ class TeleportationPortalAI : public CreatureAIScript
                         {
                             uint32_t waitTime = 0;
                             if (i == 0)
-                                waitTime = GenerateWaitTime(pCreature, ThirdPortalWPs[i].x, pCreature->GetPositionX(), ThirdPortalWPs[i].y, pCreature->GetPositionY());
+                                waitTime = GenerateWPWaitTime(runSpeed, ThirdPortalWPs[i].x, pCreature->GetPositionX(), ThirdPortalWPs[i].y, pCreature->GetPositionY());
                             else
-                                waitTime = GenerateWaitTime(pCreature, ThirdPortalWPs[i].x, ThirdPortalWPs[i - 1].x, ThirdPortalWPs[i].y, ThirdPortalWPs[i - 1].y);
+                                waitTime = GenerateWPWaitTime(runSpeed, ThirdPortalWPs[i].x, ThirdPortalWPs[i - 1].x, ThirdPortalWPs[i].y, ThirdPortalWPs[i - 1].y);
 
                             pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_RUN, ThirdPortalWPs[i]));
                         }
@@ -684,9 +684,9 @@ class TeleportationPortalAI : public CreatureAIScript
                         {
                             uint32_t waitTime = 0;
                             if (i == 0)
-                                waitTime = GenerateWaitTime(pCreature, FourthPortalWPs[i].x, pCreature->GetPositionX(), FourthPortalWPs[i].y, pCreature->GetPositionY());
+                                waitTime = GenerateWPWaitTime(runSpeed, FourthPortalWPs[i].x, pCreature->GetPositionX(), FourthPortalWPs[i].y, pCreature->GetPositionY());
                             else
-                                waitTime = GenerateWaitTime(pCreature, FourthPortalWPs[i].x, FourthPortalWPs[i - 1].x, FourthPortalWPs[i].y, FourthPortalWPs[i - 1].y);
+                                waitTime = GenerateWPWaitTime(runSpeed, FourthPortalWPs[i].x, FourthPortalWPs[i - 1].x, FourthPortalWPs[i].y, FourthPortalWPs[i - 1].y);
 
                             pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_RUN, FourthPortalWPs[i]));
                         }
@@ -697,9 +697,9 @@ class TeleportationPortalAI : public CreatureAIScript
                         {
                             uint32_t waitTime = 0;
                             if (i == 0)
-                                waitTime = GenerateWaitTime(pCreature, FifthPortalWPs[i].x, pCreature->GetPositionX(), FifthPortalWPs[i].y, pCreature->GetPositionY());
+                                waitTime = GenerateWPWaitTime(runSpeed, FifthPortalWPs[i].x, pCreature->GetPositionX(), FifthPortalWPs[i].y, pCreature->GetPositionY());
                             else
-                                waitTime = GenerateWaitTime(pCreature, FifthPortalWPs[i].x, FifthPortalWPs[i - 1].x, FifthPortalWPs[i].y, FifthPortalWPs[i - 1].y);
+                                waitTime = GenerateWPWaitTime(runSpeed, FifthPortalWPs[i].x, FifthPortalWPs[i - 1].x, FifthPortalWPs[i].y, FifthPortalWPs[i - 1].y);
 
                             pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_RUN, FifthPortalWPs[i]));
                         }
@@ -710,16 +710,16 @@ class TeleportationPortalAI : public CreatureAIScript
                         {
                             uint32_t waitTime = 0;
                             if (i == 0)
-                                waitTime = GenerateWaitTime(pCreature, SixthPoralWPs[i].x, pCreature->GetPositionX(), SixthPoralWPs[i].y, pCreature->GetPositionY());
+                                waitTime = GenerateWPWaitTime(runSpeed, SixthPoralWPs[i].x, pCreature->GetPositionX(), SixthPoralWPs[i].y, pCreature->GetPositionY());
                             else
-                                waitTime = GenerateWaitTime(pCreature, SixthPoralWPs[i].x, SixthPoralWPs[i - 1].x, SixthPoralWPs[i].y, SixthPoralWPs[i - 1].y);
+                                waitTime = GenerateWPWaitTime(runSpeed, SixthPoralWPs[i].x, SixthPoralWPs[i - 1].x, SixthPoralWPs[i].y, SixthPoralWPs[i - 1].y);
 
                             pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_RUN, SixthPoralWPs[i]));
                         }
                     }break;
                     default:
                     {
-                        uint32_t waitTime = 1000 + GenerateWaitTime(pCreature, DefaultPortalWPs.x, pCreature->GetPositionX(), DefaultPortalWPs.y, pCreature->GetPositionY());
+                        uint32_t waitTime = 1000 + GenerateWPWaitTime(runSpeed, DefaultPortalWPs.x, pCreature->GetPositionX(), DefaultPortalWPs.y, pCreature->GetPositionY());
                         pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(1, waitTime, Movement::WP_MOVE_TYPE_RUN, DefaultPortalWPs));
                         // Unused waypoint
                         Movement::Location emptyLoc = { 0, 0, 0, 0 };
@@ -739,9 +739,9 @@ class TeleportationPortalAI : public CreatureAIScript
                             uint32_t waitTime = 0;
                             // First wp
                             if (i == 0)
-                                waitTime = GenerateWaitTime(getCreature(), SaboteurMoraggPath[i].x, getCreature()->GetPositionX(), SaboteurMoraggPath[i].y, getCreature()->GetPositionY());
+                                waitTime = GenerateWPWaitTime(runSpeed, SaboteurMoraggPath[i].x, getCreature()->GetPositionX(), SaboteurMoraggPath[i].y, getCreature()->GetPositionY());
                             else
-                                waitTime = GenerateWaitTime(getCreature(), SaboteurMoraggPath[i].x, SaboteurMoraggPath[i - 1].x, SaboteurMoraggPath[i].y, SaboteurMoraggPath[i - 1].y);
+                                waitTime = GenerateWPWaitTime(runSpeed, SaboteurMoraggPath[i].x, SaboteurMoraggPath[i - 1].x, SaboteurMoraggPath[i].y, SaboteurMoraggPath[i - 1].y);
 
                             pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_RUN, SaboteurMoraggPath[i]));
                         }
@@ -753,9 +753,9 @@ class TeleportationPortalAI : public CreatureAIScript
                             uint32_t waitTime = 0;
                             // First wp
                             if (i == 0)
-                                waitTime = GenerateWaitTime(getCreature(), SaboteurIchoronPath[i].x, getCreature()->GetPositionX(), SaboteurIchoronPath[i].y, getCreature()->GetPositionY());
+                                waitTime = GenerateWPWaitTime(runSpeed, SaboteurIchoronPath[i].x, getCreature()->GetPositionX(), SaboteurIchoronPath[i].y, getCreature()->GetPositionY());
                             else
-                                waitTime = GenerateWaitTime(getCreature(), SaboteurIchoronPath[i].x, SaboteurIchoronPath[i - 1].x, SaboteurIchoronPath[i].y, SaboteurIchoronPath[i - 1].y);
+                                waitTime = GenerateWPWaitTime(runSpeed, SaboteurIchoronPath[i].x, SaboteurIchoronPath[i - 1].x, SaboteurIchoronPath[i].y, SaboteurIchoronPath[i - 1].y);
 
                             pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_RUN, SaboteurIchoronPath[i]));
                         }
@@ -767,9 +767,9 @@ class TeleportationPortalAI : public CreatureAIScript
                             uint32_t waitTime = 0;
                             // First wp
                             if (i == 0)
-                                waitTime = GenerateWaitTime(getCreature(), SaboteurXevozzPath[i].x, getCreature()->GetPositionX(), SaboteurXevozzPath[i].y, getCreature()->GetPositionY());
+                                waitTime = GenerateWPWaitTime(runSpeed, SaboteurXevozzPath[i].x, getCreature()->GetPositionX(), SaboteurXevozzPath[i].y, getCreature()->GetPositionY());
                             else
-                                waitTime = GenerateWaitTime(getCreature(), SaboteurXevozzPath[i].x, SaboteurXevozzPath[i - 1].x, SaboteurXevozzPath[i].y, SaboteurXevozzPath[i - 1].y);
+                                waitTime = GenerateWPWaitTime(runSpeed, SaboteurXevozzPath[i].x, SaboteurXevozzPath[i - 1].x, SaboteurXevozzPath[i].y, SaboteurXevozzPath[i - 1].y);
 
                             pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_RUN, SaboteurXevozzPath[i]));
                         }
@@ -781,9 +781,9 @@ class TeleportationPortalAI : public CreatureAIScript
                             uint32_t waitTime = 0;
                             // First wp
                             if (i == 0)
-                                waitTime = GenerateWaitTime(getCreature(), SaboteurLavanthorPath[i].x, getCreature()->GetPositionX(), SaboteurLavanthorPath[i].y, getCreature()->GetPositionY());
+                                waitTime = GenerateWPWaitTime(runSpeed, SaboteurLavanthorPath[i].x, getCreature()->GetPositionX(), SaboteurLavanthorPath[i].y, getCreature()->GetPositionY());
                             else
-                                waitTime = GenerateWaitTime(getCreature(), SaboteurLavanthorPath[i].x, SaboteurLavanthorPath[i - 1].x, SaboteurLavanthorPath[i].y, SaboteurLavanthorPath[i - 1].y);
+                                waitTime = GenerateWPWaitTime(runSpeed, SaboteurLavanthorPath[i].x, SaboteurLavanthorPath[i - 1].x, SaboteurLavanthorPath[i].y, SaboteurLavanthorPath[i - 1].y);
 
                             pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_RUN, SaboteurLavanthorPath[i]));
                         }
@@ -795,9 +795,9 @@ class TeleportationPortalAI : public CreatureAIScript
                             uint32_t waitTime = 0;
                             // First wp
                             if (i == 0)
-                                waitTime = GenerateWaitTime(getCreature(), SaboteurErekemPath[i].x, getCreature()->GetPositionX(), SaboteurErekemPath[i].y, getCreature()->GetPositionY());
+                                waitTime = GenerateWPWaitTime(runSpeed, SaboteurErekemPath[i].x, getCreature()->GetPositionX(), SaboteurErekemPath[i].y, getCreature()->GetPositionY());
                             else
-                                waitTime = GenerateWaitTime(getCreature(), SaboteurErekemPath[i].x, SaboteurErekemPath[i - 1].x, SaboteurErekemPath[i].y, SaboteurErekemPath[i - 1].y);
+                                waitTime = GenerateWPWaitTime(runSpeed, SaboteurErekemPath[i].x, SaboteurErekemPath[i - 1].x, SaboteurErekemPath[i].y, SaboteurErekemPath[i - 1].y);
 
                             pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_RUN, SaboteurErekemPath[i]));
                         }
@@ -809,9 +809,9 @@ class TeleportationPortalAI : public CreatureAIScript
                             uint32_t waitTime = 0;
                             // First wp
                             if (i == 0)
-                                waitTime = GenerateWaitTime(getCreature(), SaboteurZuramatPath[i].x, getCreature()->GetPositionX(), SaboteurZuramatPath[i].y, getCreature()->GetPositionY());
+                                waitTime = GenerateWPWaitTime(runSpeed, SaboteurZuramatPath[i].x, getCreature()->GetPositionX(), SaboteurZuramatPath[i].y, getCreature()->GetPositionY());
                             else
-                                waitTime = GenerateWaitTime(getCreature(), SaboteurZuramatPath[i].x, SaboteurZuramatPath[i - 1].x, SaboteurZuramatPath[i].y, SaboteurZuramatPath[i - 1].y);
+                                waitTime = GenerateWPWaitTime(runSpeed, SaboteurZuramatPath[i].x, SaboteurZuramatPath[i - 1].x, SaboteurZuramatPath[i].y, SaboteurZuramatPath[i - 1].y);
 
                             pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_RUN, SaboteurZuramatPath[i]));
                         }
@@ -844,84 +844,84 @@ class AzureSaboteurAI : public CreatureAIScript
             {
                 switch (pInstance->m_activePortal.bossEntry)
                 {
-                case CN_MORAGG:
-                {
-                    if (iWaypointId == (MaxWpToMoragg - 1))
+                    case CN_MORAGG:
                     {
-                        getCreature()->SetFacing(4.689994f);
-                        RegisterAIUpdateEvent(1000);
-                    }
-                    else
+                        if (iWaypointId == (MaxWpToMoragg - 1))
+                        {
+                            getCreature()->SetFacing(4.689994f);
+                            RegisterAIUpdateEvent(1000);
+                        }
+                        else
+                        {
+                            getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
+                            getCreature()->GetAIInterface()->setWayPointToMove(iWaypointId + 1);
+                        }
+                    }break;
+                    case CN_ICHORON:
                     {
-                        getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
-                        getCreature()->GetAIInterface()->setWayPointToMove(iWaypointId + 1);
-                    }
-                }break;
-                case CN_ICHORON:
-                {
-                    if (iWaypointId == (MaxWpToIchonor - 1))
+                        if (iWaypointId == (MaxWpToIchonor - 1))
+                        {
+                            getCreature()->SetFacing(5.411396f);
+                            RegisterAIUpdateEvent(1000);
+                        }
+                        else
+                        {
+                            getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
+                            getCreature()->GetAIInterface()->setWayPointToMove(iWaypointId + 1);
+                        }
+                    }break;
+                    case CN_XEVOZZ:
                     {
-                        getCreature()->SetFacing(5.411396f);
-                        RegisterAIUpdateEvent(1000);
-                    }
-                    else
+                        if (iWaypointId == (MaxWpToXevozz - 1))
+                        {
+                            getCreature()->SetFacing(1.060255f);
+                            RegisterAIUpdateEvent(1000);
+                        }
+                        else
+                        {
+                            getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
+                            getCreature()->GetAIInterface()->setWayPointToMove(iWaypointId + 1);
+                        }
+                    }break;
+                    case CN_LAVANTHOR:
                     {
-                        getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
-                        getCreature()->GetAIInterface()->setWayPointToMove(iWaypointId + 1);
-                    }
-                }break;
-                case CN_XEVOZZ:
-                {
-                    if (iWaypointId == (MaxWpToXevozz - 1))
+                        if (iWaypointId == (MaxWpToLavanthor - 1))
+                        {
+                            getCreature()->SetFacing(4.025167f);
+                            RegisterAIUpdateEvent(1000);
+                        }
+                        else
+                        {
+                            getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
+                            getCreature()->GetAIInterface()->setWayPointToMove(iWaypointId + 1);
+                        }
+                    }break;
+                    case CN_EREKEM:
                     {
-                        getCreature()->SetFacing(1.060255f);
-                        RegisterAIUpdateEvent(1000);
-                    }
-                    else
+                        if (iWaypointId == (MaxWpToErekem - 1))
+                        {
+                            getCreature()->SetFacing(1.955642f);
+                            RegisterAIUpdateEvent(1000);
+                        }
+                        else
+                        {
+                            getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
+                            getCreature()->GetAIInterface()->setWayPointToMove(iWaypointId + 1);
+                        }
+                    }break;
+                    case CN_ZURAMAT:
                     {
-                        getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
-                        getCreature()->GetAIInterface()->setWayPointToMove(iWaypointId + 1);
-                    }
-                }break;
-                case CN_LAVANTHOR:
-                {
-                    if (iWaypointId == (MaxWpToLavanthor - 1))
-                    {
-                        getCreature()->SetFacing(4.025167f);
-                        RegisterAIUpdateEvent(1000);
-                    }
-                    else
-                    {
-                        getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
-                        getCreature()->GetAIInterface()->setWayPointToMove(iWaypointId + 1);
-                    }
-                }break;
-                case CN_EREKEM:
-                {
-                    if (iWaypointId == (MaxWpToErekem - 1))
-                    {
-                        getCreature()->SetFacing(1.955642f);
-                        RegisterAIUpdateEvent(1000);
-                    }
-                    else
-                    {
-                        getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
-                        getCreature()->GetAIInterface()->setWayPointToMove(iWaypointId + 1);
-                    }
-                }break;
-                case CN_ZURAMAT:
-                {
-                    if (iWaypointId == (MaxWpToZuramat - 1))
-                    {
-                        getCreature()->SetFacing(0.942478f);
-                        RegisterAIUpdateEvent(1000);
-                    }
-                    else
-                    {
-                        getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
-                        getCreature()->GetAIInterface()->setWayPointToMove(iWaypointId + 1);
-                    }
-                }break;
+                        if (iWaypointId == (MaxWpToZuramat - 1))
+                        {
+                            getCreature()->SetFacing(0.942478f);
+                            RegisterAIUpdateEvent(1000);
+                        }
+                        else
+                        {
+                            getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
+                            getCreature()->GetAIInterface()->setWayPointToMove(iWaypointId + 1);
+                        }
+                    }break;
                 }
             }
         }
@@ -981,7 +981,8 @@ class AzureSaboteurAI : public CreatureAIScript
         }
 };
 
-/// BOSSES
+// BOSSES
+
 class MoraggAI : public CreatureAIScript
 {
     enum MoraggSpells : uint32_t
@@ -1005,14 +1006,15 @@ public:
     MoraggAI(Creature* pCreature) : CreatureAIScript(pCreature)
     {
         // Prepare waypoints
+        float walkSpeed = pCreature->GetCreatureProperties()->walk_speed;
         for (uint8_t i = 0; i < MoraggPathSize; i++)
         {
             uint32_t waitTime = 1000;
             // First wp
             if (i == 0)
-                waitTime += GenerateWaitTime(pCreature, MoraggPath[i].x, pCreature->GetPositionX(), MoraggPath[i].y, pCreature->GetPositionY());
+                waitTime += GenerateWPWaitTime(walkSpeed, MoraggPath[i].x, pCreature->GetPositionX(), MoraggPath[i].y, pCreature->GetPositionY());
             else
-                waitTime += GenerateWaitTime(pCreature, MoraggPath[i].x, MoraggPath[i - 1].x, MoraggPath[i].y, MoraggPath[i - 1].y);
+                waitTime += GenerateWPWaitTime(walkSpeed, MoraggPath[i].x, MoraggPath[i - 1].x, MoraggPath[i].y, MoraggPath[i - 1].y);
 
             pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_WALK, MoraggPath[i]));
         }
