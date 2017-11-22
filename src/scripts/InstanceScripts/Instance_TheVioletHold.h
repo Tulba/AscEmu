@@ -169,7 +169,7 @@ enum VH_WorldStateIds : uint32_t
 {
     WORLD_STATE_VH_SHOW             = 3816,
     WORLD_STATE_VH_PRISON_STATE     = 3815,
-    WORLD_STATE_VH_WAVE_COUNT       = 3810,
+    WORLD_STATE_VH_PORTAL_COUNT       = 3810,
 };
 
 enum VH_Spells : uint32_t
