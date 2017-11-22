@@ -149,13 +149,13 @@ TaxiPathNode* TaxiPath::GetPathNode(uint32 i)
 {
     if (m_pathNodes.find(i) == m_pathNodes.end())
         return nullptr;
-    else
-        return m_pathNodes.find(i)->second;
+
+    return m_pathNodes.find(i)->second;
 }
 
-void TaxiPath::SendMoveForTime(Player* riding, Player* to, uint32 time)
+void TaxiPath::SendMoveForTime(Player* riding, Player* plrTo, uint32 pTime)
 {
-    if (!time)
+    if (!pTime)
         return;
 
     float length;
@@ -165,7 +165,7 @@ void TaxiPath::SendMoveForTime(Player* riding, Player* to, uint32 time)
     else
         length = m_length2;
 
-    float traveled_len = (time / (length * TAXI_TRAVEL_SPEED)) * length;
+    float traveled_len = (pTime / (length * TAXI_TRAVEL_SPEED)) * length;
     uint32 len = 0;
     float x = 0, y = 0, z = 0;
 
@@ -222,7 +222,7 @@ void TaxiPath::SendMoveForTime(Player* riding, Player* to, uint32 time)
 
     if (itr == m_pathNodes.end())
         return;
-    SMSG_MONSTER_MOVE;
+
     WorldPacket* data = new WorldPacket(SMSG_MONSTER_MOVE, 2000);
     size_t pos;
 
@@ -234,7 +234,7 @@ void TaxiPath::SendMoveForTime(Player* riding, Player* to, uint32 time)
     *data <<Util::getMSTime();
     *data << uint8(0);
     *data << uint32(0x00003000);
-    *data << uint32(uint32((length * TAXI_TRAVEL_SPEED) - time));
+    *data << uint32(uint32((length * TAXI_TRAVEL_SPEED) - pTime));
     *data << uint32(nodecounter);
     pos = data->wpos();
     *data << nx;
@@ -255,7 +255,7 @@ void TaxiPath::SendMoveForTime(Player* riding, Player* to, uint32 time)
     }
 
     *(uint32*)&(data->contents()[pos]) = nodecounter;
-    to->delayedPackets.add(data);
+    plrTo->delayedPackets.add(data);
 }
 
 void TaxiMgr::_LoadTaxiNodes()
@@ -377,7 +377,7 @@ uint32 TaxiMgr::GetNearestTaxiNode(float x, float y, float z, uint32 mapid)
     return nearest;
 }
 
-bool TaxiMgr::GetGlobalTaxiNodeMask(uint32 curloc, uint32* Mask)
+bool TaxiMgr::GetGlobalTaxiNodeMask(uint32 /*curloc*/, uint32* Mask)
 {
     std::unordered_map<uint32, TaxiPath*>::iterator itr;
     uint8 field;

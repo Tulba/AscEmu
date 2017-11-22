@@ -18,6 +18,7 @@ extern "C" SCRIPT_DECL uint32_t _exp_get_script_type()
 
 extern "C" SCRIPT_DECL void _exp_script_register(ScriptMgr* scriptMgr)
 {
+#ifdef UseNewMapScriptsProject
     //EasterKingdoms
     AlteracValleyScripts(scriptMgr);
     BlackrockDepthsScripts(scriptMgr);
@@ -102,10 +103,11 @@ extern "C" SCRIPT_DECL void _exp_script_register(ScriptMgr* scriptMgr)
     TheBotanicaScripts(scriptMgr);
     TheEyeScripts(scriptMgr);
     TheMechanarScripts(scriptMgr);
+#endif
 }
 
 #ifdef WIN32
-    BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
+    BOOL APIENTRY DllMain(HANDLE /*hModule*/, DWORD  /*ul_reason_for_call*/, LPVOID /*lpReserved*/)
     {
         return TRUE;
     }

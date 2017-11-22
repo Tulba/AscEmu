@@ -142,7 +142,7 @@ void LfgMgr::LoadRewards()
         }
 
 #if VERSION_STRING != Cata
-		DBC::Structures::LFGDungeonEntry const* dungeon = sLFGDungeonStore.LookupEntry(dungeonId);
+		//DBC::Structures::LFGDungeonEntry const* dungeon = sLFGDungeonStore.LookupEntry(dungeonId);
 #endif
         m_RewardMap.insert(LfgRewardMap::value_type(dungeonId, new LfgReward(maxLevel, firstQuestId, firstMoneyVar, firstXPVar, otherQuestId, otherMoneyVar, otherXPVar)));
         ++count;
@@ -401,8 +401,8 @@ bool LfgMgr::RemoveFromQueue(uint64 guid)
 void LfgMgr::InitializeLockedDungeons(Player* player)
 {
     uint64 guid = player->GetGUID();
-    uint8 level = player->getLevel();
-    uint8 expansion = player->GetSession()->GetFlags();
+    uint8 level = static_cast<uint8>(player->getLevel());
+    uint8 expansion = static_cast<uint8>(player->GetSession()->GetFlags());
     LfgDungeonSet dungeons = GetDungeonsByRandom(0);
     LfgLockMap lock;
 
@@ -452,7 +452,7 @@ void LfgMgr::Join(Player* player, uint8 roles, const LfgDungeonSet& selectedDung
     uint64 gguid = grp ? grp->GetGUID() : guid;
     LfgJoinResultData joinData;
     PlayerSet players;
-    Player* plr;
+    Player* plr = nullptr;
     uint32 rDungeonId = 0;
     bool isContinue = grp && grp->isLFGGroup() && GetState(gguid) != LFG_STATE_FINISHED_DUNGEON;
     LfgDungeonSet dungeons = selectedDungeons;
@@ -1446,7 +1446,7 @@ void LfgMgr::UpdateProposal(uint32 proposalId, uint64 guid, bool accept)
                 SetDungeon(grp->GetGUID(), dungeon->Entry());
 #endif
 
-                uint32 low_gguid = grp->GetID();
+                // uint32 low_gguid = grp->GetID();
                 uint64 gguid = grp->GetGUID();
                 SetState(gguid, LFG_STATE_PROPOSAL);
                 grp->AddMember(player->getPlayerInfo());

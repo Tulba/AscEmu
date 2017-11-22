@@ -517,10 +517,16 @@ class SERVER_DECL CreatureAISpells
             mMaxStackCount = 1;
 
             mMinPositionRangeToCast = 0.0f;
-            mMaxPositionRangeToCast = 100.0f;
+            mMaxPositionRangeToCast = 0.0f;
 
-            mMinHpRangeToCast = 0.0f;
-            mMaxHpRangeToCast = 100.0f;
+            mMinHpRangeToCast = 0;
+            mMaxHpRangeToCast = 100;
+
+            if (mSpellInfo != nullptr)
+            {
+                mMinPositionRangeToCast = GetMinRange(sSpellRangeStore.LookupEntry(mSpellInfo->getRangeIndex()));
+                mMaxPositionRangeToCast = GetMaxRange(sSpellRangeStore.LookupEntry(mSpellInfo->getRangeIndex()));
+            }
 
             mAttackStopTimer = 0;
 
@@ -599,10 +605,10 @@ class SERVER_DECL CreatureAISpells
 
         // if it is not a random target type it sets the hp range when the creature can cast this spell
         // if it is a random target it controles when the spell can be cast based on the target hp
-        float mMinHpRangeToCast;
-        float mMaxHpRangeToCast;
+        int mMinHpRangeToCast;
+        int mMaxHpRangeToCast;
 
-        bool isHpInRange(float targetHp)
+        bool isHpInPercentRange(int targetHp)
         {
             if (targetHp >= mMinHpRangeToCast && targetHp <= mMaxHpRangeToCast)
                 return true;
@@ -610,7 +616,7 @@ class SERVER_DECL CreatureAISpells
             return false;
         }
 
-        void setMinMaxHp(float minHp, float maxHp)
+        void setMinMaxPercentHp(int minHp, int maxHp)
         {
             mMinHpRangeToCast = minHp;
             mMaxHpRangeToCast = maxHp;
@@ -654,6 +660,10 @@ class SERVER_DECL CreatureAISpells
         }
 
         std::string mAnnouncement;
+        void setAnnouncement(std::string announcement)
+        {
+            mAnnouncement = announcement;
+        }
         void sendAnnouncement(CreatureAIScript* creatureAI);
 
         Creature* mCustomTargetCreature;
@@ -710,6 +720,7 @@ class SERVER_DECL CreatureAIScript
 
         // MIT start
         virtual void OnScriptPhaseChange(uint32_t /*phaseId*/) {}
+        virtual void OnHitBySpell(uint32_t /*pSpellId*/, Unit* /*pUnitCaster*/) {}
 
         //////////////////////////////////////////////////////////////////////////////////////////
         // Event default management
@@ -897,7 +908,7 @@ class SERVER_DECL CreatureAIScript
         bool enableCreatureAISpellSystem;
 
         //addAISpell(spellID, Chance, TargetType, Duration (s), waitBeforeNextCast (s))
-        CreatureAISpells* addAISpell(uint32_t spellId, float castChance, uint32_t targetType, uint32_t duration = 0, uint32_t cooldown = 0, bool forceRemove = false, bool isTriggered = true)
+        CreatureAISpells* addAISpell(uint32_t spellId, float castChance, uint32_t targetType, uint32_t duration = 0, uint32_t cooldown = 0, bool forceRemove = false, bool isTriggered = false)
         {
             SpellInfo* spellInfo = sSpellCustomizations.GetSpellInfo(spellId);
             if (spellInfo != nullptr)
@@ -940,6 +951,9 @@ class SERVER_DECL CreatureAIScript
         void _setTargetToChannel(Unit* target, uint32_t spellId);
         void _unsetTargetToChannel();
         Unit* _getTargetToChannel();
+
+        Unit* mCurrentSpellTarget;
+        CreatureAISpells* mLastCastedSpell;
 
         // only for internal use
         void newAIUpdateSpellSystem();

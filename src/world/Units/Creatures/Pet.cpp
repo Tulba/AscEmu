@@ -1171,7 +1171,7 @@ void Pet::OnRemoveFromWorld()
     }
 }
 
-void Pet::Despawn(uint32 delay, uint32 respawntime)
+void Pet::Despawn(uint32 delay, uint32 /*respawntime*/)
 {
     bool delayed = (delay != 0);
     DelayedRemove(delayed, true, delay);
@@ -1793,7 +1793,7 @@ void Pet::ApplySummonLevelAbilities()
     SetBaseMana((uint32)(mana));
     SetMaxPower(POWER_TYPE_MANA, (uint32)(mana));
 
-    for (uint32 x = 0; x < 5; ++x)
+    for (uint16 x = 0; x < 5; ++x)
         CalcStat(x);
 }
 
@@ -1843,7 +1843,7 @@ void Pet::ApplyPetLevelAbilities()
     else if (family_aura[pet_family] != 0)
         this->CastSpell(this, family_aura[pet_family], true);
 
-    for (uint32 x = 0; x < 5; ++x)
+    for (uint16 x = 0; x < 5; ++x)
         CalcStat(x);
 
     LoadPetAuras(-2);//Load all BM auras
@@ -2107,7 +2107,7 @@ Group* Pet::GetGroup()
     return NULL;
 }
 
-void Pet::DealDamage(Unit* pVictim, uint32 damage, uint32 targetEvent, uint32 unitEvent, uint32 spellId, bool no_remove_auras)
+void Pet::DealDamage(Unit* pVictim, uint32 damage, uint32 /*targetEvent*/, uint32 /*unitEvent*/, uint32 spellId, bool no_remove_auras)
 {
     if (!pVictim || !pVictim->isAlive() || !pVictim->IsInWorld() || !IsInWorld())
         return;
@@ -2360,7 +2360,7 @@ void Pet::TakeDamage(Unit* pAttacker, uint32 damage, uint32 spellid, bool no_rem
     ModHealth(-1 * static_cast<int32>(damage));
 }
 
-void Pet::Die(Unit* pAttacker, uint32 damage, uint32 spellid)
+void Pet::Die(Unit* pAttacker, uint32 /*damage*/, uint32 spellid)
 {
     //general hook for die
     if (!sHookInterface.OnPreUnitDie(pAttacker, this))

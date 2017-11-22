@@ -228,7 +228,7 @@ class LordMarrowgarAI : public CreatureAIScript
 
             auto boneslice = addAISpell(BONE_SLICE, 60.0f, TARGET_ATTACKING, 0, 120);
             boneslice->addEmote("boneslice", CHAT_MSG_MONSTER_YELL, 0);
-            boneslice->setAvailableForScriptPhase({ 1 });
+            boneslice->setAvailableForScriptPhase({ 2 });
 
             auto bonestorm = addAISpell(BONE_STORM, 30.0f, TARGET_DESTINATION, 30, 300, true);
             bonestorm->addEmote("bonestorm", CHAT_MSG_MONSTER_YELL, 0);
@@ -238,18 +238,21 @@ class LordMarrowgarAI : public CreatureAIScript
             auto berserk = addAISpell(LM_BERSERK, 50.0f, TARGET_SELF, 30, 240);
             berserk->addEmote("berserk", CHAT_MSG_MONSTER_YELL, 0);
             berserk->setMaxStackCount(1);
-            berserk->setMinMaxHp(0.0f, 50.0f);
+            berserk->setMinMaxPercentHp(0, 50);
             berserk->setAvailableForScriptPhase({ 3, 5 });
 
             auto souldFest = addAISpell(SOUL_FEAST, 50.0f, TARGET_RANDOM_SINGLE, 0, 20);
             souldFest->addEmote("Your soul is fest", CHAT_MSG_MONSTER_YELL, 0);
+            souldFest->setAvailableForScriptPhase({ 2 });
 
-            auto bonespike = addAISpell(BONE_SPIKE, 100.0f, TARGET_RANDOM_SINGLE, 0, 90);
+            auto bonespike = addAISpell(BONE_SPIKE, 80.0f, TARGET_RANDOM_SINGLE, 10, 30);
+            bonespike->setAnnouncement("Lord Marrowgar is preparing BoneSpike");
             bonespike->addEmote("bonespike", CHAT_MSG_MONSTER_YELL, 0);
             bonespike->addDBEmote(925);      // Bound by bone!
             bonespike->addDBEmote(926);      // Stick around!
             bonespike->addDBEmote(927);      // The only escape is death!
             bonespike->setAvailableForScriptPhase({ 2 });
+            bonespike->setMinMaxDistance(10.0f, 500.0f);
 
             // example for random message on event
             addEmoteForEvent(Event_OnCombatStart, 923);     // The Scourge will wash over this world as a swarm of death and destruction!
@@ -264,6 +267,22 @@ class LordMarrowgarAI : public CreatureAIScript
 
         void OnCastSpell(uint32 /*spellId*/) override
         {
+        }
+
+        void OnHitBySpell(uint32_t pSpellId, Unit* pUnitCaster) override
+        {
+            switch (pSpellId)
+            {
+                case 49233:
+                {
+                    if (pUnitCaster != nullptr && pUnitCaster->IsPlayer())
+                    {
+                        std::stringstream ss;
+                        ss << "Player " << static_cast<Player*>(pUnitCaster)->GetName();
+                        sendAnnouncement(ss.str());
+                    }
+                } break;
+            }
         }
 
         // Testcode - remove me please

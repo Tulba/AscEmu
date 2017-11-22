@@ -21,7 +21,7 @@ class ICCTeleporterGossip : public Arcemu::Gossip::Script
 {
 public:
 
-    void OnHello(Object* object, Player* player)
+    void OnHello(Object* object, Player* player) override
     {
         IceCrownCitadel* pInstance = (IceCrownCitadel*)object->GetMapMgr()->GetScript();
         if (!pInstance)
@@ -48,7 +48,7 @@ public:
         menu.Send(player);
     }
 
-    void OnSelectOption(Object* object, Player* player, uint32 Id, const char* enteredcode, uint32 gossipId)
+    void OnSelectOption(Object* /*object*/, Player* player, uint32 Id, const char* /*enteredcode*/, uint32 /*gossipId*/) override
     {
         switch (Id)
         {
@@ -85,12 +85,12 @@ public:
 
     static GameObjectAIScript* Create(GameObject* go) { return new IcecrownCitadelTeleport(go); }
 
-    void OnCreate()
+    void OnCreate() override
     {
         _gameobject->SetFlags(32);
     }
 
-    void OnActivate(Player* player)
+    void OnActivate(Player* player) override
     {
         ICCTeleporterGossip gossip;
         gossip.OnHello(_gameobject, player);
@@ -98,9 +98,9 @@ public:
 
 };
 
+#ifdef UseNewMapScriptsProject
 void IcecrownCitadel(ScriptMgr* scriptMgr)
 {
-#ifdef UseNewMapScriptsProject
     scriptMgr->register_instance_script(631, &IceCrownCitadel::Create);
 
     scriptMgr->register_gameobject_script(GO_TELE_1, &IcecrownCitadelTeleport::Create);
@@ -117,5 +117,5 @@ void IcecrownCitadel(ScriptMgr* scriptMgr)
 
     scriptMgr->register_gameobject_script(GO_TELE_5, &IcecrownCitadelTeleport::Create);
     scriptMgr->register_go_gossip(GO_TELE_5, new ICCTeleporterGossip());
-#endif
 }
+#endif
