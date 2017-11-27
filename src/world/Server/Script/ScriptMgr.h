@@ -129,9 +129,11 @@ class QuestScript;
 typedef CreatureAIScript* (*exp_create_creature_ai)(Creature* pCreature);
 typedef GameObjectAIScript* (*exp_create_gameobject_ai)(GameObject* pGameObject);
 typedef InstanceScript* (*exp_create_instance_ai)(MapMgr* pMapMgr);
-typedef bool(*exp_handle_dummy_spell)(uint32 i, Spell* pSpell);
-typedef bool(*exp_handle_script_effect)(uint32 i, Spell* pSpell);
-typedef bool(*exp_handle_dummy_aura)(uint32 i, Aura* pAura, bool apply);
+
+typedef bool(*exp_handle_dummy_spell)(uint8_t effectIndex, Spell* pSpell);
+typedef bool(*exp_handle_script_effect)(uint8_t effectIndex, Spell* pSpell);
+typedef bool(*exp_handle_dummy_aura)(uint8_t effectIndex, Aura* pAura, bool apply);
+
 typedef void(*exp_script_register)(ScriptMgr* mgr);
 typedef void(*exp_engine_reload)();
 typedef void(*exp_engine_unload)();
@@ -178,9 +180,9 @@ class SERVER_DECL ScriptMgr : public Singleton<ScriptMgr>
         GameObjectAIScript* CreateAIScriptClassForGameObject(uint32 uEntryId, GameObject* pGameObject);
         InstanceScript* CreateScriptClassForInstance(uint32 pMapId, MapMgr* pMapMgr);
 
-        bool CallScriptedDummySpell(uint32 uSpellId, uint32 i, Spell* pSpell);
-        bool HandleScriptedSpellEffect(uint32 SpellId, uint32 i, Spell* s);
-        bool CallScriptedDummyAura(uint32 uSpellId, uint32 i, Aura* pAura, bool apply);
+        bool CallScriptedDummySpell(uint32 uSpellId, uint8_t effectIndex, Spell* pSpell);
+        bool HandleScriptedSpellEffect(uint32 SpellId, uint8_t effectIndex, Spell* s);
+        bool CallScriptedDummyAura(uint32 uSpellId, uint8_t effectIndex, Aura* pAura, bool apply);
         bool CallScriptedItem(Item* pItem, Player* pPlayer);
 
         //Single Entry Registers
@@ -496,7 +498,7 @@ enum
 
 #include "Spell/Customization/SpellCustomizations.hpp"
 
-//\brief: created by Zyres 11/13/2017 - This should replace SP_AI_Spell, ScriptSpell and SpellDesc
+//\brief: created by Zyres 11/13/2017 - This should replace SP_AI_Spell and SpellDesc
 class SERVER_DECL CreatureAISpells
 {
     public:
@@ -1074,7 +1076,6 @@ class SERVER_DECL CreatureAIScript
         void CastSpell(SpellDesc* pSpell);
         void CastSpellNowNoScheduling(SpellDesc* pSpell);
         
-        SpellDesc* FindSpellById(uint32_t pSpellId);
         SpellDesc* FindSpellByFunc(SpellFunc pFnc);
 
         void TriggerCooldownOnAllSpells();
@@ -1114,38 +1115,11 @@ class SERVER_DECL CreatureAIScript
 
         //Basic Interface
         SpellDesc* AddPhaseSpell(uint32_t pPhase, SpellDesc* pSpell);
-        void SetEnrageInfo(SpellDesc* pSpell, uint32_t pTriggerMilliseconds);
 
     protected:
 
         PhaseSpellArray mPhaseSpells;
-        SpellDesc* mEnrageSpell;
-        int32_t mEnrageTimerDuration;
-        uint32_t mEnrageTimer;
 };
-
-//Premade Spell Functions
-SERVER_DECL void SpellFunc_ClearHateList(SpellDesc* pThis, CreatureAIScript* pCreatureAI, Unit* pTarget, TargetType pType);
-SERVER_DECL void SpellFunc_Disappear(SpellDesc* pThis, CreatureAIScript* pCreatureAI, Unit* pTarget, TargetType pType);
-SERVER_DECL void SpellFunc_Reappear(SpellDesc* pThis, CreatureAIScript* pCreatureAI, Unit* pTarget, TargetType pType);
-
-
-//Premade Event Functions
-SERVER_DECL void EventFunc_ApplyAura(CreatureAIScript* pCreatureAI, int32_t pMiscVal);
-SERVER_DECL void EventFunc_ChangeGoState(CreatureAIScript* pCreatureAI, int32_t pMiscVal);
-SERVER_DECL void EventFunc_RemoveUnitFieldFlags(CreatureAIScript* pCreatureAI, int32_t pMiscVal);
-
-//STL Utilities
-template <class Type> inline void DeleteArray(std::vector<Type> pVector)
-{
-    typename std::vector<Type>::iterator Iter = pVector.begin();
-    for (; Iter != pVector.end(); ++Iter)
-    {
-        delete(*Iter);
-    }
-    pVector.clear();
-}
-
 
 class GameEvent;
 class SERVER_DECL EventScript
