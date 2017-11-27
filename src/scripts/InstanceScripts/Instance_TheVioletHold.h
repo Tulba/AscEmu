@@ -108,7 +108,7 @@ enum VHTimers : uint32_t
     // Timers in milliseconds
     VH_UPDATE_TIMER                 = 1000,
     VH_TIMER_SPAWN_INTRO_MOB_MIN    = 15000,
-    VH_TELE_PORTAL_SPAWN_TIME       = 15000,
+    VH_TELE_PORTAL_WAVE_TIMER       = 15000,
     VH_TELE_PORTAL_BOSS_SPAWN_TIME  = 2000,
     VH_TIMER_SPAWN_INTRO_MOB_MAX    = 20000,
 

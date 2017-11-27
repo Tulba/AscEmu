@@ -19,7 +19,9 @@ uint32_t GenerateWPWaitTime(float speed, float newX, float currentX, float newY,
     return  static_cast<uint32_t>((1000 * std::abs(distance / speed)));
 }
 
-/// ESCORT/GOSSIP EVENT
+
+// Sinclari's escort event
+
 class SinclariAI : public CreatureAIScript
 {
     uint8_t m_eventId;
@@ -157,7 +159,7 @@ class SinclariGossip : public Arcemu::Gossip::Script
 {
     public:
 
-        void OnHello(Object* pObject, Player* pPlayer)
+        void OnHello(Object* pObject, Player* pPlayer) override
         {
             TheVioletHoldInstance* pInstance = static_cast<TheVioletHoldInstance*>(pObject->GetMapMgr()->GetScript());
             // TODO: correct text id
@@ -214,6 +216,10 @@ class SinclariGossip : public Arcemu::Gossip::Script
             }
         }
 };
+
+
+
+// Intro event
 
 class IntroPortalAI : public CreatureAIScript
 {
@@ -302,8 +308,12 @@ class IntroPortalAI : public CreatureAIScript
             }
         }
 
-        int8_t portalId;
+// public variables
+public:
+    int8_t portalId;
 };
+
+
 
 class VHAttackerAI : public CreatureAIScript
 {
@@ -311,48 +321,9 @@ class VHAttackerAI : public CreatureAIScript
     public:
 
         static CreatureAIScript* Create(Creature* c) { return new VHAttackerAI(c); }
-        VHAttackerAI(Creature* pCreature) : CreatureAIScript(pCreature), isMoveSet(false)
+        VHAttackerAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
             pInstance = static_cast<TheVioletHoldInstance*>(pCreature->GetMapMgr()->GetScript());
-        }
-
-        void OnLoad() override
-        {
-            RegisterAIUpdateEvent(1000);
-        }
-
-        void OnReachWP(uint32 iWaypointId, bool /*bForwards*/) override
-        {
-            if (iWaypointId < getCreature()->GetAIInterface()->getWayPointsCount())
-            {
-                getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
-                getCreature()->GetAIInterface()->setWayPointToMove(iWaypointId + 1);
-            }
-
-            if (pInstance->GetInstanceData(INDEX_INSTANCE_PROGRESS) == InProgress && pInstance->GetInstanceData(DATA_SEAL_HEALTH) != 0 
-            && iWaypointId == getCreature()->GetAIInterface()->getWayPointsCount() - 1)
-            {
-                if (Creature* pTriggerTarget = getNearestCreature(1823.696045f, 803.604858f, 44.895786f, CN_DOOR_SEAL))
-                {
-                    getCreature()->GetAIInterface()->setFacing(M_PI_FLOAT);
-                    StartChanneling(pTriggerTarget->GetGUID());
-                    RegisterAIUpdateEvent(6000);
-                    //getCreature()->CastSpellAoF(pTriggerTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_DESTROY_DOOR_SEAL), false);
-                }
-            }
-        }
-
-        void OnCombatStop(Unit* /*pEnemy*/) override
-        {
-            if (getCreature()->isAlive())
-            {
-                getCreature()->GetAIInterface()->setCurrentAgent(AGENT_NULL);
-                getCreature()->GetAIInterface()->setAiState(AI_STATE_SCRIPTIDLE);
-                getCreature()->GetAIInterface()->StopMovement(0);
-                // Move to last waypoint id
-                getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
-                getCreature()->GetAIInterface()->setWayPointToMove(getCreature()->GetAIInterface()->getCurrentWayPointId() != 0 ? getCreature()->GetAIInterface()->getCurrentWayPointId() : 1);
-            }
         }
 
         void StartChanneling(uint64_t triggerGUID)
@@ -382,22 +353,54 @@ class VHAttackerAI : public CreatureAIScript
 
         void OnCombatStart(Unit* /*pKiller*/) override
         {
-            // Stop channeling and fight...
-            StartChanneling(0);
-            RemoveAIUpdateEvent();  // Remove pervious event timer
+            StartChanneling(0);             // Stop channeling
+            RemoveAIUpdateEvent();          // Remove pervious event timer
             RegisterAIUpdateEvent(1000);
+        }
+
+        void OnCombatStop(Unit* /*pEnemy*/) override
+        {
+            if (getCreature()->isAlive())
+            {
+                getCreature()->GetAIInterface()->setCurrentAgent(AGENT_NULL);
+                getCreature()->GetAIInterface()->setAiState(AI_STATE_SCRIPTIDLE);
+                getCreature()->GetAIInterface()->StopMovement(0);
+
+                // Move to last waypoint id
+                getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
+                getCreature()->GetAIInterface()->setWayPointToMove(getCreature()->GetAIInterface()->getCurrentWayPointId() != 0 ? getCreature()->GetAIInterface()->getCurrentWayPointId() : 1);
+            }
+        }
+
+        void OnLoad() override
+        {
+            getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
+            getCreature()->GetAIInterface()->setWayPointToMove(1);
+        }
+
+        void OnReachWP(uint32 iWaypointId, bool /*bForwards*/) override
+        {
+            if (iWaypointId < getCreature()->GetAIInterface()->getWayPointsCount())
+            {
+                getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
+                getCreature()->GetAIInterface()->setWayPointToMove(iWaypointId + 1);
+            }
+
+            if (pInstance->GetInstanceData(INDEX_INSTANCE_PROGRESS) == InProgress && pInstance->GetInstanceData(DATA_SEAL_HEALTH) != 0
+                && iWaypointId == getCreature()->GetAIInterface()->getWayPointsCount() - 1)
+            {
+                if (Creature* pTriggerTarget = getNearestCreature(1823.696045f, 803.604858f, 44.895786f, CN_DOOR_SEAL))
+                {
+                    getCreature()->GetAIInterface()->setFacing(M_PI_FLOAT);
+                    StartChanneling(pTriggerTarget->GetGUID());
+                    RegisterAIUpdateEvent(6000);
+                    //getCreature()->CastSpellAoF(pTriggerTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_DESTROY_DOOR_SEAL), false);
+                }
+            }
         }
 
         void AIUpdate() override
         {
-            if (getCreature()->GetAIInterface()->getCurrentWayPointId() < 1 && !isMoveSet)
-            {
-                getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
-                getCreature()->GetAIInterface()->setWayPointToMove(1);
-                isMoveSet = true;
-                RemoveAIUpdateEvent();
-            }
-
             // TODO: this should be handled by periodic aura
             if (!getCreature()->CombatStatus.IsInCombat() && getCreature()->GetChannelSpellTargetGUID() != 0 && getCreature()->GetChannelSpellId() != 0
             && pInstance && pInstance->GetInstanceData(INDEX_INSTANCE_PROGRESS) && pInstance->GetInstanceData(DATA_SEAL_HEALTH) != 0)
@@ -405,11 +408,10 @@ class VHAttackerAI : public CreatureAIScript
                 pInstance->SetInstanceData(DATA_SEAL_HEALTH, pInstance->GetInstanceData(DATA_SEAL_HEALTH) - 1);
             }
         }
-
-    protected:
-        Creature* pTriggerTarget;
-        bool isMoveSet;
 };
+
+
+// Defense system AI
 
 class VH_DefenseAI : public CreatureAIScript
 {
@@ -525,6 +527,10 @@ class VH_DefenseAI : public CreatureAIScript
         }
 };
 
+
+// Base portal AI
+// Summons squares, keepers/guardians, saboteur and last boss
+
 class TeleportationPortalAI : public CreatureAIScript
 {
         bool isGuardianSpawned;
@@ -538,7 +544,7 @@ class TeleportationPortalAI : public CreatureAIScript
             if (pInstance)
             {
                 if (pInstance->m_activePortal.type != VH_PORTAL_TYPE_BOSS)
-                    RegisterAIUpdateEvent(VH_TELE_PORTAL_SPAWN_TIME);
+                    RegisterAIUpdateEvent(VH_TELE_PORTAL_WAVE_TIMER);
                 else
                     RegisterAIUpdateEvent(VH_TELE_PORTAL_BOSS_SPAWN_TIME);
             }
@@ -550,6 +556,7 @@ class TeleportationPortalAI : public CreatureAIScript
             {
                 return;
             }
+
             switch (pInstance->m_activePortal.type)
             {
                 case VH_PORTAL_TYPE_NONE:
@@ -834,6 +841,8 @@ class TeleportationPortalAI : public CreatureAIScript
         }
 };
 
+
+
 class AzureSaboteurAI : public CreatureAIScript
 {
     TheVioletHoldInstance* pInstance;
@@ -950,6 +959,7 @@ class AzureSaboteurAI : public CreatureAIScript
                 {
                     getCreature()->CastSpell(getCreature(), SPELL_VH_SIMPLE_TELEPORT, true);
                     despawn(1000, 0);
+                    RemoveAIUpdateEvent();
 
                     // Let instance prepare boss event
                     if (pInstance)
@@ -992,6 +1002,8 @@ class AzureSaboteurAI : public CreatureAIScript
 
 // BOSSES
 
+// Moragg boss event
+
 class MoraggAI : public CreatureAIScript
 {
     enum MoraggSpells : uint32_t
@@ -1004,7 +1016,6 @@ class MoraggAI : public CreatureAIScript
         SPELL_RAY_OF_SUFFERING_H = 59524,
 
         // Visual
-
         SPELL_OPTIC_LINK_LEVEL_1 = 54393,
         SPELL_OPTIC_LINK_LEVEL_2 = 54394,
         SPELL_OPTIC_LINK_LEVEL_3 = 54395
@@ -1043,42 +1054,18 @@ public:
         }
     }
 
-    void OnDespawn() override
-    {
-        if (TheVioletHoldInstance* VH_Instance = static_cast<TheVioletHoldInstance*>(getCreature()->GetMapMgr()->GetScript()))
-        {
-            if (VH_Instance->GetInstanceData(INDEX_MORAGG) != Finished)
-            {
-                VH_Instance->SetInstanceData(INDEX_MORAGG, State_Failed);
-            }
-        }
-    }
-
-    void OnCombatStop(Unit* /*pEnemy*/) override
-    {
-        if (getCreature()->isAlive())
-        {
-            despawn(3 * 60 * 1000); // 3 min
-        }
-    }
-
-    void OnCombatStart(Unit* /*pEnemy*/) override
-    {
-        if (sEventMgr.HasEvent(getCreature(), EVENT_CREATURE_RESPAWN))
-        {
-            sEventMgr.RemoveEvents(getCreature(), EVENT_CREATURE_RESPAWN);
-        }
-    }
-
     void OnReachWP(uint32 iWaypointId, bool /*bForwards*/) override
     {
         if (iWaypointId == MoraggPathSize - 1)
         {
-            // Make him targetable and able to enter to combat
             getCreature()->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9 | UNIT_FLAG_NOT_SELECTABLE);
+            AggroNearestPlayer();
         }
     }
 };
+
+
+// Zuramat boss event
 
 class ZuramatAI : public CreatureAIScript
 {
@@ -1103,42 +1090,18 @@ public:
         pCreature->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
     }
 
-    void OnDespawn() override
-    {
-        if (TheVioletHoldInstance* VH_Instance = static_cast<TheVioletHoldInstance*>(getCreature()->GetMapMgr()->GetScript()))
-        {
-            if (VH_Instance->GetInstanceData(INDEX_ZURAMAT) != Finished)
-            {
-                VH_Instance->SetInstanceData(INDEX_ZURAMAT, State_Failed);
-            }
-        }
-    }
-
-    void OnCombatStop(Unit* /*pEnemy*/) override
-    {
-        if (getCreature()->isAlive())
-        {
-            despawn(3 * 60 * 1000); // 3 min
-        }
-    }
-
-    void OnCombatStart(Unit* /*pEnemy*/) override
-    {
-        if (sEventMgr.HasEvent(getCreature(), EVENT_CREATURE_RESPAWN))
-        {
-            sEventMgr.RemoveEvents(getCreature(), EVENT_CREATURE_RESPAWN);
-        }
-    }
-
     void OnReachWP(uint32 iWaypointId, bool /*bForwards*/) override
     {
         if (iWaypointId == ZuramatPathSize - 1)
         {
-            // Make him targetable and able to enter to combat
             getCreature()->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9 | UNIT_FLAG_NOT_SELECTABLE);
+            AggroNearestPlayer();
         }
     }
 };
+
+
+// Ichonor boss event
 
 class IchoronAI : public CreatureAIScript
 {
@@ -1163,42 +1126,18 @@ public:
         pCreature->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
     }
 
-    void OnDespawn() override
-    {
-        if (TheVioletHoldInstance* VH_Instance = static_cast<TheVioletHoldInstance*>(getCreature()->GetMapMgr()->GetScript()))
-        {
-            if (VH_Instance->GetInstanceData(INDEX_ICHORON) != Finished)
-            {
-                VH_Instance->SetInstanceData(INDEX_ICHORON, State_Failed);
-            }
-        }
-    }
-
-    void OnCombatStop(Unit* /*pEnemy*/) override
-    {
-        if (getCreature()->isAlive())
-        {
-            despawn(3 * 60 * 1000); // 3 min
-        }
-    }
-
-    void OnCombatStart(Unit* /*pEnemy*/) override
-    {
-        if (sEventMgr.HasEvent(getCreature(), EVENT_CREATURE_RESPAWN))
-        {
-            sEventMgr.RemoveEvents(getCreature(), EVENT_CREATURE_RESPAWN);
-        }
-    }
-
     void OnReachWP(uint32 iWaypointId, bool /*bForwards*/) override
     {
         if (iWaypointId == IchoronPathSize - 1)
         {
-            // Make him targetable and able to enter to combat
             getCreature()->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9 | UNIT_FLAG_NOT_SELECTABLE);
+            AggroNearestPlayer();
         }
     }
 };
+
+
+// Lavanthor boss event
 
 class LavanthorAI : public CreatureAIScript
 {
@@ -1223,42 +1162,18 @@ public:
         pCreature->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
     }
 
-    void OnDespawn() override
-    {
-        if (TheVioletHoldInstance* VH_Instance = static_cast<TheVioletHoldInstance*>(getCreature()->GetMapMgr()->GetScript()))
-        {
-            if (VH_Instance->GetInstanceData(INDEX_LAVANTHOR) != Finished)
-            {
-                VH_Instance->SetInstanceData(INDEX_LAVANTHOR, State_Failed);
-            }
-        }
-    }
-
-    void OnCombatStop(Unit* /*pEnemy*/) override
-    {
-        if (getCreature()->isAlive())
-        {
-            despawn(3 * 60 * 1000); // 3 min
-        }
-    }
-
-    void OnCombatStart(Unit* /*pEnemy*/) override
-    {
-        if (sEventMgr.HasEvent(getCreature(), EVENT_CREATURE_RESPAWN))
-        {
-            sEventMgr.RemoveEvents(getCreature(), EVENT_CREATURE_RESPAWN);
-        }
-    }
-
     void OnReachWP(uint32 iWaypointId, bool /*bForwards*/) override
     {
         if (iWaypointId == LavanthorPathSize - 1)
         {
-            // Make him targetable and able to enter to combat
             getCreature()->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9 | UNIT_FLAG_NOT_SELECTABLE);
+            AggroNearestPlayer();
         }
     }
 };
+
+
+// Xevozz boss event
 
 class XevozzAI : public CreatureAIScript
 {
@@ -1289,42 +1204,17 @@ public:
         addEmoteForEvent(Event_OnDied, YELL_XEVOZZ_DEATH);
     }
 
-    void OnDespawn() override
-    {
-        if (TheVioletHoldInstance* VH_Instance = static_cast<TheVioletHoldInstance*>(getCreature()->GetMapMgr()->GetScript()))
-        {
-            if (VH_Instance->GetInstanceData(INDEX_XEVOZZ) != Finished)
-            {
-                VH_Instance->SetInstanceData(INDEX_XEVOZZ, State_Failed);
-            }
-        }
-    }
-
-    void OnCombatStop(Unit* /*pEnemy*/) override
-    {
-        if (getCreature()->isAlive())
-        {
-            despawn(3* 60 * 1000); // 3 min
-        }
-    }
-
-    void OnCombatStart(Unit* /*pEnemy*/) override
-    {
-        if (sEventMgr.HasEvent(getCreature(), EVENT_CREATURE_RESPAWN))
-        {
-            sEventMgr.RemoveEvents(getCreature(), EVENT_CREATURE_RESPAWN);
-        }
-    }
-
     void OnReachWP(uint32 iWaypointId, bool /*bForwards*/) override
     {
         if (iWaypointId == XevozzPathSize - 1)
         {
-            // Make him targetable and able to enter to combat
             getCreature()->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9 | UNIT_FLAG_NOT_SELECTABLE);
+            AggroNearestPlayer();
         }
     }
 };
+
+// Erekem boss event
 
 class ErekemAI : public CreatureAIScript
 {
@@ -1353,13 +1243,14 @@ public:
     {
         if (iWaypointId == ErekemPathSize - 1)
         {
-            // Make him targetable and able to enter to combat
             getCreature()->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9 | UNIT_FLAG_NOT_SELECTABLE);
+            AggroNearestPlayer();
         }
     }
 };
 
-// Spells
+// Spell scripts
+
 bool TeleportPlayerInEffect(uint32 /*i*/, Spell* pSpell)
 {
     if (pSpell->u_caster == nullptr || !pSpell->u_caster->IsCreature() || !pSpell->GetPlayerTarget())
