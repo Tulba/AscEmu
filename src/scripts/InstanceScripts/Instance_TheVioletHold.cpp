@@ -610,11 +610,11 @@ class TeleportationPortalAI : public CreatureAIScript
                     RemoveAIUpdateEvent();
                     despawn(1000, 0);
                 }break;
+                // Spawn Soboteur which will open boss cell
                 case VH_PORTAL_TYPE_BOSS:
                 {
                     float landHeight = getCreature()->GetMapMgr()->GetLandHeight(getCreature()->GetPositionX(), getCreature()->GetPositionY(), getCreature()->GetPositionZ());
-                    Creature* pSaboteur = spawnCreature(CN_AZURE_SABOTEUR, getCreature()->GetPositionX(), getCreature()->GetPositionY(), landHeight, getCreature()->GetOrientation());
-                    if (pSaboteur)
+                    if (Creature* pSaboteur = spawnCreature(CN_AZURE_SABOTEUR, getCreature()->GetPositionX(), getCreature()->GetPositionY(), landHeight, getCreature()->GetOrientation()))
                     {
                         AddWaypoint(pSaboteur, 0, pInstance->m_activePortal.bossEntry);
                         pSaboteur->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
@@ -632,8 +632,8 @@ class TeleportationPortalAI : public CreatureAIScript
             if (!pCreature)
                 return;
 
-            // not a boss encounter
             float runSpeed = pCreature->GetCreatureProperties()->run_speed;
+            // Basic portal
             if (bossEntry == 0)
             {
                 switch (portalId)
@@ -744,6 +744,7 @@ class TeleportationPortalAI : public CreatureAIScript
                     }break;
                 }
             }
+            // Boss portal
             else
             {
                 switch (bossEntry)
@@ -755,7 +756,7 @@ class TeleportationPortalAI : public CreatureAIScript
                             uint32_t waitTime = 0;
                             // First wp
                             if (i == 0)
-                                waitTime = GenerateWPWaitTime(runSpeed, SaboteurMoraggPath[i].x, getCreature()->GetPositionX(), SaboteurMoraggPath[i].y, getCreature()->GetPositionY());
+                                waitTime = GenerateWPWaitTime(runSpeed, SaboteurMoraggPath[i].x, pCreature->GetPositionX(), SaboteurMoraggPath[i].y, pCreature->GetPositionY());
                             else
                                 waitTime = GenerateWPWaitTime(runSpeed, SaboteurMoraggPath[i].x, SaboteurMoraggPath[i - 1].x, SaboteurMoraggPath[i].y, SaboteurMoraggPath[i - 1].y);
 
@@ -769,7 +770,7 @@ class TeleportationPortalAI : public CreatureAIScript
                             uint32_t waitTime = 0;
                             // First wp
                             if (i == 0)
-                                waitTime = GenerateWPWaitTime(runSpeed, SaboteurIchoronPath[i].x, getCreature()->GetPositionX(), SaboteurIchoronPath[i].y, getCreature()->GetPositionY());
+                                waitTime = GenerateWPWaitTime(runSpeed, SaboteurIchoronPath[i].x, pCreature->GetPositionX(), SaboteurIchoronPath[i].y, pCreature->GetPositionY());
                             else
                                 waitTime = GenerateWPWaitTime(runSpeed, SaboteurIchoronPath[i].x, SaboteurIchoronPath[i - 1].x, SaboteurIchoronPath[i].y, SaboteurIchoronPath[i - 1].y);
 
@@ -783,7 +784,7 @@ class TeleportationPortalAI : public CreatureAIScript
                             uint32_t waitTime = 0;
                             // First wp
                             if (i == 0)
-                                waitTime = GenerateWPWaitTime(runSpeed, SaboteurXevozzPath[i].x, getCreature()->GetPositionX(), SaboteurXevozzPath[i].y, getCreature()->GetPositionY());
+                                waitTime = GenerateWPWaitTime(runSpeed, SaboteurXevozzPath[i].x, pCreature->GetPositionX(), SaboteurXevozzPath[i].y, pCreature->GetPositionY());
                             else
                                 waitTime = GenerateWPWaitTime(runSpeed, SaboteurXevozzPath[i].x, SaboteurXevozzPath[i - 1].x, SaboteurXevozzPath[i].y, SaboteurXevozzPath[i - 1].y);
 
@@ -797,7 +798,7 @@ class TeleportationPortalAI : public CreatureAIScript
                             uint32_t waitTime = 0;
                             // First wp
                             if (i == 0)
-                                waitTime = GenerateWPWaitTime(runSpeed, SaboteurLavanthorPath[i].x, getCreature()->GetPositionX(), SaboteurLavanthorPath[i].y, getCreature()->GetPositionY());
+                                waitTime = GenerateWPWaitTime(runSpeed, SaboteurLavanthorPath[i].x, pCreature->GetPositionX(), SaboteurLavanthorPath[i].y, pCreature->GetPositionY());
                             else
                                 waitTime = GenerateWPWaitTime(runSpeed, SaboteurLavanthorPath[i].x, SaboteurLavanthorPath[i - 1].x, SaboteurLavanthorPath[i].y, SaboteurLavanthorPath[i - 1].y);
 
@@ -811,7 +812,7 @@ class TeleportationPortalAI : public CreatureAIScript
                             uint32_t waitTime = 0;
                             // First wp
                             if (i == 0)
-                                waitTime = GenerateWPWaitTime(runSpeed, SaboteurErekemPath[i].x, getCreature()->GetPositionX(), SaboteurErekemPath[i].y, getCreature()->GetPositionY());
+                                waitTime = GenerateWPWaitTime(runSpeed, SaboteurErekemPath[i].x, pCreature->GetPositionX(), SaboteurErekemPath[i].y, pCreature->GetPositionY());
                             else
                                 waitTime = GenerateWPWaitTime(runSpeed, SaboteurErekemPath[i].x, SaboteurErekemPath[i - 1].x, SaboteurErekemPath[i].y, SaboteurErekemPath[i - 1].y);
 
@@ -825,7 +826,7 @@ class TeleportationPortalAI : public CreatureAIScript
                             uint32_t waitTime = 0;
                             // First wp
                             if (i == 0)
-                                waitTime = GenerateWPWaitTime(runSpeed, SaboteurZuramatPath[i].x, getCreature()->GetPositionX(), SaboteurZuramatPath[i].y, getCreature()->GetPositionY());
+                                waitTime = GenerateWPWaitTime(runSpeed, SaboteurZuramatPath[i].x, pCreature->GetPositionX(), SaboteurZuramatPath[i].y, pCreature->GetPositionY());
                             else
                                 waitTime = GenerateWPWaitTime(runSpeed, SaboteurZuramatPath[i].x, SaboteurZuramatPath[i - 1].x, SaboteurZuramatPath[i].y, SaboteurZuramatPath[i - 1].y);
 
@@ -1251,7 +1252,7 @@ public:
 
 // Spell scripts
 
-bool TeleportPlayerInEffect(uint32 /*i*/, Spell* pSpell)
+bool TeleportPlayerInEffect(uint8_t /*i*/, Spell* pSpell)
 {
     if (pSpell->u_caster == nullptr || !pSpell->u_caster->IsCreature() || !pSpell->GetPlayerTarget())
     {
