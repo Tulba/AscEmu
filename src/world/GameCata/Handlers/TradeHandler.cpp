@@ -154,7 +154,7 @@ void WorldSession::sendTradeUpdate(bool trade_state /*= true*/)
                 data << uint32_t(item->GetEnchantmentId(PERM_ENCHANTMENT_SLOT));
                 for (uint32_t enchant_slot = 2; enchant_slot < 5; ++enchant_slot)
                 {
-                    data << uint32_t(item->GetEnchantmentId(EnchantmentSlot(enchant_slot)));
+                    data << uint32_t(item->GetEnchantmentId(static_cast<uint16_t>(EnchantmentSlot(enchant_slot))));
                 }
 
                 data << uint32_t(item->getUInt32Value(ITEM_FIELD_MAXDURABILITY));
@@ -414,9 +414,9 @@ static void clearAcceptTradeMode(Item** myItems, Item** hisItems)
     }
 }
 
-void WorldSession::HandleAcceptTrade(WorldPacket& recv_data)
+void WorldSession::HandleAcceptTrade(WorldPacket& recvData)
 {
-    recv_data.read_skip<uint32_t>();
+    recvData.read_skip<uint32_t>();
 
     TradeData* trade_data = _player->m_TradeData;
     if (trade_data == nullptr)
@@ -439,8 +439,8 @@ void WorldSession::HandleAcceptTrade(WorldPacket& recv_data)
         target_trade_items[i] = nullptr;
     }
 
-    bool myCanCompleteTrade = true;
-    bool hisCanCompleteTrade = true;
+    // bool myCanCompleteTrade = true;
+    // bool hisCanCompleteTrade = true;
 
     trade_data->setAccepted(true);
 
@@ -526,7 +526,7 @@ void WorldSession::HandleAcceptTrade(WorldPacket& recv_data)
             }
             else
             {
-                _player->ModGold(target_trade_data->getMoney());
+                _player->ModGold(static_cast<int32_t>(target_trade_data->getMoney()));
                 trade_target->ModGold(-(int32_t)target_trade_data->getMoney());
             }
         }
@@ -540,7 +540,7 @@ void WorldSession::HandleAcceptTrade(WorldPacket& recv_data)
             }
             else
             {
-                trade_target->ModGold(trade_data->getMoney());
+                trade_target->ModGold(static_cast<int32_t>(trade_data->getMoney()));
                 _player->ModGold(-(int32_t)trade_data->getMoney());
             }
         }

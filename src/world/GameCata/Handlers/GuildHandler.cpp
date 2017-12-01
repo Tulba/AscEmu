@@ -254,15 +254,11 @@ void WorldSession::HandleGuildDisbandOpcode(WorldPacket& /*recv_data*/)
     }
 }
 
-void WorldSession::HandleGuildLeaderOpcode(WorldPacket& recv_data)
+void WorldSession::HandleGuildLeaderOpcode(WorldPacket& recvData)
 {
-    uint8_t nameLength;
-    bool inactive;
-    std::string playerName;
-
-    nameLength = recv_data.readBits(7);
-    inactive = recv_data.readBit();                 // bool inactive?
-    playerName = recv_data.ReadString(nameLength);
+    uint8_t nameLength = static_cast<uint8_t>(recvData.readBits(7));
+    /*bool inactive = */recvData.readBit();                 // bool inactive?
+    std::string playerName = recvData.ReadString(nameLength);
 
     if (Guild* guild = GetPlayer()->GetGuild())
     {
@@ -382,26 +378,25 @@ void WorldSession::HandleGuildAddRankOpcode(WorldPacket& recv_data)
     }
 }
 
-void WorldSession::HandleGuildDelRankOpcode(WorldPacket& recv_data)
+void WorldSession::HandleGuildDelRankOpcode(WorldPacket& recvData)
 {
     uint32_t rankId;
-    recv_data >> rankId;
+    recvData >> rankId;
 
     LogDebugFlag(LF_OPCODE, "CMSG_GUILD_DEL_RANK %s: Rank: %u", _player->GetName(), rankId);
 
     if (Guild* guild = GetPlayer()->GetGuild())
     {
-        guild->handleRemoveRank(this, rankId);
+        guild->handleRemoveRank(this, static_cast<uint8_t>(rankId));
     }
 }
 
-void WorldSession::HandleGuildChangeInfoTextOpcode(WorldPacket& recv_data)
+void WorldSession::HandleGuildChangeInfoTextOpcode(WorldPacket& recvData)
 {
-    uint32_t length;
     std::string info;
 
-    length = recv_data.readBits(12);
-    info = recv_data.ReadString(length);
+    uint32_t length = static_cast<uint32_t>(recvData.readBits(12));
+    info = recvData.ReadString(length);
 
     LogDebugFlag(LF_OPCODE, "CMSG_GUILD_INFO_TEXT %s: %s", _player->GetName(), info.c_str());
 
@@ -534,7 +529,7 @@ void WorldSession::HandleGuildSetRankPermissionsOpcode(WorldPacket& recv_data)
 
     LogDebugFlag(LF_OPCODE, "CMSG_GUILD_SET_RANK_PERMISSIONS %s: rank: %s (%u)", _player->GetName(), rankName.c_str(), newRankId);
 
-    guild->handleSetRankInfo(this, newRankId, rankName, newRights, moneyPerDay, rightsAndSlots);
+    guild->handleSetRankInfo(this, static_cast<uint8_t>(newRankId), rankName, newRights, moneyPerDay, rightsAndSlots);
 }
 
 void WorldSession::HandleGuildRequestPartyState(WorldPacket& recv_data)
@@ -685,16 +680,13 @@ void WorldSession::HandleGuildNewsUpdateStickyOpcode(WorldPacket& recv_data)
     }
 }
 
-void WorldSession::HandleGuildSetGuildMaster(WorldPacket& recv_data)
+void WorldSession::HandleGuildSetGuildMaster(WorldPacket& recvData)
 {
-    uint8_t nameLength;
-    std::string playerName;
+    uint8_t nameLength = static_cast<uint8_t>(recvData.readBits(7));
 
-    nameLength = recv_data.readBits(7);
+    recvData.readBit();
 
-    recv_data.readBit();
-
-    playerName = recv_data.ReadString(nameLength);
+    std::string playerName = recvData.ReadString(nameLength);
 
     if (Guild* guild = GetPlayer()->GetGuild())
     {
@@ -766,7 +758,7 @@ void WorldSession::HandleGuildBankDepositMoney(WorldPacket& recv_data)
     LogDebugFlag(LF_OPCODE, "CMSG_GUILD_BANK_DEPOSIT_MONEY %s: gameobject: %u, money: " I64FMTD,
         _player->GetName(), Arcemu::Util::GUID_LOPART(bankGuid), money);
 
-    if (money && GetPlayer()->HasGold(money))
+    if (money && GetPlayer()->HasGold(static_cast<uint32_t>(money)))
     {
         if (Guild* guild = GetPlayer()->GetGuild())
         {
@@ -907,16 +899,16 @@ void WorldSession::HandleGuildBankUpdateTab(WorldPacket& recv_data)
     }
 }
 
-void WorldSession::HandleGuildBankLogQuery(WorldPacket& recv_data)
+void WorldSession::HandleGuildBankLogQuery(WorldPacket& recvData)
 {
     uint32_t tabId;
-    recv_data >> tabId;
+    recvData >> tabId;
 
     LogDebugFlag(LF_OPCODE, "MSG_GUILD_BANK_LOG_QUERY %s: tabId: %u", _player->GetName(), tabId);
 
     if (Guild* guild = GetPlayer()->GetGuild())
     {
-        guild->sendBankLog(this, tabId);
+        guild->sendBankLog(this, static_cast<uint8_t>(tabId));
     }
 }
 
@@ -933,22 +925,21 @@ void WorldSession::HandleQueryGuildBankTabText(WorldPacket &recv_data)
     }
 }
 
-void WorldSession::HandleSetGuildBankTabText(WorldPacket& recv_data)
+void WorldSession::HandleSetGuildBankTabText(WorldPacket& recvData)
 {
     uint32_t tabId;
-    uint32_t textLen;
     std::string text;
 
-    recv_data >> tabId;
+    recvData >> tabId;
 
-    textLen = recv_data.readBits(14);
-    text = recv_data.ReadString(textLen);
+    uint32_t textLen = recvData.readBits(14);
+    text = recvData.ReadString(textLen);
 
     LogDebugFlag(LF_OPCODE, "CMSG_SET_GUILD_BANK_TEXT %s: tabId: %u, text: %s", _player->GetName(), tabId, text.c_str());
 
     if (Guild* guild = GetPlayer()->GetGuild())
     {
-        guild->setBankTabText(tabId, text);
+        guild->setBankTabText(static_cast<uint8_t>(tabId), text);
     }
 }
 
@@ -1475,7 +1466,7 @@ void WorldSession::HandleCharterTurnInCharterOpcode(WorldPacket& recv_data)
             return;
         }
 
-        ArenaTeam* arenaTeam = new ArenaTeam(type, objmgr.GenerateArenaTeamId());
+        ArenaTeam* arenaTeam = new ArenaTeam(static_cast<uint16_t>(type), objmgr.GenerateArenaTeamId());
         arenaTeam->m_name = charter->GuildName;
         arenaTeam->m_emblemColour = iconcolor;
         arenaTeam->m_emblemStyle = icon;
@@ -1540,7 +1531,7 @@ void WorldSession::HandleCharterRenameOpcode(WorldPacket& recv_data)
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // GuildFinder
-void WorldSession::HandleGuildFinderAddRecruit(WorldPacket& recv_data)
+void WorldSession::HandleGuildFinderAddRecruit(WorldPacket& recvData)
 {
     if (sGuildFinderMgr.getAllMembershipRequestsForPlayer(GetPlayer()->GetLowGUID()).size() == 10)
     {
@@ -1551,44 +1542,39 @@ void WorldSession::HandleGuildFinderAddRecruit(WorldPacket& recv_data)
     uint32_t availability = 0;
     uint32_t guildInterests = 0;
 
-    recv_data >> classRoles;
-    recv_data >> guildInterests;
-    recv_data >> availability;
-
-    uint16_t commentLength;
-    uint8_t nameLength;
-    std::string comment;
-    std::string playerName;
+    recvData >> classRoles;
+    recvData >> guildInterests;
+    recvData >> availability;
 
     ObjectGuid guid;
 
-    guid[3] = recv_data.readBit();
-    guid[0] = recv_data.readBit();
-    guid[6] = recv_data.readBit();
-    guid[1] = recv_data.readBit();
+    guid[3] = recvData.readBit();
+    guid[0] = recvData.readBit();
+    guid[6] = recvData.readBit();
+    guid[1] = recvData.readBit();
 
-    commentLength = recv_data.readBits(11);
+    uint16_t commentLength = static_cast<uint16_t>(recvData.readBits(11));
 
-    guid[5] = recv_data.readBit();
-    guid[4] = recv_data.readBit();
-    guid[7] = recv_data.readBit();
+    guid[5] = recvData.readBit();
+    guid[4] = recvData.readBit();
+    guid[7] = recvData.readBit();
 
-    nameLength = recv_data.readBits(7);
+    uint8_t nameLength = static_cast<uint8_t>(recvData.readBits(7));
 
-    guid[2] = recv_data.readBit();
+    guid[2] = recvData.readBit();
 
-    recv_data.ReadByteSeq(guid[4]);
-    recv_data.ReadByteSeq(guid[5]);
+    recvData.ReadByteSeq(guid[4]);
+    recvData.ReadByteSeq(guid[5]);
 
-    comment = recv_data.ReadString(commentLength);
-    playerName = recv_data.ReadString(nameLength);
+    std::string comment = recvData.ReadString(commentLength);
+    std::string playerName = recvData.ReadString(nameLength);
 
-    recv_data.ReadByteSeq(guid[7]);
-    recv_data.ReadByteSeq(guid[2]);
-    recv_data.ReadByteSeq(guid[0]);
-    recv_data.ReadByteSeq(guid[6]);
-    recv_data.ReadByteSeq(guid[1]);
-    recv_data.ReadByteSeq(guid[3]);
+    recvData.ReadByteSeq(guid[7]);
+    recvData.ReadByteSeq(guid[2]);
+    recvData.ReadByteSeq(guid[0]);
+    recvData.ReadByteSeq(guid[6]);
+    recvData.ReadByteSeq(guid[1]);
+    recvData.ReadByteSeq(guid[3]);
 
     uint32_t guildLowGuid = Arcemu::Util::GUID_LOPART(uint64_t(guid));
 
@@ -1645,9 +1631,9 @@ void WorldSession::HandleGuildFinderBrowse(WorldPacket& recv_data)
 
     Player* player = GetPlayer();
 
-    LFGuildPlayer settings(player->GetLowGUID(), classRoles, availability, guildInterests, ANY_FINDER_LEVEL);
+    LFGuildPlayer settings(player->GetLowGUID(), static_cast<uint8_t>(classRoles), static_cast<uint8_t>(availability), static_cast<uint8_t>(guildInterests), ANY_FINDER_LEVEL);
     LFGuildStore guildList = sGuildFinderMgr.getGuildsMatchingSetting(settings, player->GetTeamReal());
-    uint32_t guildCount = guildList.size();
+    uint32_t guildCount = static_cast<uint32_t>(guildList.size());
 
     if (guildCount == 0)
     {
@@ -1705,7 +1691,7 @@ void WorldSession::HandleGuildFinderBrowse(WorldPacket& recv_data)
 
         bufferData.WriteByteSeq(guildGUID[7]);
 
-        bufferData << uint8_t(sGuildFinderMgr.hasRequest(player->GetLowGUID(), guild->getGUID()));
+        bufferData << uint8_t(sGuildFinderMgr.hasRequest(player->GetLowGUID(), guild->getId()));
 
         bufferData.WriteByteSeq(guildGUID[2]);
         bufferData.WriteByteSeq(guildGUID[0]);
@@ -1762,7 +1748,7 @@ void WorldSession::HandleGuildFinderDeclineRecruit(WorldPacket& recv_data)
 void WorldSession::HandleGuildFinderGetApplications(WorldPacket& /*recv_data*/)
 {
     std::list<MembershipRequest> applicatedGuilds = sGuildFinderMgr.getAllMembershipRequestsForPlayer(GetPlayer()->GetLowGUID());
-    uint32_t applicationsCount = applicatedGuilds.size();
+    uint32_t applicationsCount = static_cast<uint32_t>(applicatedGuilds.size());
     WorldPacket data(SMSG_LF_GUILD_MEMBERSHIP_LIST_UPDATED, 7 + 54 * applicationsCount);
     data.writeBits(applicationsCount, 20);
 
@@ -1836,7 +1822,7 @@ void WorldSession::HandleGuildFinderGetRecruits(WorldPacket& recv_data)
     }
 
     std::vector<MembershipRequest> recruitsList = sGuildFinderMgr.getAllMembershipRequestsForGuild(player->GetGuildId());
-    uint32_t recruitCount = recruitsList.size();
+    uint32_t recruitCount = static_cast<uint32_t>(recruitsList.size());
 
     ByteBuffer dataBuffer(53 * recruitCount);
     WorldPacket data(SMSG_LF_GUILD_RECRUIT_LIST_UPDATED, 7 + 26 * recruitCount + 53 * recruitCount);
@@ -1987,7 +1973,7 @@ void WorldSession::HandleGuildFinderSetGuildPost(WorldPacket& recv_data)
         level = ANY_FINDER_LEVEL;
     }
 
-    uint16_t length = recv_data.readBits(11);
+    uint32_t length = recv_data.readBits(11);
     bool listed = recv_data.readBit();
     std::string comment = recv_data.ReadString(length);
 
@@ -2025,6 +2011,6 @@ void WorldSession::HandleGuildFinderSetGuildPost(WorldPacket& recv_data)
         }
     }
 
-    LFGuildSettings settings(listed, player->GetTeamReal(), player->GetGuildId(), classRoles, availability, guildInterests, level, comment);
+    LFGuildSettings settings(listed, player->GetTeamReal(), player->GetGuildId(), static_cast<uint8_t>(classRoles), static_cast<uint8_t>(availability), static_cast<uint8_t>(guildInterests), static_cast<uint8_t>(level), comment);
     sGuildFinderMgr.setGuildSettings(player->GetGuildId(), settings);
 }
