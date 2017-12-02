@@ -624,6 +624,10 @@ const Movement::Location SixthPoralWPs[MaxSixhtPortalWPS] =
 // Default location used for attackers
 const Movement::Location DefaultPortalWPs = { 1843.567017f, 804.288208f, 44.139091f, 0 };
 
+// Erekem guards location
+const Movement::Location leftErekemGuardPosition = { 1853.75f, 862.453f, 43.4161, 0 };
+const Movement::Location rightErekemGuardPosition = { 1892.42f, 872.283f, 43.4156f, 0 };
+
 // Common instance events tasks are handled by SetInstanceData function
 class TheVioletHoldInstance : public InstanceScript
 {
@@ -641,11 +645,11 @@ class TheVioletHoldInstance : public InstanceScript
     // Guid lists
     std::vector<uint32_t> m_guardsGuids;      // Guards at entrance guids
     std::vector<uint32_t> m_crystalGuids;     // Activation crystal guids
-    std::vector<uint32_t> m_introSpawns;      // intro creatures guids
+    std::vector<uint32_t> m_introSpawns;      // Intro creatures guids
     std::vector<uint32_t> m_defenseTriggers;  // Used for visual effect in defense npc AI
     std::vector<uint32_t> m_eventSpawns;      // Portal event spawns (it won't contain main portal guardians)
 
-                                            // Portal summoning event
+    // Portal summoning event
     uint32_t m_portalSummonTimer;
     VHPortalInfo m_activePortal;
     uint32_t m_portalGUID;

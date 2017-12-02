@@ -1433,6 +1433,12 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
                 case PreProgress:
                 {
                     setGameObjectStateForEntry(GO_MORAGG_CELL, GO_STATE_OPEN);
+                    if (Creature* Moragg = GetCreatureByGuid(m_MoraggGUID))
+                    {
+                        Moragg->GetAIInterface()->StopMovement(5000);
+                        Moragg->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_FORWARDTHENSTOP);
+                        Moragg->GetAIInterface()->setWayPointToMove(1);
+                    }
                 }break;
                 case State_Failed:
                 {
@@ -1452,6 +1458,12 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
                 case PreProgress:
                 {
                     setGameObjectStateForEntry(GO_ICHORON_CELL, GO_STATE_OPEN);
+                    if (Creature* Ichoron = GetCreatureByGuid(m_IchoronGUID))
+                    {
+                        Ichoron->GetAIInterface()->StopMovement(5000);
+                        Ichoron->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_FORWARDTHENSTOP);
+                        Ichoron->GetAIInterface()->setWayPointToMove(1);
+                    }
                 }break;
                 case State_Failed:
                 {
@@ -1471,6 +1483,12 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
                 case PreProgress:
                 {
                     setGameObjectStateForEntry(GO_ZURAMAT_CELL, GO_STATE_OPEN);
+                    if (Creature* Zuramat = GetCreatureByGuid(m_ZuramatGUID))
+                    {
+                        Zuramat->GetAIInterface()->StopMovement(5000);
+                        Zuramat->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_FORWARDTHENSTOP);
+                        Zuramat->GetAIInterface()->setWayPointToMove(1);
+                    }
                 }break;
                 case State_Failed:
                 {
@@ -1490,8 +1508,31 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
                 case PreProgress:
                 {
                     setGameObjectStateForEntry(GO_EREKEM_CELL, GO_STATE_OPEN);
+                    if (Creature* Erekem = GetCreatureByGuid(m_ErekemGUID))
+                    {
+                        Erekem->GetAIInterface()->StopMovement(5000);
+                        Erekem->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_FORWARDTHENSTOP);
+                        Erekem->GetAIInterface()->setWayPointToMove(1);
+                    }
+
+                    // Guard on left
                     setGameObjectStateForEntry(GO_EREKEM_GUARD_CELL1, GO_STATE_OPEN);
+                    if (Creature* Guard = GetInstance()->GetInterface()->GetCreatureNearestCoords(leftErekemGuardPosition.x, leftErekemGuardPosition.y, leftErekemGuardPosition.z, CN_EREKEM_GUARD))
+                    {
+                        Guard->GetAIInterface()->StopMovement(5000);
+                        Guard->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_FORWARDTHENSTOP);
+                        Guard->GetAIInterface()->setWayPointToMove(1);
+                    }
+
+                    // Guard on right
                     setGameObjectStateForEntry(GO_EREKEM_GUARD_CELL2, GO_STATE_OPEN);
+                    if (Creature* Guard = GetInstance()->GetInterface()->GetCreatureNearestCoords(rightErekemGuardPosition.x, rightErekemGuardPosition.y, rightErekemGuardPosition.z, CN_EREKEM_GUARD))
+                    {
+                        Guard->GetAIInterface()->StopMovement(5000);
+                        Guard->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_FORWARDTHENSTOP);
+                        Guard->GetAIInterface()->setWayPointToMove(1);
+                    }
+
                 }break;
                 case State_Failed:
                 {
@@ -1513,11 +1554,10 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
                 case PreProgress:
                 {
                     setGameObjectStateForEntry(GO_LAVANTHOR_CELL, GO_STATE_OPEN);
-                    if (Creature* Xevozz = GetCreatureByGuid(m_XevozzGUID))
+                    if (Creature* Lavanthor = GetCreatureByGuid(m_LavanthorGUID))
                     {
-                        Xevozz->SendScriptTextChatMessage(YELL_XEVOZZ_RELEASE);
-                        Xevozz->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_FORWARDTHENSTOP);
-                        Xevozz->GetAIInterface()->setWayPointToMove(1);
+                        Lavanthor->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_FORWARDTHENSTOP);
+                        Lavanthor->GetAIInterface()->setWayPointToMove(1);
                     }
                 }break;
                 case State_Failed:
