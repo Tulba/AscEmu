@@ -2216,7 +2216,7 @@ void TheVioletHoldInstance::OnCreatureDeath(Creature* pCreature, Unit* pKiller)
         {
             if (m_activePortal.type == VH_PORTAL_TYPE_SQUAD && GetInstanceData(INDEX_PORTAL_PROGRESS) == InProgress)
             {
-                m_activePortal.DelSummonDataByGuid(GET_LOWGUID_PART(pCreature->GetGUID()));
+                m_activePortal.RemoveSummonByGuid(GET_LOWGUID_PART(pCreature->GetGUID()));
                 if (m_activePortal.summonsList.empty())
                 {
                     SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
@@ -2280,8 +2280,8 @@ void TheVioletHoldInstance::UpdateEvent()
         {
             if (m_portalSummonTimer == 0)
             {
-                m_portalSummonTimer = VH_NEXT_PORTAL_SPAWN_TIME;
                 SpawnPortal();
+                m_portalSummonTimer = GetInstanceData(DATA_PORTAL_COUNT) == 6 || GetInstanceData(DATA_PORTAL_COUNT) == 12 ? VH_TIMER_AFTER_BOSS : VH_NEXT_PORTAL_SPAWN_TIME;
                 SetInstanceData(INDEX_PORTAL_PROGRESS, InProgress);
             }
             else
