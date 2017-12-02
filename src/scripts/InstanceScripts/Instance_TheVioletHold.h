@@ -144,6 +144,7 @@ enum VH_GameObjects : uint32_t
     // Main gates
     GO_PRISON_SEAL              = 191723,
 
+    // Bosses cells
     GO_XEVOZZ_CELL              = 191556,
     GO_LAVANTHOR_CELL           = 191566,
     GO_ICHORON_CELL             = 191722,
@@ -151,7 +152,7 @@ enum VH_GameObjects : uint32_t
     GO_EREKEM_CELL              = 191564,
     GO_EREKEM_GUARD_CELL1       = 191563,
     GO_EREKEM_GUARD_CELL2       = 191562,
-    GO_MORAGG_DOOR              = 191606
+    GO_MORAGG_CELL              = 191606
 };
 
 enum VH_Texts : uint32_t
@@ -298,12 +299,12 @@ const Movement::Location SaboteurPortalLoc = { 1890.73f, 803.309f, 38.4001f, 2.4
 const uint8_t MaxWpToMoragg = 6;
 const Movement::Location SaboteurMoraggPath[MaxWpToMoragg] =
 {
-    { 1886.251f, 803.0743f, 38.42326f, 0 },
-    { 1885.71f,  799.8929f, 38.37241f, 0 },
-    { 1889.505f, 762.3288f, 47.66684f, 0 },
-    { 1894.542f, 742.1829f, 47.66684f, 0 },
-    { 1894.603f, 739.9231f, 47.66684f, 0 },
-    {}
+    { 1886.251f, 803.0743f, 38.42326f, 0 }, // 0
+    { 1885.71f,  799.8929f, 38.37241f, 0 }, // 1
+    { 1889.505f, 762.3288f, 47.66684f, 0 }, // 2
+    { 1894.542f, 742.1829f, 47.66684f, 0 }, // 3
+    { 1894.603f, 739.9231f, 47.66684f, 0 }, // 4
+    {}                                      // 5
 };
 
 const uint8_t MaxWpToErekem = 6;
@@ -627,16 +628,6 @@ class TheVioletHoldInstance : public InstanceScript
 {
     uint32_t m_VHencounterData[INDEX_MAX];
 
-    // Low guids of gameobjects
-    uint32_t m_mainGatesGUID;
-    uint32_t m_MorragCellGUID;
-    uint32_t m_IchoronCellGUID;
-    uint32_t m_XevozzCellGUID;
-    uint32_t m_LavanthorCellGUID;
-    uint32_t m_ZuramatCellGUID;
-    uint32_t m_ErekemCellGUID;
-    uint32_t m_ErekemGuardCellGUID[2];
-
     // Low guids of creatures
     uint32_t m_sinclariGUID;
     uint32_t m_ErekemGUID;
@@ -647,11 +638,11 @@ class TheVioletHoldInstance : public InstanceScript
     uint32_t m_ZuramatGUID;
 
     // Guid lists
-    std::list<uint32_t> m_guardsGuids;      // Guards at entrance guids
-    std::list<uint32_t> m_crystalGuids;     // Activation crystal guids
-    std::list<uint32_t> m_introSpawns;      // intro creatures guids
-    std::list<uint32_t> m_defenseTriggers;  // Used for visual effect in defense npc AI
-    std::list<uint32_t> m_eventSpawns;      // Portal event spawns (it won't contain main portal guardians)
+    std::vector<uint32_t> m_guardsGuids;      // Guards at entrance guids
+    std::vector<uint32_t> m_crystalGuids;     // Activation crystal guids
+    std::vector<uint32_t> m_introSpawns;      // intro creatures guids
+    std::vector<uint32_t> m_defenseTriggers;  // Used for visual effect in defense npc AI
+    std::vector<uint32_t> m_eventSpawns;      // Portal event spawns (it won't contain main portal guardians)
 
                                             // Portal summoning event
     uint32_t m_portalSummonTimer;
@@ -674,17 +665,27 @@ public:
     static InstanceScript* Create(MapMgr* pMapMgr) { return new TheVioletHoldInstance(pMapMgr); }
     TheVioletHoldInstance(MapMgr* pMapMgr);
 
-    // Sets base instance data
-    void ResetInstanceData();
-
     // Sets instance data - used for events handling
     void SetInstanceData(uint32_t pIndex, uint32_t pData);
 
     // Gets instance data - used for events handling
     uint32_t GetInstanceData(uint32_t pIndex);
 
+    // Removes all dead intro npcs
+    void RemoveIntroNpcs(bool deadOnly);
+
+    // Removed intro npcs by low guid
+    void RemoveIntroNpcByGuid(uint32_t guid);
+
+    // Call guards out
+    void CallGuardsOut();
+
+private:
+    // Sets base instance data
+    void ResetInstanceData();
+
     // Generate very basic portal info
-    void GenerateRandomPortal(VHPortalInfo & newPortal);
+    void GeneratePortalInfo(VHPortalInfo & newPortal);
 
     // SpawnPortal
     void SpawnPortal();
@@ -694,12 +695,6 @@ public:
 
     // Resets whole dungeon and starts intro npcs summoning
     void ResetIntro();
-
-    // Removes all dead intro npcs
-    void RemoveIntroNpcs(bool deadOnly);
-
-    // Removed intro npcs by low guid
-    void RemoveIntroNpcByGuid(uint32_t guid);
 
     // Updates world states based on instance data
     void UpdateWorldStates();
@@ -716,9 +711,6 @@ public:
     // Update achievement criteria for all players by id
     void UpdateAchievCriteriaForPlayers(uint32_t id, uint32_t criteriaCount);
 
-    // Calls guards out
-    void CallGuardsOut();
-
     // Returns ghostly replacement entry for boss
     uint32_t GetGhostlyReplacement(uint32_t bossEntry);
 
@@ -727,9 +719,6 @@ public:
 
     // Spawns ghostly replacement for boss entry
     void SpawnGhostlyReplacement(uint32_t bossEntry, float x, float y, float z, float o);
-
-    // Releases boss from its cell and starts boss movement
-    void ReleaseBoss(uint32_t gatesGuid, uint32_t bossGuid);
 
     // Virtual event functions
     void OnCreaturePushToWorld(Creature* pCreature) override;
