@@ -111,11 +111,11 @@ enum VHTimers : uint32_t
     VH_TELE_PORTAL_WAVE_TIMER       = 15000,
     VH_TELE_PORTAL_BOSS_SPAWN_TIME  = 2000,
     VH_TIMER_SPAWN_INTRO_MOB_MAX    = 20000,
-    VH_TIMER_AFTER_BOSS             = 60000,    // Used to spawn next portal after boss fight (timer needs correction)
 
     // Every timer below contains strict values in seconds (not milliseconds)
     VH_INITIAL_PORTAL_TIME          = 1,    // only used for first portal
-    VH_NEXT_PORTAL_SPAWN_TIME       = 10
+    VH_NEXT_PORTAL_SPAWN_TIME       = 10,
+    VH_TIMER_AFTER_BOSS             = 60    // Used to spawn next portal after boss fight (timer needs correction)
 };
 
 // Custom state used by instance script
