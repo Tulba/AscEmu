@@ -645,8 +645,8 @@ class TeleportationPortalAI : public CreatureAIScript
                         despawn(1000, 0);
                     }break;
                 }
+                pInstance->SetInstanceData(DATA_ARE_SUMMONS_MADE, 1);
             }
-            pInstance->SetInstanceData(DATA_ARE_SUMMONS_MADE, 1);
         }
 
         void AddWaypoint(Creature* pCreature, uint8_t portalId, uint32_t bossEntry)
@@ -1380,7 +1380,8 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
                     pPortal->Despawn(1000, 0);
                 }
                 m_portalGUID = 0;
-
+                m_portalSummonTimer = GetInstanceData(DATA_PORTAL_COUNT) == 6 || GetInstanceData(DATA_PORTAL_COUNT) == 12 ? VH_TIMER_AFTER_BOSS : VH_NEXT_PORTAL_SPAWN_TIME;
+                printf("portal count %u\n", GetInstanceData(DATA_PORTAL_COUNT));
                 // Lets reset event
                 SetInstanceData(INDEX_PORTAL_PROGRESS, NotStarted);
                 SetInstanceData(DATA_ARE_SUMMONS_MADE, 0);
@@ -1444,11 +1445,6 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
                 {
                     setGameObjectStateForEntry(GO_MORAGG_CELL, GO_STATE_CLOSED);
                 }break;
-                case Finished:
-                {
-                    // Start timer for next portal
-                    SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
-                }break;
             }
         }break;
         case INDEX_ICHORON:
@@ -1469,11 +1465,6 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
                 {
                     setGameObjectStateForEntry(GO_ICHORON_CELL, GO_STATE_CLOSED);
                 }break;
-                case Finished:
-                {
-                    // Start timer for next portal
-                    SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
-                }break;
             }
         }break;
         case INDEX_ZURAMAT:
@@ -1493,11 +1484,6 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
                 case State_Failed:
                 {
                     setGameObjectStateForEntry(GO_ZURAMAT_CELL, GO_STATE_CLOSED);
-                }break;
-                case Finished:
-                {
-                    // Start timer for next portal
-                    SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
                 }break;
             }
         }break;
@@ -1540,11 +1526,6 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
                     setGameObjectStateForEntry(GO_EREKEM_GUARD_CELL1, GO_STATE_CLOSED);
                     setGameObjectStateForEntry(GO_EREKEM_GUARD_CELL2, GO_STATE_CLOSED);
                 }break;
-                case Finished:
-                {
-                    // Start timer for next portal
-                    SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
-                }break;
             }
         }break;
         case INDEX_LAVANTHOR:
@@ -1563,11 +1544,6 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
                 case State_Failed:
                 {
                     setGameObjectStateForEntry(GO_LAVANTHOR_CELL, GO_STATE_CLOSED);
-                }break;
-                case Finished:
-                {
-                    // Start timer for next portal
-                    SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
                 }break;
             }
         }break;
@@ -1588,11 +1564,6 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
                 case State_Failed:
                 {
                     setGameObjectStateForEntry(GO_XEVOZZ_CELL, GO_STATE_CLOSED);
-                }break;
-                case Finished:
-                {
-                    // Start timer for next portal
-                    SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
                 }break;
             }
         }break;
@@ -2175,7 +2146,7 @@ void TheVioletHoldInstance::OnCreaturePushToWorld(Creature* pCreature)
     }
 }
 
-void TheVioletHoldInstance::OnCreatureDeath(Creature* pCreature, Unit* pKiller)
+void TheVioletHoldInstance::OnCreatureDeath(Creature* pCreature, Unit* /*pKiller*/)
 {
     switch (pCreature->GetEntry())
     {
@@ -2227,22 +2198,27 @@ void TheVioletHoldInstance::OnCreatureDeath(Creature* pCreature, Unit* pKiller)
         case CN_MORAGG:
         {
             SetInstanceData(INDEX_MORAGG, Finished);
+            SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
         }break;
         case CN_ICHORON:
         {
             SetInstanceData(INDEX_ICHORON, Finished);
+            SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
         }break;
         case CN_XEVOZZ:
         {
             SetInstanceData(INDEX_XEVOZZ, Finished);
+            SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
         }break;
         case CN_LAVANTHOR:
         {
             SetInstanceData(INDEX_LAVANTHOR, Finished);
+            SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
         }break;
         case CN_EREKEM:
         {
             SetInstanceData(INDEX_EREKEM, Finished);
+            SetInstanceData(INDEX_PORTAL_PROGRESS, Finished);
         }break;
         // Main portal event related
         case CN_AZURE_INVADER:
@@ -2306,26 +2282,23 @@ void TheVioletHoldInstance::OnCreatureDeath(Creature* pCreature, Unit* pKiller)
         }break;
         default:
         {
-            LOG_ERROR("UNHANDLED CREATURE %u", pCreature->GetEntry());
-
         }break;
     }
 }
 
 void TheVioletHoldInstance::UpdateEvent()
 {
-    if (GetInstanceData(INDEX_INSTANCE_PROGRESS) == InProgress)
+    if (GetInstanceData(INDEX_INSTANCE_PROGRESS) == InProgress && GetInstanceData(INDEX_PORTAL_PROGRESS) == NotStarted)
     {
-        if (GetInstanceData(INDEX_PORTAL_PROGRESS) == NotStarted)
+        if (m_portalSummonTimer == 0)
         {
-            if (m_portalSummonTimer == 0)
-            {
-                SpawnPortal();
-                m_portalSummonTimer = GetInstanceData(DATA_PORTAL_COUNT) == 6 || GetInstanceData(DATA_PORTAL_COUNT) == 12 ? VH_TIMER_AFTER_BOSS : VH_NEXT_PORTAL_SPAWN_TIME;
-                SetInstanceData(INDEX_PORTAL_PROGRESS, InProgress);
-            }
-            else
-                --m_portalSummonTimer;
+            SpawnPortal();
+            SetInstanceData(INDEX_PORTAL_PROGRESS, InProgress);
+            // Timer is resetted in SetInstanceData
+        }
+        else
+        {
+            --m_portalSummonTimer;
         }
     }
 }
@@ -2362,6 +2335,7 @@ void SetupTheVioletHold(ScriptMgr* mgr)
     mgr->register_creature_script(CN_ZURAMAT, &ZuramatAI::Create);
     mgr->register_creature_script(CN_LAVANTHOR, &LavanthorAI::Create);
     mgr->register_creature_script(CN_EREKEM, &ErekemAI::Create);
+    mgr->register_creature_script(CN_XEVOZZ, &XevozzAI::Create);
 
     // Instance
     mgr->register_instance_script(MAP_VIOLET_HOLD, &TheVioletHoldInstance::Create);
