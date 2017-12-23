@@ -2144,6 +2144,10 @@ void TheVioletHoldInstance::OnCreaturePushToWorld(Creature* pCreature)
         {
             m_ZuramatGUID = GET_LOWGUID_PART(pCreature->GetGUID());
         }break;
+        case CN_EREKEM:
+        {
+            m_ErekemGUID = GET_LOWGUID_PART(pCreature->GetGUID());
+        }break;
         default:
             break;
     }
