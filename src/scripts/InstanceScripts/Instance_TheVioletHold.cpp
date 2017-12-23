@@ -1350,7 +1350,7 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
                 }break;
                 case InProgress:
                 {
-                    m_portalSummonTimer = VH_INITIAL_PORTAL_TIME;
+                    m_portalSummonTimer = addTimer(VH_INITIAL_PORTAL_TIME);
                 }break;
                 case State_Failed:
                 {
@@ -1380,7 +1380,7 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
                     pPortal->Despawn(1000, 0);
                 }
                 m_portalGUID = 0;
-                m_portalSummonTimer = GetInstanceData(DATA_PORTAL_COUNT) == 6 || GetInstanceData(DATA_PORTAL_COUNT) == 12 ? VH_TIMER_AFTER_BOSS : VH_NEXT_PORTAL_SPAWN_TIME;
+                resetTimer(m_portalSummonTimer, GetInstanceData(DATA_PORTAL_COUNT) == 6 || GetInstanceData(DATA_PORTAL_COUNT) == 12 ? VH_TIMER_AFTER_BOSS : VH_NEXT_PORTAL_SPAWN_TIME);
                 printf("portal count %u\n", GetInstanceData(DATA_PORTAL_COUNT));
                 // Lets reset event
                 SetInstanceData(INDEX_PORTAL_PROGRESS, NotStarted);
@@ -2290,15 +2290,11 @@ void TheVioletHoldInstance::UpdateEvent()
 {
     if (GetInstanceData(INDEX_INSTANCE_PROGRESS) == InProgress && GetInstanceData(INDEX_PORTAL_PROGRESS) == NotStarted)
     {
-        if (m_portalSummonTimer == 0)
+        if (isTimerFinished(m_portalSummonTimer))
         {
             SpawnPortal();
             SetInstanceData(INDEX_PORTAL_PROGRESS, InProgress);
             // Timer is resetted in SetInstanceData
-        }
-        else
-        {
-            --m_portalSummonTimer;
         }
     }
 }
