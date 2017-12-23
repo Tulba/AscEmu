@@ -2057,6 +2057,9 @@ void TheVioletHoldInstance::OnCreaturePushToWorld(Creature* pCreature)
     // Make sure all spawned npcs are in phase 1
     pCreature->Phase(PHASE_SET, 1);
 
+    // Resolve OnDied event calls (this should be done by core)
+    pCreature->GetAIInterface()->setAiScriptType(AI_SCRIPT_LONER);
+
     switch (pCreature->GetEntry())
     {
         case CN_DOOR_SEAL:
