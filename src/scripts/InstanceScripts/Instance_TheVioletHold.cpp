@@ -1061,16 +1061,16 @@ public:
         pCreature->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
 
         // Prepare spells
-        AddSpell(SPELL_CORROSIVE_SALIVA, Target_Current, 8.0f, 0, 6);
+        addAISpell(SPELL_CORROSIVE_SALIVA, TARGET_ATTACKING, 8.0f, 0, 6);
         if (pCreature->GetMapMgr()->iInstanceMode == MODE_HEROIC)
         {
-            AddSpell(SPELL_RAY_OF_PAIN_H, Target_RandomPlayer, 7.0f, 0, 25);
-            AddSpell(SPELL_RAY_OF_SUFFERING_H, Target_RandomPlayer, 7.0f, 0, 5);
+            addAISpell(SPELL_RAY_OF_PAIN_H, TARGET_RANDOM_SINGLE, 7.0f, 0, 25);
+            addAISpell(SPELL_RAY_OF_SUFFERING_H, TARGET_RANDOM_SINGLE, 7.0f, 0, 5);
         }
         else
         {
-            AddSpell(SPELL_RAY_OF_PAIN, Target_RandomPlayer, 7.0f, 0, 25);
-            AddSpell(SPELL_RAY_OF_SUFFERING, Target_RandomPlayer, 7.0f, 0, 5);
+            addAISpell(SPELL_RAY_OF_PAIN, TARGET_RANDOM_SINGLE, 7.0f, 0, 25);
+            addAISpell(SPELL_RAY_OF_SUFFERING, TARGET_RANDOM_SINGLE, 7.0f, 0, 5);
         }
     }
 
@@ -1079,7 +1079,7 @@ public:
         if (iWaypointId == MoraggPathSize - 1)
         {
             getCreature()->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9 | UNIT_FLAG_NOT_SELECTABLE);
-            AggroNearestPlayer();
+            getCreature()->GetAIInterface()->AttackReaction(getNearestPlayer(), 1, 0);
         }
     }
 };
@@ -1115,7 +1115,7 @@ public:
         if (iWaypointId == ZuramatPathSize - 1)
         {
             getCreature()->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9 | UNIT_FLAG_NOT_SELECTABLE);
-            AggroNearestPlayer();
+            getCreature()->GetAIInterface()->AttackReaction(getNearestPlayer(), 1, 0);
         }
     }
 };
@@ -1151,7 +1151,7 @@ public:
         if (iWaypointId == IchoronPathSize - 1)
         {
             getCreature()->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9 | UNIT_FLAG_NOT_SELECTABLE);
-            AggroNearestPlayer();
+            getCreature()->GetAIInterface()->AttackReaction(getNearestPlayer(), 1, 0);
         }
     }
 };
@@ -1187,7 +1187,7 @@ public:
         if (iWaypointId == LavanthorPathSize - 1)
         {
             getCreature()->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9 | UNIT_FLAG_NOT_SELECTABLE);
-            AggroNearestPlayer();
+            getCreature()->GetAIInterface()->AttackReaction(getNearestPlayer(), 1, 0);
         }
     }
 };
@@ -1229,7 +1229,7 @@ public:
         if (iWaypointId == XevozzPathSize - 1)
         {
             getCreature()->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9 | UNIT_FLAG_NOT_SELECTABLE);
-            AggroNearestPlayer();
+            getCreature()->GetAIInterface()->AttackReaction(getNearestPlayer(), 1, 0);
         }
     }
 };
@@ -1264,7 +1264,7 @@ public:
         if (iWaypointId == ErekemPathSize - 1)
         {
             getCreature()->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9 | UNIT_FLAG_NOT_SELECTABLE);
-            AggroNearestPlayer();
+            getCreature()->GetAIInterface()->AttackReaction(getNearestPlayer(), 1, 0);
         }
     }
 };
