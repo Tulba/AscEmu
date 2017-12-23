@@ -636,9 +636,16 @@ class TeleportationPortalAI : public CreatureAIScript
                     case VH_PORTAL_TYPE_BOSS:
                     {
                         float landHeight = getCreature()->GetMapMgr()->GetLandHeight(getCreature()->GetPositionX(), getCreature()->GetPositionY(), getCreature()->GetPositionZ());
-                        if (Creature* pSaboteur = spawnCreature(CN_AZURE_SABOTEUR, getCreature()->GetPositionX(), getCreature()->GetPositionY(), landHeight, getCreature()->GetOrientation()))
+                        if (pInstance->GetInstanceData(DATA_PORTAL_COUNT) != 18)
                         {
-                            AddWaypoint(pSaboteur, 0, pInstance->m_activePortal.bossEntry);
+                            if (Creature* pSaboteur = spawnCreature(CN_AZURE_SABOTEUR, getCreature()->GetPositionX(), getCreature()->GetPositionY(), landHeight, getCreature()->GetOrientation()))
+                            {
+                                AddWaypoint(pSaboteur, 0, pInstance->m_activePortal.bossEntry);
+                            }
+                        }
+                        else
+                        {
+                            spawnCreature(CN_CYANIGOSA, getCreature()->GetPositionX(), getCreature()->GetPositionY(), landHeight, getCreature()->GetOrientation());
                         }
                         _removeTimer(spawnTimer);
                         RemoveAIUpdateEvent();
