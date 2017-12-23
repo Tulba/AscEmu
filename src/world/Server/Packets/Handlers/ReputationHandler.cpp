@@ -27,6 +27,7 @@
 #include "Management/Group.h"
 #include "Objects/ObjectMgr.h"
 
+#if VERSION_STRING != Cata
 enum FactionFlags
 {
     FACTION_FLAG_VISIBLE            = 0x01,
@@ -520,3 +521,4 @@ uint32 Player::GetExaltedCount(void)
     }
     return ec;
 }
+#endif

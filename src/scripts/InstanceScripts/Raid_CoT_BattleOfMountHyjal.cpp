@@ -198,8 +198,6 @@ class RageWinterchillAI : public CreatureAIScript
         ADD_CREATURE_FACTORY_FUNCTION(RageWinterchillAI);
         RageWinterchillAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
-            enableCreatureAISpellSystem = true;
-
             auto frostbold = addAISpell(FROSTBOLT, 8.0f, TARGET_RANDOM_SINGLE, 0, 10, false, true);
             frostbold->setAttackStopTimer(1000);
             frostbold->setMinMaxDistance(0.0f, 80.0f);
@@ -223,12 +221,6 @@ class RageWinterchillAI : public CreatureAIScript
             addEmoteForEvent(Event_OnTargetDied, 1585);     // Victory to the Legion!
             addEmoteForEvent(Event_OnDied, 1583);           // You have won this battle, but not... the...war
         }
-
-        void OnCombatStop(Unit* /*mTarget*/) override
-        {
-            setAIAgent(AGENT_NULL);
-            getCreature()->GetAIInterface()->setAiState(AI_STATE_IDLE);
-        }
 };
 
 
@@ -245,8 +237,6 @@ class AnetheronAI : public CreatureAIScript
         ADD_CREATURE_FACTORY_FUNCTION(AnetheronAI);
         AnetheronAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
-            enableCreatureAISpellSystem = true;
-
             auto vampiricAura = addAISpell(VAMPIRIC_AURA, 8.0f, TARGET_SELF, 0, 8, false, true);
             vampiricAura->setAttackStopTimer(1000);
 
@@ -269,12 +259,6 @@ class AnetheronAI : public CreatureAIScript
             addEmoteForEvent(Event_OnTargetDied, 1565);     // You look tired
             addEmoteForEvent(Event_OnDied, 1559);           // The clock... is still...ticking.
         }
-
-        void OnCombatStop(Unit* /*mTarget*/) override
-        {
-            setAIAgent(AGENT_NULL);
-            getCreature()->GetAIInterface()->setAiState(AI_STATE_IDLE);
-        }
 };
 
 
@@ -290,8 +274,6 @@ class KazrogalAI : public CreatureAIScript
         ADD_CREATURE_FACTORY_FUNCTION(KazrogalAI);
         KazrogalAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
-            enableCreatureAISpellSystem = true;
-
             auto cleave = addAISpell(K_CLEAVE, 8.0f, TARGET_ATTACKING, 0, 10, false, true);
             cleave->setAttackStopTimer(1000);
 
@@ -309,11 +291,6 @@ class KazrogalAI : public CreatureAIScript
             addEmoteForEvent(Event_OnTargetDied, 1581);     // You... are marked
             addEmoteForEvent(Event_OnTargetDied, 1578);     // You... are nothing!
             addEmoteForEvent(Event_OnTargetDied, 1579);     // Miserable nuisance!
-        }
-        void OnCombatStop(Unit* /*mTarget*/) override
-        {
-            setAIAgent(AGENT_NULL);
-            getCreature()->GetAIInterface()->setAiState(AI_STATE_IDLE);
         }
 
         void OnDied(Unit* /*mKiller*/) override
@@ -337,8 +314,6 @@ class AzgalorAI : public CreatureAIScript
         ADD_CREATURE_FACTORY_FUNCTION(AzgalorAI);
         AzgalorAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
-            enableCreatureAISpellSystem = true;
-
             auto cleave = addAISpell(CLEAVE, 8.0f, TARGET_ATTACKING, 0, 10, false, true);
             cleave->setAttackStopTimer(3000);
 
@@ -358,12 +333,6 @@ class AzgalorAI : public CreatureAIScript
             addEmoteForEvent(Event_OnTargetDied, 1573);     // No one is going to save you!
             addEmoteForEvent(Event_OnTargetDied, 1572);     // Don't fight it
             addEmoteForEvent(Event_OnDied, 1570);           // Your time is almost... up!
-        }
-
-        void OnCombatStop(Unit* /*mTarget*/) override
-        {
-            setAIAgent(AGENT_NULL);
-            getCreature()->GetAIInterface()->setAiState(AI_STATE_IDLE);
         }
 };
 
@@ -536,8 +505,6 @@ class ArchimondeAI : public CreatureAIScript
         ADD_CREATURE_FACTORY_FUNCTION(ArchimondeAI);
         ArchimondeAI(Creature* pCreature) : CreatureAIScript(pCreature)
         {
-            enableCreatureAISpellSystem = true;
-
             auto airBurst = addAISpell(AIR_BURST, 5.0f, TARGET_ATTACKING, 0, 25, false, true);
             airBurst->setAttackStopTimer(1000);
 
@@ -556,12 +523,6 @@ class ArchimondeAI : public CreatureAIScript
             addEmoteForEvent(Event_OnTargetDied, 1596);     // All creation will be devoured!
             addEmoteForEvent(Event_OnTargetDied, 1598);     // I am the coming of the end!
             addEmoteForEvent(Event_OnDied, 1600);           // No, it cannot be! Nooo!
-        }
-
-        void OnCombatStop(Unit* /*mTarget*/) override
-        {
-            setAIAgent(AGENT_NULL);
-            getCreature()->GetAIInterface()->setAiState(AI_STATE_IDLE);
         }
 };
 
