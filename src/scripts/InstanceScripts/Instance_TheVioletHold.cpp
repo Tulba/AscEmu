@@ -558,10 +558,10 @@ class TeleportationPortalAI : public CreatureAIScript
             switch (pInstance->m_activePortal.type)
             {
                 case VH_PORTAL_TYPE_BOSS:
-                case VH_PORTAL_TYPE_SQUAD:
                 {
                     spawnTimer = _addTimer(VH_TELE_PORTAL_BOSS_SPAWN_TIME);
                 }break;
+                case VH_PORTAL_TYPE_SQUAD:
                 case VH_PORTAL_TYPE_GUARDIAN:
                 {
                     spawnTimer = _addTimer(VH_TELE_PORTAL_WAVE_TIMER);
@@ -1380,8 +1380,8 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
                     pPortal->Despawn(1000, 0);
                 }
                 m_portalGUID = 0;
-                resetTimer(m_portalSummonTimer, GetInstanceData(DATA_PORTAL_COUNT) == 6 || GetInstanceData(DATA_PORTAL_COUNT) == 12 ? VH_TIMER_AFTER_BOSS : VH_NEXT_PORTAL_SPAWN_TIME);
-                printf("portal count %u\n", GetInstanceData(DATA_PORTAL_COUNT));
+                resetTimer(m_portalSummonTimer, (GetInstanceData(DATA_PORTAL_COUNT) == 6 || GetInstanceData(DATA_PORTAL_COUNT) == 12) ? VH_TIMER_AFTER_BOSS : VH_NEXT_PORTAL_SPAWN_TIME);
+
                 // Lets reset event
                 SetInstanceData(INDEX_PORTAL_PROGRESS, NotStarted);
                 SetInstanceData(DATA_ARE_SUMMONS_MADE, 0);
@@ -2024,7 +2024,6 @@ void TheVioletHoldInstance::OnLoad()
         ResetIntro();
     }
     setCellForcedStates(1700.0f, 2100.0f, 500.0f, 1000.0f, true);
-    registerUpdateEvent();  // default timer is 1000 ms
 }
 
 void TheVioletHoldInstance::OnGameObjectPushToWorld(GameObject* pGo)
