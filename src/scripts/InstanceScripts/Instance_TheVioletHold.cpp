@@ -355,12 +355,15 @@ class VHAttackerAI : public CreatureAIScript
         void OnCombatStart(Unit* /*pKiller*/) override
         {
             StartChanneling(0);             // Stop channeling
+            ModifyAIUpdateEvent(1000);
         }
 
         void OnCombatStop(Unit* /*pEnemy*/) override
         {
             if (getCreature()->isAlive())
             {
+                getCreature()->GetAIInterface()->StopMovement(3000);
+                getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_FORWARDTHENSTOP);
                 if (getCreature()->GetAIInterface()->getCurrentWayPointId() < getCreature()->GetAIInterface()->getWayPointsCount() - 1)
                 {
                     SetWaypointToMove(getCreature()->GetAIInterface()->getCurrentWayPointId() + 1);
@@ -406,7 +409,15 @@ class VHAttackerAI : public CreatureAIScript
             if (!getCreature()->CombatStatus.IsInCombat() && getCreature()->GetChannelSpellTargetGUID() != 0 && getCreature()->GetChannelSpellId() != 0
             && pInstance && pInstance->GetInstanceData(INDEX_INSTANCE_PROGRESS) && pInstance->GetInstanceData(DATA_SEAL_HEALTH) != 0)
             {
+                ModifyAIUpdateEvent(7000);
                 pInstance->SetInstanceData(DATA_SEAL_HEALTH, pInstance->GetInstanceData(DATA_SEAL_HEALTH) - 1);
+            }
+
+            // attack closest enemy
+            Unit* pEnemy = getBestUnitTarget(TargetFilter_Closest);
+            if (pEnemy && getRangeToObject(pEnemy) < 15.0f)
+            {
+                getCreature()->GetAIInterface()->AttackReaction(pEnemy, 1, 0);
             }
         }
 };
