@@ -16,8 +16,8 @@ uint32_t GenerateWPWaitTime(float speed, float newX, float currentX, float newY,
     float distanceY = (newY - currentY) * (newY - currentY);
     float baseDistance = sqrt(distanceX + distanceY);
     uint32_t waitTime = static_cast<uint32_t>((1000 * std::abs(baseDistance / speed)));
-    if (waitTime > 1000)
-        waitTime -= 1000;
+    if (waitTime > 2000)
+        waitTime -= 2000;
     return waitTime;
 }
 
@@ -247,7 +247,7 @@ class IntroPortalAI : public CreatureAIScript
             setRooted(true);
             getCreature()->m_canRegenerateHP = false;
             setCanEnterCombat(false);
-            spawnTimer = _addTimer(8000);
+            spawnTimer = _addTimer(RandomUInt(8, 15) * 1000);
         }
 
         void AIUpdate() override
@@ -255,7 +255,6 @@ class IntroPortalAI : public CreatureAIScript
             if (_isTimerFinished(spawnTimer) && VH_instance && !(VH_instance->GetInstanceData(INDEX_INSTANCE_PROGRESS) == InProgress || VH_instance->GetInstanceData(INDEX_INSTANCE_PROGRESS) == Performed) && portalId != -1)
             {
                 float landHeight = getCreature()->GetMapMgr()->GetLandHeight(getCreature()->GetPositionX(), getCreature()->GetPositionY(), getCreature()->GetPositionZ());
-                ModifyAIUpdateEvent(RandomUInt(1) ? VH_TIMER_SPAWN_INTRO_MOB_MIN : VH_TIMER_SPAWN_INTRO_MOB_MAX);
                 if (Creature* pAttacker = spawnCreature(VHIntroMobs[RandomUInt(VHIntroMobCount - 1)], getCreature()->GetPositionX(), getCreature()->GetPositionY(), landHeight, getCreature()->GetOrientation()))
                 {
                     float runSpeed = pAttacker->GetCreatureProperties()->run_speed;
@@ -306,7 +305,7 @@ class IntroPortalAI : public CreatureAIScript
                         }break;
                     }
                 }
-                _resetTimer(spawnTimer, 8000);
+                _resetTimer(spawnTimer, RandomUInt(8, 15) * 1000);
             }
         }
 
@@ -597,7 +596,7 @@ class TeleportationPortalAI : public CreatureAIScript
                             // Spawn 3 random portal guardians
                             for (uint8_t i = 0; i < 3; i++)
                             {
-                                if (Creature* pSummon = spawnCreature(portalGuardians[RandomUInt(maxPortalGuardians - 1)], getCreature()->GetPositionX() + RandomFloat(3), getCreature()->GetPositionY() + RandomFloat(3), landHeight, getCreature()->GetOrientation()))
+                                if (Creature* pSummon = spawnCreature(portalGuardians[RandomUInt(maxPortalGuardians - 1)], getCreature()->GetPositionX() + RandomFloat(float(i)) + 1.0f, getCreature()->GetPositionY() + RandomFloat(float(i)) + 1.0f, landHeight, getCreature()->GetOrientation()))
                                 {
                                     AddWaypoint(pSummon, pInstance->m_activePortal.id, 0);
                                 }
@@ -612,7 +611,7 @@ class TeleportationPortalAI : public CreatureAIScript
                         //TODO: This count needs to be corrected
                         for (uint8_t i = 0; i < 5; i++)
                         {
-                            if (Creature* pSummon = spawnCreature(portalGuardians[RandomUInt(maxPortalGuardians - 1)], getCreature()->GetPositionX(), getCreature()->GetPositionY(), landHeight, getCreature()->GetOrientation()))
+                            if (Creature* pSummon = spawnCreature(portalGuardians[RandomUInt(maxPortalGuardians - 1)], getCreature()->GetPositionX() + RandomFloat(float(i)) + 1.0f, getCreature()->GetPositionY() + RandomFloat(float(i)) + 1.0f, landHeight, getCreature()->GetOrientation()))
                             {
                                 //TODO: replace this with cleaner solution
                                 pInstance->m_activePortal.summonsList.push_back(GET_LOWGUID_PART(pSummon->GetGUID()));
@@ -758,7 +757,7 @@ class TeleportationPortalAI : public CreatureAIScript
                     }break;
                     default:
                     {
-                        uint32_t waitTime = 1000 + GenerateWPWaitTime(runSpeed, DefaultPortalWPs.x, pCreature->GetPositionX(), DefaultPortalWPs.y, pCreature->GetPositionY());
+                        uint32_t waitTime = GenerateWPWaitTime(runSpeed, DefaultPortalWPs.x, pCreature->GetPositionX(), DefaultPortalWPs.y, pCreature->GetPositionY());
                         pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(1, waitTime, Movement::WP_MOVE_TYPE_RUN, DefaultPortalWPs));
                         // Unused waypoint
                         Movement::Location emptyLoc = { 0, 0, 0, 0 };
@@ -878,6 +877,7 @@ class AzureSaboteurAI : public CreatureAIScript
         AzureSaboteurAI(Creature* pCreature) : CreatureAIScript(pCreature), mStep(0), eventTimer(0)
         {
             pInstance = static_cast<TheVioletHoldInstance* >(pCreature->GetMapMgr()->GetScript());
+            setCanEnterCombat(false);
         }
 
         void OnLoad() override
@@ -1072,15 +1072,15 @@ public:
             addAISpell(SPELL_RAY_OF_PAIN, TARGET_RANDOM_SINGLE, 7.0f, 0, 25);
             addAISpell(SPELL_RAY_OF_SUFFERING, TARGET_RANDOM_SINGLE, 7.0f, 0, 5);
         }
+        setCanEnterCombat(false);
     }
 
     void OnReachWP(uint32_t iWaypointId, bool /*bForwards*/) override
     {
         if (iWaypointId == MoraggPathSize - 1)
         {
-            getCreature()->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9 | UNIT_FLAG_NOT_SELECTABLE);
-            getCreature()->GetAIInterface()->AttackReaction(getNearestPlayer(), 1, 0);
             setCanEnterCombat(true);
+            getCreature()->GetAIInterface()->AttackReaction(getNearestPlayer(), 1, 0);
         }
     }
 };
@@ -1109,6 +1109,7 @@ public:
             pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_WALK, ZuramatPath[i]));
         }
         pCreature->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
+        setCanEnterCombat(false);
     }
 
     void OnReachWP(uint32_t iWaypointId, bool /*bForwards*/) override
@@ -1145,6 +1146,7 @@ public:
             pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_WALK, IchoronPath[i]));
         }
         pCreature->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
+        setCanEnterCombat(false);
     }
 
     void OnReachWP(uint32_t iWaypointId, bool /*bForwards*/) override
@@ -1181,6 +1183,7 @@ public:
             pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_WALK, LavanthorPath[i]));
         }
         pCreature->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
+        setCanEnterCombat(false);
     }
 
     void OnReachWP(uint32_t iWaypointId, bool /*bForwards*/) override
@@ -1223,6 +1226,7 @@ public:
         addEmoteForEvent(Event_OnTargetDied, YELL_XEVOZZ_TARGET_DEATH2);
         addEmoteForEvent(Event_OnTargetDied, YELL_XEVOZZ_TARGET_DEATH3);
         addEmoteForEvent(Event_OnDied, YELL_XEVOZZ_DEATH);
+        setCanEnterCombat(false);
     }
 
     void OnReachWP(uint32_t iWaypointId, bool /*bForwards*/) override
@@ -1258,6 +1262,7 @@ public:
             pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_WALK, ErekemPath[i]));
         }
         pCreature->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
+        setCanEnterCombat(false);
     }
 
     void OnReachWP(uint32_t iWaypointId, bool /*bForwards*/) override
