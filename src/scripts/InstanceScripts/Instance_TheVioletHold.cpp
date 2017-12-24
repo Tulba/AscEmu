@@ -1080,6 +1080,7 @@ public:
         {
             getCreature()->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9 | UNIT_FLAG_NOT_SELECTABLE);
             getCreature()->GetAIInterface()->AttackReaction(getNearestPlayer(), 1, 0);
+            setCanEnterCombat(true);
         }
     }
 };
@@ -1114,7 +1115,7 @@ public:
     {
         if (iWaypointId == ZuramatPathSize - 1)
         {
-            getCreature()->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9 | UNIT_FLAG_NOT_SELECTABLE);
+            setCanEnterCombat(true);
             getCreature()->GetAIInterface()->AttackReaction(getNearestPlayer(), 1, 0);
         }
     }
@@ -1150,7 +1151,7 @@ public:
     {
         if (iWaypointId == IchoronPathSize - 1)
         {
-            getCreature()->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9 | UNIT_FLAG_NOT_SELECTABLE);
+            setCanEnterCombat(true);
             getCreature()->GetAIInterface()->AttackReaction(getNearestPlayer(), 1, 0);
         }
     }
@@ -1186,7 +1187,7 @@ public:
     {
         if (iWaypointId == LavanthorPathSize - 1)
         {
-            getCreature()->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9 | UNIT_FLAG_NOT_SELECTABLE);
+            setCanEnterCombat(true);
             getCreature()->GetAIInterface()->AttackReaction(getNearestPlayer(), 1, 0);
         }
     }
@@ -1228,7 +1229,7 @@ public:
     {
         if (iWaypointId == XevozzPathSize - 1)
         {
-            getCreature()->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9 | UNIT_FLAG_NOT_SELECTABLE);
+            setCanEnterCombat(true);
             getCreature()->GetAIInterface()->AttackReaction(getNearestPlayer(), 1, 0);
         }
     }
@@ -1263,7 +1264,7 @@ public:
     {
         if (iWaypointId == ErekemPathSize - 1)
         {
-            getCreature()->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9 | UNIT_FLAG_NOT_SELECTABLE);
+            setCanEnterCombat(true);
             getCreature()->GetAIInterface()->AttackReaction(getNearestPlayer(), 1, 0);
         }
     }
