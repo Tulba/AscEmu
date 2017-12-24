@@ -361,9 +361,14 @@ class VHAttackerAI : public CreatureAIScript
         {
             if (getCreature()->isAlive())
             {
-                getCreature()->GetAIInterface()->setCurrentAgent(AGENT_NULL);
-                getCreature()->GetAIInterface()->setAiState(AI_STATE_SCRIPTIDLE);
-                getCreature()->GetAIInterface()->StopMovement(1000);
+                if (getCreature()->GetAIInterface()->getCurrentWayPointId() < getCreature()->GetAIInterface()->getWayPointsCount() - 1)
+                {
+                    SetWaypointToMove(getCreature()->GetAIInterface()->getCurrentWayPointId() + 1);
+                }
+                else
+                {
+                    SetWaypointToMove(getCreature()->GetAIInterface()->getWayPointsCount() - 1);
+                }
             }
         }
 
