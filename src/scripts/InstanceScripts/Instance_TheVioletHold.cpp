@@ -1681,8 +1681,10 @@ void TheVioletHoldInstance::SpawnPortal()
 {
     uint8_t portalCount = GetInstanceData(DATA_PORTAL_COUNT) + 1;
     if (portalCount > 18)
+    {
         return;
-    printf("portal count %u \n", portalCount);
+    }
+
     GeneratePortalInfo(m_activePortal);
 
     float x = 0, y = 0, z = 0, o = 0;
