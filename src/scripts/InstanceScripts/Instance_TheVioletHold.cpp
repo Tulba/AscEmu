@@ -1364,10 +1364,10 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
                     setGameObjectStateForEntry(GO_PRISON_SEAL, GO_STATE_OPEN);
 
                     // Start her outro event
-                    Creature* pSinclari = GetInstance()->GetCreature(m_sinclariGUID);
-                    if (pSinclari && pSinclari->GetScript())
+                    if (Creature* pSinclari = GetInstance()->GetCreature(m_sinclariGUID))
                     {
-                        //pSinclari->GetScript()->RegisterAIUpdateEvent(1000);
+                        pSinclari->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
+                        pSinclari->GetAIInterface()->setWayPointToMove(3);
                     }
 
                     // Hide worldstates
