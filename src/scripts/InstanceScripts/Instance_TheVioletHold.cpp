@@ -55,7 +55,6 @@ class SinclariAI : public CreatureAIScript
             getCreature()->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
             getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
             getCreature()->GetAIInterface()->setWayPointToMove(1);
-            RegisterAIUpdateEvent(1000);    // Call script update script every 1 second
         }
 
         void DoEvent()
@@ -248,7 +247,6 @@ class IntroPortalAI : public CreatureAIScript
             setRooted(true);
             getCreature()->m_canRegenerateHP = false;
             setCanEnterCombat(false);
-            RegisterAIUpdateEvent(1000);
             spawnTimer = _addTimer(8000);
         }
 
@@ -358,8 +356,6 @@ class VHAttackerAI : public CreatureAIScript
         void OnCombatStart(Unit* /*pKiller*/) override
         {
             StartChanneling(0);             // Stop channeling
-            RemoveAIUpdateEvent();          // Remove pervious event timer
-            RegisterAIUpdateEvent(1000);
         }
 
         void OnCombatStop(Unit* /*pEnemy*/) override
@@ -394,7 +390,7 @@ class VHAttackerAI : public CreatureAIScript
                 {
 
                     StartChanneling(pTriggerTarget->GetGUID());
-                    RegisterAIUpdateEvent(6000);
+                    ModifyAIUpdateEvent(6000);
                     //getCreature()->CastSpellAoF(pTriggerTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_DESTROY_DOOR_SEAL), false);
                 }
             }
@@ -422,7 +418,6 @@ class VH_DefenseAI : public CreatureAIScript
         static CreatureAIScript* Create(Creature* c) { return new VH_DefenseAI(c); }
         VH_DefenseAI(Creature* pCreature) : CreatureAIScript(pCreature), counter(0)
         {
-            RegisterAIUpdateEvent(1000);
             despawn(5000);
         }
 
@@ -569,8 +564,6 @@ class TeleportationPortalAI : public CreatureAIScript
                 default:
                     break;
             }
-
-            RegisterAIUpdateEvent(1000);
         }
 
         void AIUpdate() override
@@ -638,6 +631,7 @@ class TeleportationPortalAI : public CreatureAIScript
                         float landHeight = getCreature()->GetMapMgr()->GetLandHeight(getCreature()->GetPositionX(), getCreature()->GetPositionY(), getCreature()->GetPositionZ());
                         if (pInstance->GetInstanceData(DATA_PORTAL_COUNT) != 18)
                         {
+                            printf("instance count %u \n", pInstance->GetInstanceData(DATA_PORTAL_COUNT));
                             if (Creature* pSaboteur = spawnCreature(CN_AZURE_SABOTEUR, getCreature()->GetPositionX(), getCreature()->GetPositionY(), landHeight, getCreature()->GetOrientation()))
                             {
                                 AddWaypoint(pSaboteur, 0, pInstance->m_activePortal.bossEntry);
@@ -892,7 +886,6 @@ class AzureSaboteurAI : public CreatureAIScript
             getCreature()->GetAIInterface()->StopMovement(2000);
             getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
             getCreature()->GetAIInterface()->setWayPointToMove(1);
-            RegisterAIUpdateEvent(1000);
         }
 
         void OnReachWP(uint32_t iWaypointId, bool /*bForwards*/) override
@@ -1373,8 +1366,11 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
                     Creature* pSinclari = GetInstance()->GetCreature(m_sinclariGUID);
                     if (pSinclari && pSinclari->GetScript())
                     {
-                        pSinclari->GetScript()->RegisterAIUpdateEvent(1000);
+                        //pSinclari->GetScript()->RegisterAIUpdateEvent(1000);
                     }
+
+                    // Hide worldstates
+                    UpdateInstanceWorldState(WORLD_STATE_VH_SHOW, GetInstanceData(INDEX_INSTANCE_PROGRESS) == InProgress ? 1 : 0);
                 }break;
             }
         }break;
@@ -1685,7 +1681,7 @@ void TheVioletHoldInstance::SpawnPortal()
     uint8_t portalCount = GetInstanceData(DATA_PORTAL_COUNT) + 1;
     if (portalCount > 18)
         return;
-
+    printf("portal count %u \n", portalCount);
     GeneratePortalInfo(m_activePortal);
 
     float x = 0, y = 0, z = 0, o = 0;
@@ -1705,10 +1701,10 @@ void TheVioletHoldInstance::SpawnPortal()
         if (portalCount == 18)
         {
             // Use top edge location
-            x = PortalPositions[3].x;
-            y = PortalPositions[3].y;
-            z = PortalPositions[3].z;
-            o = PortalPositions[3].o;
+            x = PortalPositions[2].x;
+            y = PortalPositions[2].y;
+            z = PortalPositions[2].z;
+            o = PortalPositions[2].o;
         }
         // Other bosses
         else
@@ -1720,12 +1716,14 @@ void TheVioletHoldInstance::SpawnPortal()
         }
     }
 
+    SetInstanceData(DATA_PORTAL_COUNT, portalCount);
+    SetInstanceData(DATA_PERVIOUS_PORTAL_ID, m_activePortal.id);
+
     if (!spawnCreature(CN_PORTAL, x, y, z, o))
     {
         LOG_ERROR("Violet Hold: error spawning main event portal");
     }
-    SetInstanceData(DATA_PORTAL_COUNT, portalCount);
-    SetInstanceData(DATA_PERVIOUS_PORTAL_ID, m_activePortal.id);
+
     UpdateWorldStates();
 }
     /////////////////////////////////////////////////////////
@@ -2064,7 +2062,7 @@ void TheVioletHoldInstance::OnCreaturePushToWorld(Creature* pCreature)
     pCreature->Phase(PHASE_SET, 1);
 
     // Resolve OnDied event calls (this should be done by core)
-    pCreature->GetAIInterface()->setAiScriptType(AI_SCRIPT_LONER);
+    //pCreature->GetAIInterface()->setAiScriptType(AI_SCRIPT_LONER);
 
     switch (pCreature->GetEntry())
     {
