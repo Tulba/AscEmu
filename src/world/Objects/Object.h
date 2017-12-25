@@ -746,17 +746,12 @@ public:
 
         bool IsInRangeSameFactSet(Object* pObj) { return (m_sameFactsInRange.count(pObj) > 0); }
         void UpdateSameFactionSet();
-        std::set<Object*>::iterator GetInRangeSameFactsSetBegin() { return m_sameFactsInRange.begin(); }
-        std::set<Object*>::iterator GetInRangeSameFactsSetEnd() { return m_sameFactsInRange.end(); }
 
         bool IsInRangeOppFactSet(Object* pObj) { return (m_oppFactsInRange.count(pObj) > 0); }
         void UpdateOppFactionSet();
         size_t GetInRangeOppFactsSize() { return m_oppFactsInRange.size(); }
 
         std::set<Object*> GetInRangeOppFactsSet() { return m_oppFactsInRange; }
-
-        std::set<Object*>::iterator GetInRangeOppFactsSetBegin() { return m_oppFactsInRange.begin(); }
-        std::set<Object*>::iterator GetInRangeOppFactsSetEnd() { return m_oppFactsInRange.end(); }
 
         std::set<Object*>::iterator GetInRangePlayerSetBegin() { return m_inRangePlayers.begin(); }
         std::set<Object*>::iterator GetInRangePlayerSetEnd() { return m_inRangePlayers.end(); }
@@ -970,7 +965,7 @@ public:
         std::set<Spell*> m_pendingSpells;
 
         bool GetPoint(float angle, float rad, float & outx, float & outy, float & outz, bool sloppypath = false);
-        bool GetRandomPoint(float rad, float & outx, float & outy, float & outz) { return GetPoint(RandomFloat(float(M_PI * 2)), rad, outx, outy, outz); }
+        bool GetRandomPoint(float rad, float & outx, float & outy, float & outz) { return GetPoint(Util::getRandomFloat(float(M_PI * 2)), rad, outx, outy, outz); }
         bool GetRandomPoint(float rad, LocationVector & out) { return GetRandomPoint(rad, out.x, out.y, out.z); }
 };
 
