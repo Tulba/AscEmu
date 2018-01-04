@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2017 AscEmu Team <http://www.ascemu.org/>
+ * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -123,18 +123,18 @@ void DynamicObject::Create(Unit* caster, Spell* pSpell, float x, float y, float 
     UpdateTargets();
 }
 
-void DynamicObject::AddInRangeObject(Object* pObj)
+void DynamicObject::addToInRangeObjects(Object* pObj)
 {
-    Object::AddInRangeObject(pObj);
+    Object::addToInRangeObjects(pObj);
 }
 
-void DynamicObject::OnRemoveInRangeObject(Object* pObj)
+void DynamicObject::onRemoveInRangeObject(Object* pObj)
 {
     if (pObj->IsUnit())
     {
         targets.erase(pObj->GetGUID());
     }
-    Object::OnRemoveInRangeObject(pObj);
+    Object::onRemoveInRangeObject(pObj);
 }
 
 void DynamicObject::UpdateTargets()
@@ -150,14 +150,13 @@ void DynamicObject::UpdateTargets()
         float radius = getFloatValue(DYNAMICOBJECT_RADIUS) * getFloatValue(DYNAMICOBJECT_RADIUS);
 
         // Looking for targets in the Object set
-        for (std::set< Object* >::iterator itr = m_objectsInRange.begin(); itr != m_objectsInRange.end(); ++itr)
+        for (const auto& itr : getInRangeObjectsSet())
         {
-            Object* o = *itr;
-
-            if (!o->IsUnit() || !static_cast< Unit* >(o)->isAlive())
+            Object* o = itr;
+            if (!o || !o->IsUnit() || !static_cast< Unit* >(o)->isAlive())
                 continue;
 
-            target = static_cast< Unit* >(o);
+            target = static_cast<Unit*>(o);
 
             if (!isAttackable(u_caster, target, !(m_spellProto->custom_c_is_flags & SPELL_FLAG_IS_TARGETINGSTEALTHED)))
                 continue;

@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2017 AscEmu Team <http://www.ascemu.org/>
+ * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -1256,7 +1256,7 @@ bool Pet::CanGainXP()
 void Pet::GiveXP(uint32 xp)
 {
     xp += GetXP();
-    uint32 nxp = m_uint32Values[UNIT_FIELD_PETNEXTLEVELEXP];
+    uint32 nxp = getUInt32Value(UNIT_FIELD_PETNEXTLEVELEXP);
 
     if (xp >= nxp)
     {
@@ -1874,7 +1874,7 @@ void Pet::ApplyStatsForLevel()
     }
 
     // Apply health fields.
-    SetHealth(m_uint32Values[UNIT_FIELD_MAXHEALTH]);
+    SetHealth(getUInt32Value(UNIT_FIELD_MAXHEALTH));
     SetPower(POWER_TYPE_MANA, GetMaxPower(POWER_TYPE_MANA));   // mana
     SetPower(POWER_TYPE_FOCUS, GetMaxPower(POWER_TYPE_FOCUS));   // focus
 }
@@ -2408,11 +2408,10 @@ void Pet::Die(Unit* pAttacker, uint32 /*damage*/, uint32 spellid)
     }
 
     //Stop players from casting
-    for (std::set< Object* >::iterator itr = GetInRangePlayerSetBegin(); itr != GetInRangePlayerSetEnd(); ++itr)
+    for (const auto& itr : getInRangePlayersSet())
     {
-        Unit* attacker = static_cast< Unit* >(*itr);
-
-        if (attacker->isCastingNonMeleeSpell())
+        Unit* attacker = static_cast<Unit*>(itr);
+        if (attacker && attacker->isCastingNonMeleeSpell())
         {
             for (uint8_t i = 0; i < CURRENT_SPELL_MAX; ++i)
             {

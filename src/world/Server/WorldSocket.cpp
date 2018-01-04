@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2017 AscEmu Team <http://www.ascemu.org/>
+ * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -833,11 +833,7 @@ void WorldSocket::SendAuthResponseError(uint8_t code)
 }
 #endif
 
-#if VERSION_STRING != Cata
 void WorldPacketLog::logPacket(uint32_t len, uint16_t opcode, const uint8_t* data, uint8_t direction, uint32_t accountid)
-#else
-void WorldPacketLog::logPacket(uint32_t len, uint32_t opcode, const uint8_t* data, uint8_t direction, uint32_t accountid)
-#endif
 {
     if (worldConfig.log.worldDebugFlags & LF_OPCODE)
     {

@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (C) 2014-2017 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -386,7 +386,7 @@ class SERVER_DECL GameObject : public Object
 
         bool CreateFromProto(uint32 entry, uint32 mapid, float x, float y, float z, float ang, float r0 = 0.0f, float r1 = 0.0f, float r2 = 0.0f, float r3 = 0.0f, uint32 overrides = 0);
 
-        bool Load(GameobjectSpawn* spawn);
+        bool Load(MySQLStructure::GameobjectSpawn* spawn);
 
         virtual bool IsLootable() { return false; }
 
@@ -430,9 +430,9 @@ class SERVER_DECL GameObject : public Object
 
         GameObjectAIScript* GetScript() { return myScript; }
 
-        GameobjectSpawn* m_spawn;
+        MySQLStructure::GameobjectSpawn* m_spawn;
         void OnPushToWorld();
-        void OnRemoveInRangeObject(Object* pObj);
+        void onRemoveInRangeObject(Object* pObj);
         void RemoveFromWorld(bool free_guid);
 
         uint32 GetGOReqSkill();
@@ -471,7 +471,7 @@ class SERVER_DECL GameObject : public Object
         void Activate() { setUInt32Value(GAMEOBJECT_DYNAMIC, 1); }
         bool IsActive()
         {
-            if (m_uint32Values[GAMEOBJECT_DYNAMIC] == 1)
+            if (getUInt32Value(GAMEOBJECT_DYNAMIC) == 1)
                 return true;
             else
                 return false;

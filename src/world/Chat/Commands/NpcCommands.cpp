@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2017 AscEmu Team <http://www.ascemu.org/>
+Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -656,12 +656,11 @@ bool ChatHandler::HandleNpcSelectCommand(const char* /*args*/, WorldSession* m_s
     float dist2;
 
     auto player = m_session->GetPlayer();
-    std::set<Object*>::iterator itr;
-    for (itr = player->GetInRangeSetBegin(); itr != player->GetInRangeSetEnd(); ++itr)
+    for (const auto& itr : player->getInRangeObjectsSet())
     {
-        if ((dist2 = player->GetDistance2dSq(*itr)) < dist && (*itr)->IsCreature())
+        if (itr && (dist2 = player->GetDistance2dSq(itr)) < dist && (itr)->IsCreature())
         {
-            near_creature = static_cast<Creature*>(*itr);
+            near_creature = static_cast<Creature*>(itr);
             dist = dist2;
         }
     }
@@ -691,7 +690,7 @@ bool ChatHandler::HandleNpcSpawnCommand(const char* args, WorldSession* m_sessio
         return true;
     }
 
-    auto creature_spawn = new CreatureSpawn;
+    auto creature_spawn = new MySQLStructure::CreatureSpawn;
     uint8 gender = creature_properties->GetGenderAndCreateRandomDisplayID(&creature_spawn->displayid);
     creature_spawn->entry = entry;
     creature_spawn->form = 0;

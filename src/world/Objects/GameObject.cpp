@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2017 AscEmu Team <http://www.ascemu.org/>
+ * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -187,7 +187,7 @@ void GameObject::SaveToDB()
     if (m_spawn == NULL)
     {
         // Create spawn instance
-        m_spawn = new GameobjectSpawn;
+        m_spawn = new MySQLStructure::GameobjectSpawn;
         m_spawn->entry = GetEntry();
         m_spawn->id = objmgr.GenerateGameObjectSpawnID();
         m_spawn->map = GetMapId();
@@ -284,7 +284,7 @@ void GameObject::InitAI()
         myScript = sScriptMgr.CreateAIScriptClassForGameObject(GetEntry(), this);
 }
 
-bool GameObject::Load(GameobjectSpawn* go_spawn)
+bool GameObject::Load(MySQLStructure::GameobjectSpawn* go_spawn)
 {
     if (!CreateFromProto(go_spawn->entry, 0, go_spawn->position_x, go_spawn->position_y, go_spawn->position_z, go_spawn->orientation, go_spawn->rotation_0, go_spawn->rotation_1, go_spawn->rotation_2, go_spawn->rotation_3, go_spawn->overrides))
         return false;
@@ -377,9 +377,9 @@ void GameObject::OnPushToWorld()
     }
 }
 
-void GameObject::OnRemoveInRangeObject(Object* pObj)
+void GameObject::onRemoveInRangeObject(Object* pObj)
 {
-    Object::OnRemoveInRangeObject(pObj);
+    Object::onRemoveInRangeObject(pObj);
     if (m_summonedGo && m_summoner == pObj)
     {
         for (uint8 i = 0; i < 4; i++)
@@ -810,13 +810,13 @@ void GameObject_Trap::Update(unsigned long time_passed)
         if (targetupdatetimer != 0)
             return;
 
-        for (std::set<Object*>::iterator itr = m_objectsInRange.begin(); itr != m_objectsInRange.end(); ++itr)
+        for (const auto& itr : getInRangeObjectsSet())
         {
             float dist;
 
-            Object* o = *itr;
+            Object* o = itr;
 
-            if (!o->IsUnit())
+            if (!o || !o->IsUnit())
                 continue;
 
             if ((m_summoner != NULL) && (o->GetGUID() == m_summoner->GetGUID()))
@@ -1026,7 +1026,7 @@ bool GameObject_FishingNode::HasLoot()
 // Class functions for GameObject_Ritual
 GameObject_Ritual::GameObject_Ritual(uint64 GUID) : GameObject(GUID)
 {
-    Ritual = NULL;;
+    Ritual = NULL;
 }
 
 GameObject_Ritual::~GameObject_Ritual()

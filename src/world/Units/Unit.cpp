@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2017 AscEmu Team <http://www.ascemu.org/>
+Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -965,7 +965,7 @@ uint64_t Unit::getSingleTargetGuidForAura(uint32_t spell)
 
 uint64_t Unit::getSingleTargetGuidForAura(uint32_t* spellIds, uint32_t* index)
 {
-    for (uint8 i = 0;; i++)
+    for (uint8 i = 0; ; i++)
     {
         if (!spellIds[i])
             return 0;

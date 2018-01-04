@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2017 AscEmu Team <http://www.ascemu.org/>
+Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -70,7 +70,7 @@ bool ChatHandler::HandleModPeriodCommand(const char* args, WorldSession* m_sessi
     }
     catch (AscEmu::Exception::AscemuException e)
     {
-        RedSystemMessage(m_session, e.what());
+        RedSystemMessage(m_session, e.AEwhat());
     }
 
     return true;
@@ -94,7 +94,7 @@ bool ChatHandler::HandleStopTransport(const char* /*args*/, WorldSession* m_sess
     }
     catch (AscEmu::Exception::AscemuException e)
     {
-        RedSystemMessage(m_session, e.what());
+        RedSystemMessage(m_session, e.AEwhat());
     }
 
     return true;
@@ -123,7 +123,7 @@ bool ChatHandler::HandleStartTransport(const char* /*args*/, WorldSession* m_ses
     }
     catch (AscEmu::Exception::AscemuException e)
     {
-        RedSystemMessage(m_session, e.what());
+        RedSystemMessage(m_session, e.AEwhat());
     }
 
     return true;
@@ -160,7 +160,7 @@ bool ChatHandler::HandleDespawnInstanceTransport(const char* /*args*/, WorldSess
     }
     catch (AscEmu::Exception::AscemuException e)
     {
-        RedSystemMessage(m_session, e.what());
+        RedSystemMessage(m_session, e.AEwhat());
     }
 
     return true;

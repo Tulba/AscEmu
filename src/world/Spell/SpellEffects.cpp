@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2017 AscEmu Team <http://www.ascemu.org/>
+ * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -677,7 +677,7 @@ void Spell::SpellEffectSchoolDMG(uint8_t effectIndex) // dmg school
             case 45150:
             {
                 uint32 splitCount = 0;
-                for (const auto& itr : u_caster->GetInRangeOppFactsSet())
+                for (const auto& itr : u_caster->getInRangeOppositeFactionSet())
                 {
                     if (itr && itr->isInFront(u_caster) && u_caster->CalcDistance(itr) <= 65)
                         splitCount++;
@@ -1348,7 +1348,7 @@ void Spell::SpellEffectSchoolDMG(uint8_t effectIndex) // dmg school
                 if (u_caster != nullptr)
                 {
                     int splitCount = 0;
-                    for (const auto& itr : u_caster->GetInRangeOppFactsSet())
+                    for (const auto& itr : u_caster->getInRangeOppositeFactionSet())
                     {
                         if (itr && itr->isInFront(u_caster))
                             splitCount++;
@@ -3414,12 +3414,13 @@ void Spell::SpellEffectTriggerMissile(uint8_t effectIndex) // Trigger Missile
 
     float spellRadius = GetRadius(effectIndex);
 
-    ///\todo Following should be / is probably in SpellTarget code
-    for (std::set<Object*>::iterator itr = m_caster->GetInRangeSetBegin(); itr != m_caster->GetInRangeSetEnd(); ++itr)
+    //\todo Following should be / is probably in SpellTarget code
+    for (const auto& itr : m_caster->getInRangeObjectsSet())
     {
-        if (!((*itr)->IsUnit()) || !static_cast< Unit* >((*itr))->isAlive())
+        if (!itr || !itr->IsUnit() || !static_cast<Unit*>(itr)->isAlive())
             continue;
-        Unit* t = static_cast< Unit* >((*itr));
+
+        Unit* t = static_cast<Unit*>(itr);
 
         float r;
         auto destination = m_targets.destination();
@@ -3432,12 +3433,12 @@ void Spell::SpellEffectTriggerMissile(uint8_t effectIndex) // Trigger Missile
 
         if (sqrt(r) > spellRadius) continue;
 
-        if (!isAttackable(m_caster, *itr))//Fix Me: only enemy targets?
+        if (!isAttackable(m_caster, itr))   //Fix Me: only enemy targets?
             continue;
 
         Spell* sp = sSpellFactoryMgr.NewSpell(m_caster, spInfo, true, nullptr);
         SpellCastTargets tgt;
-        tgt.m_unitTarget = (*itr)->GetGUID();
+        tgt.m_unitTarget = itr->GetGUID();
         sp->prepare(&tgt);
     }
 }
@@ -4875,17 +4876,13 @@ void Spell::SpellEffectSanctuary(uint8_t /*effectIndex*/) // Stop all attacks ma
     if (!u_caster)
         return;
 
-    //use these instead
-    Object::InRangeSet::iterator itr = u_caster->GetInRangeSetBegin();
-    Object::InRangeSet::iterator itr_end = u_caster->GetInRangeSetEnd();
-
     if (p_caster != nullptr)
         p_caster->RemoveAllAuraType(SPELL_AURA_MOD_ROOT);
 
-    for (; itr != itr_end; ++itr)
+    for (const auto& itr : u_caster->getInRangeObjectsSet())
     {
-        if ((*itr)->IsCreature())
-            static_cast<Creature*>(*itr)->GetAIInterface()->RemoveThreatByPtr(unitTarget);
+        if (itr && itr->IsCreature())
+            static_cast<Creature*>(itr)->GetAIInterface()->RemoveThreatByPtr(unitTarget);
     }
 }
 

@@ -58,17 +58,19 @@ class ZerekethAI : public CreatureAIScript
         void OnDied(Unit* /*mKiller*/) override
         {
             //despawn voids
-            for (std::set<Object*>::iterator itr = getCreature()->GetInRangeSetBegin(); itr != getCreature()->GetInRangeSetEnd();)
+            for (const auto& itr : getCreature()->getInRangeObjectsSet())
             {
-                Object* obj = *itr;
-                ++itr;
-                if (obj->IsCreature())
+                if (itr)
                 {
-                    auto creature = static_cast<Creature*>(obj);
-
-                    if (creature->GetCreatureProperties()->Id == 21101 && creature->isAlive())
+                    Object* obj = itr;
+                    if (obj->IsCreature())
                     {
-                        creature->Despawn(0, 0);
+                        auto creature = static_cast<Creature*>(obj);
+
+                        if (creature->GetCreatureProperties()->Id == 21101 && creature->isAlive())
+                        {
+                            creature->Despawn(0, 0);
+                        }
                     }
                 }
             }
@@ -93,14 +95,13 @@ class ZerekethAI : public CreatureAIScript
             _resetTimer(VoidTimer, (Util::getRandomUInt(10) + 30) * 1000);
 
             std::vector<Player*> TargetTable;
-            std::set< Object* >::iterator Itr = getCreature()->GetInRangePlayerSetBegin();
-            for (; Itr != getCreature()->GetInRangePlayerSetEnd(); ++Itr)
+            for (const auto& itr : getCreature()->getInRangePlayersSet())
             {
-                Player* RandomTarget = NULL;
-                if (!(*Itr)->IsPlayer())
+                if (!itr || !itr->IsPlayer())
                     continue;
-                RandomTarget = static_cast< Player* >(*Itr);
-                if (RandomTarget && RandomTarget->isAlive() && isHostile(*Itr, getCreature()))
+
+                Player* RandomTarget = static_cast<Player*>(itr);
+                if (RandomTarget->isAlive() && isHostile(itr, getCreature()))
                     TargetTable.push_back(RandomTarget);
             }
 

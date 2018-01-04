@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2017 AscEmu Team <http://www.ascemu.org/>
+Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -185,7 +185,7 @@ void Player::updateAutoRepeatSpell()
             return;
         }
 
-        m_AutoShotAttackTimer = m_uint32Values[UNIT_FIELD_RANGEDATTACKTIME];
+        m_AutoShotAttackTimer = getUInt32Value(UNIT_FIELD_RANGEDATTACKTIME);
 
         // Cast the spell with triggered flag
         Spell* newAutoRepeatSpell = sSpellFactoryMgr.NewSpell(this, autoRepeatSpell->GetSpellInfo(), true, nullptr);

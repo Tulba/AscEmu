@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2017 AscEmu Team <http://www.ascemu.org/>
+ * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -3735,7 +3735,7 @@ void ApplyNormalFixes()
     if (sp != nullptr)
     {
         sp->setEffectSpellClassMask(0x00100000 | 0x10000000 | 0x80000000, 0, 0);
-        sp->setEffectSpellClassMask(0x08000000, 0, 1);;
+        sp->setEffectSpellClassMask(0x08000000, 0, 1);
         sp->setProcFlags(PROC_ON_CAST_SPELL);
         sp->setEffectImplicitTargetA(EFF_TARGET_SELF, 1);
     }

@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2017 AscEmu Team <http://www.ascemu.org/>
+ * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -147,8 +147,8 @@ void HonorHandler::OnPlayerKilled(Player* pPlayer, Player* pVictim)
         {
             std::set<Player*> contributors;
             // First loop: Get all the people in the attackermap.
-            pVictim->UpdateOppFactionSet();
-            for (const auto& itr : pVictim->GetInRangeOppFactsSet())
+            pVictim->updateInRangeOppositeFactionSet();
+            for (const auto& itr : pVictim->getInRangeOppositeFactionSet())
             {
                 if (!itr || !itr->IsPlayer())
                     continue;

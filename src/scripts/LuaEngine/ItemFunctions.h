@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (C) 2014-2017 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2007 Moon++ <http://www.moonplusplus.info/>
  *
@@ -454,19 +454,19 @@ namespace luaItem
 
     int ModUInt32Value(lua_State* L, Item* ptr)
     {
-        uint32 field = static_cast<uint32>(luaL_checkinteger(L, 1));
+        uint16_t field = static_cast<uint16_t>(luaL_checkinteger(L, 1));
         int32 value = static_cast<int32>(luaL_checkinteger(L, 2));
         if (ptr)
-            ptr->ModSignedInt32Value(field, value);
+            ptr->modInt32Value(field, value);
         return 0;
     }
 
     int ModFloatValue(lua_State* L, Item* ptr)
     {
-        uint32 field = static_cast<uint32>(luaL_checkinteger(L, 1));
+        uint16_t field = static_cast<uint16_t>(luaL_checkinteger(L, 1));
         float value = CHECK_FLOAT(L, 2);
         if (ptr)
-            ptr->ModFloatValue(field, value);
+            ptr->modFloatValue(field, value);
         return 0;
     }
 

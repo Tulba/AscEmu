@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (C) 2014-2017 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -468,14 +468,11 @@ void AchievementMgr::SendAchievementEarned(DBC::Structures::AchievementEntry con
             }
             grp->Unlock();
         }
+
         // Send Achievement message to nearby players
-        std::set<Object*>::iterator inRangeItr = GetPlayer()->GetInRangePlayerSetBegin();
-        std::set<Object*>::iterator inRangeItrLast = GetPlayer()->GetInRangePlayerSetEnd();
-        for (; inRangeItr != inRangeItrLast; ++inRangeItr)
+        for (const auto& inRangeItr : GetPlayer()->getInRangePlayersSet())
         {
-
-            Player* p = static_cast< Player* >((*inRangeItr));
-
+            Player* p = static_cast<Player*>(inRangeItr);
             if (p && p->GetSession() && !p->Social_IsIgnoring(GetPlayer()->GetLowGUID()))
             {
                 // check if achievement message has already been sent to this player (in guild or group)
