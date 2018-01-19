@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2017 AscEmu Team <http://www.ascemu.org/>
+ * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -1369,10 +1369,11 @@ bool Item::RepairItem(Player* pPlayer, bool guildmoney, int32* pCost)   //pCost 
     {
         if (!pPlayer->GetGuildMember()->RepairItem((uint32)cost))
             return false;//we should tell the client that he can't repair with the guild gold.
+
         if (pCost != NULL)
             *pCost += cost;
     }
-    else//we pay with our gold
+    else //we pay with our gold
 #endif
     {
         if (!pPlayer->HasGold(cost))
@@ -1382,6 +1383,6 @@ bool Item::RepairItem(Player* pPlayer, bool guildmoney, int32* pCost)   //pCost 
     }
     SetDurabilityToMax();
     m_isDirty = true;
-    if (guildmoney || pCost == nullptr) { return true; }
+
     return true;
 }

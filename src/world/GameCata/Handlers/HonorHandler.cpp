@@ -132,14 +132,14 @@ void HonorHandler::OnPlayerKilled(Player* pPlayer, Player* pVictim)
         {
             std::set<Player*> contributors;
             // First loop: Get all the people in the attackermap.
-            pVictim->UpdateOppFactionSet();
-            for (std::set<Object*>::iterator itr = pVictim->GetInRangeOppFactsSetBegin(); itr != pVictim->GetInRangeOppFactsSetEnd(); ++itr)
+            pVictim->updateInRangeOppositeFactionSet();
+            for (const auto& itr : pVictim->getInRangeOppositeFactionSet())
             {
-                if (!(*itr)->IsPlayer())
+                if (!itr || !itr->IsPlayer())
                     continue;
 
                 bool added = false;
-                Player* plr = static_cast<Player*>(*itr);
+                Player* plr = static_cast<Player*>(itr);
                 if (pVictim->CombatStatus.m_attackers.find(plr->GetGUID()) != pVictim->CombatStatus.m_attackers.end())
                 {
                     added = true;

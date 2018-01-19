@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2017 AscEmu Team <http://www.ascemu.org/>
+Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -465,11 +465,9 @@ bool ChatHandler::HandleGORotateCommand(const char* args, WorldSession* m_sessio
 //.gobject select
 bool ChatHandler::HandleGOSelectCommand(const char* args, WorldSession* m_session)
 {
-    GameObject* GObj = NULL;
+    GameObject* GObj = nullptr;
     GameObject* GObjs = m_session->GetPlayer()->GetSelectedGo();
 
-    std::set<Object*>::iterator Itr = m_session->GetPlayer()->GetInRangeSetBegin();
-    std::set<Object*>::iterator Itr2 = m_session->GetPlayer()->GetInRangeSetEnd();
     float cDist = 9999.0f;
     float nDist = 0.0f;
     bool bUseNext = false;
@@ -478,28 +476,23 @@ bool ChatHandler::HandleGOSelectCommand(const char* args, WorldSession* m_sessio
     {
         if (args[0] == '1')
         {
-            if (GObjs == NULL)
+            if (GObjs == nullptr)
                 bUseNext = true;
 
-            for (;; ++Itr)
+            for (const auto& Itr : m_session->GetPlayer()->getInRangeObjectsSet())
             {
-                if (Itr == Itr2 && GObj == NULL && bUseNext)
-                    Itr = m_session->GetPlayer()->GetInRangeSetBegin();
-                else if (Itr == Itr2)
-                    break;
-
-                if ((*Itr)->IsGameObject())
+                if (Itr && Itr->IsGameObject())
                 {
                     // Find the current go, move to the next one
                     if (bUseNext)
                     {
                         // Select the first.
-                        GObj = static_cast< GameObject* >(*Itr);
+                        GObj = static_cast<GameObject*>(Itr);
                         break;
                     }
                     else
                     {
-                        if (((*Itr) == GObjs))
+                        if (Itr == GObjs)
                         {
                             // Found him. Move to the next one, or beginning if we're at the end
                             bUseNext = true;
@@ -511,22 +504,22 @@ bool ChatHandler::HandleGOSelectCommand(const char* args, WorldSession* m_sessio
     }
     if (!GObj)
     {
-        for (; Itr != Itr2; ++Itr)
+        for (const auto& Itr : m_session->GetPlayer()->getInRangeObjectsSet())
         {
-            if ((*Itr)->IsGameObject())
+            if (Itr && Itr->IsGameObject())
             {
-                if ((nDist = m_session->GetPlayer()->CalcDistance(*Itr)) < cDist)
+                if ((nDist = m_session->GetPlayer()->CalcDistance(Itr)) < cDist)
                 {
                     cDist = nDist;
                     nDist = 0.0f;
-                    GObj = static_cast<GameObject*>(*Itr);
+                    GObj = static_cast<GameObject*>(Itr);
                 }
             }
         }
     }
 
 
-    if (GObj == NULL)
+    if (GObj == nullptr)
     {
         RedSystemMessage(m_session, "No inrange GameObject found.");
         return true;
@@ -599,7 +592,7 @@ bool ChatHandler::HandleGOSpawnCommand(const char* args, WorldSession* m_session
     gameobject->Phase(PHASE_SET, player->GetPhase());
 
     // Create spawn instance
-    GameobjectSpawn* go_spawn = new GameobjectSpawn;
+    MySQLStructure::GameobjectSpawn* go_spawn = new MySQLStructure::GameobjectSpawn;
     go_spawn->entry = gameobject->GetEntry();
     go_spawn->id = objmgr.GenerateGameObjectSpawnID();
     go_spawn->map = gameobject->GetMapId();

@@ -420,7 +420,7 @@ class LeotherasAI : public CreatureAIScript
             info_chaos_blast = sSpellCustomizations.GetSpellInfo(CHAOS_BLAST_ANIMATION);
             info_whirlwind = sSpellCustomizations.GetSpellInfo(WHIRLWINDLEO);
 
-            getCreature()->setUInt64Value(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9);
+            getCreature()->setUInt64Value(UNIT_FIELD_FLAGS, UNIT_FLAG_IGNORE_PLAYER_COMBAT);
             getCreature()->GetAIInterface()->SetAllowedToEnterCombat(false);
 
             SwitchTimer = 0;
@@ -440,12 +440,11 @@ class LeotherasAI : public CreatureAIScript
         void FirstCheck()
         {
             //count greyheart spellbinders
-            Creature* creature = NULL;
-            for (std::set<Object*>::iterator itr = getCreature()->GetInRangeSetBegin(); itr != getCreature()->GetInRangeSetEnd(); ++itr)
+            for (const auto& itr : getCreature()->getInRangeObjectsSet())
             {
-                if ((*itr)->IsCreature())
+                if (itr && itr->IsCreature())
                 {
-                    creature = static_cast<Creature*>((*itr));
+                    Creature* creature = static_cast<Creature*>(itr);
 
                     if (creature->GetCreatureProperties()->Id == CN_GREYHEART_SPELLBINDER && creature->isAlive())
                         LeotherasEventGreyheartToKill[getCreature()->GetInstanceID()]++;
@@ -602,7 +601,7 @@ class LeotherasAI : public CreatureAIScript
                             IsMorphing = true;
                             getCreature()->setAttackTimer(15000, false);
                             getCreature()->SetStandState(STANDSTATE_KNEEL);
-                            getCreature()->setUInt32Value(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9);
+                            getCreature()->setUInt32Value(UNIT_FIELD_FLAGS, UNIT_FLAG_IGNORE_PLAYER_COMBAT);
                             getCreature()->GetAIInterface()->SetAllowedToEnterCombat(false);
                             getCreature()->GetAIInterface()->m_canMove = false;
                             sendDBChatMessage(4781);     // No... no! What have you done? I am the master! Do you hear me? I am... aaggh! Can't... contain him.
@@ -750,14 +749,14 @@ class GreyheartSpellbinderAI : public CreatureAIScript
                     Leotheras->SetStandState(STANDSTATE_STAND);
 
                     //attack nearest player
-                    Player* NearestPlayer = NULL;
+                    Player* NearestPlayer = nullptr;
                     float NearestDist = 0;
-                    for (std::set< Object* >::iterator itr = getCreature()->GetInRangePlayerSetBegin(); itr != getCreature()->GetInRangePlayerSetEnd(); ++itr)
+                    for (const auto& itr : getCreature()->getInRangePlayersSet())
                     {
-                        if (isHostile(getCreature(), (*itr)) && ((*itr)->GetDistance2dSq(getCreature()) < NearestDist || !NearestDist))
+                        if (itr && isHostile(getCreature(), itr) && (itr->GetDistance2dSq(getCreature()) < NearestDist || !NearestDist))
                         {
-                            NearestDist = (*itr)->GetDistance2dSq(getCreature());
-                            NearestPlayer = static_cast< Player* >(*itr);
+                            NearestDist = itr->GetDistance2dSq(getCreature());
+                            NearestPlayer = static_cast<Player*>(itr);
                         }
                     }
 
@@ -775,7 +774,7 @@ class ShadowofLeotherasAI : public CreatureAIScript
         {
             info_chaos_blast = sSpellCustomizations.GetSpellInfo(CHAOS_BLAST_ANIMATION);
 
-            getCreature()->setUInt32Value(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9);
+            getCreature()->setUInt32Value(UNIT_FIELD_FLAGS, UNIT_FLAG_IGNORE_PLAYER_COMBAT);
             getCreature()->GetAIInterface()->SetAllowedToEnterCombat(false);
 
             getCreature()->SendChatMessage(CHAT_MSG_MONSTER_YELL, LANG_UNIVERSAL, "At last I am liberated. It has been too long since I have tasted true freedom!");
@@ -877,13 +876,12 @@ class KarathressAI : public CreatureAIScript
             {
                 // trying to be blizzlike: cast this bolt random on casters only
                 CataclysmicBoltTimer = 10;
-                Unit* RandomTarget = NULL;
                 std::vector<Unit*> TargetTable;
-                for (std::set<Object*>::iterator itr = getCreature()->GetInRangeSetBegin(); itr != getCreature()->GetInRangeSetEnd(); ++itr)
+                for (const auto& itr : getCreature()->getInRangeObjectsSet())
                 {
-                    if (isHostile(getCreature(), (*itr)) && (*itr)->IsUnit())
+                    if (itr && isHostile(getCreature(), itr) && itr->IsUnit())
                     {
-                        RandomTarget = static_cast<Unit*>(*itr);
+                        Unit* RandomTarget = static_cast<Unit*>(itr);
 
                         if (RandomTarget->isAlive() && getCreature()->GetDistance2dSq(RandomTarget) <= 80.0f && getCreature()->GetPowerType() == POWER_TYPE_MANA)
                             TargetTable.push_back(RandomTarget);
@@ -1151,7 +1149,7 @@ class TidewalkerLurkerAI : public CreatureAIScript
             Unit* pUnit;
             float dist;
 
-            for (const auto& itr : getCreature()->GetInRangeOppFactsSet())
+            for (const auto& itr : getCreature()->getInRangeOppositeFactionSet())
             {
                 if (!itr || !itr->IsUnit())
                     continue;
@@ -1229,8 +1227,8 @@ class EnchantedElementalAI : public CreatureAIScript
                     if (Vashj)
                     {
                         //Increase Lady Vashj attack by 5%
-                        Vashj->ModFloatValue(UNIT_FIELD_MINDAMAGE, (Vashj->GetMinDamage() / 100) * 5);
-                        Vashj->ModFloatValue(UNIT_FIELD_MAXDAMAGE, (Vashj->GetMaxDamage() / 100) * 5);
+                        Vashj->modFloatValue(UNIT_FIELD_MINDAMAGE, (Vashj->GetMinDamage() / 100) * 5);
+                        Vashj->modFloatValue(UNIT_FIELD_MAXDAMAGE, (Vashj->GetMaxDamage() / 100) * 5);
                     }
 
                     //despawn
@@ -1309,13 +1307,11 @@ class VashjAI : public CreatureAIScript
         void OnCombatStop(Unit* /*mTarget*/) override
         {
             //despawn enchanted elemental, tainted elemental, coilfang elite, coilfang strider
-            Creature* creature = NULL;
-            for (std::set<Object*>::iterator itr = getCreature()->GetInRangeSetBegin(); itr != getCreature()->GetInRangeSetEnd(); ++itr)
+            for (const auto& itr : getCreature()->getInRangeObjectsSet())
             {
-                if ((*itr)->IsCreature())
+                if (itr && itr->IsCreature())
                 {
-                    creature = static_cast<Creature*>((*itr));
-
+                    Creature* creature = static_cast<Creature*>(itr);
                     if ((creature->GetCreatureProperties()->Id == CN_ENCHANTED_ELEMENTAL ||
                             creature->GetCreatureProperties()->Id == CN_TAINTED_ELEMENTAL ||
                             creature->GetCreatureProperties()->Id == CN_COILFANG_STRIDER ||
@@ -1378,7 +1374,7 @@ class VashjAI : public CreatureAIScript
                     getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
                     getCreature()->GetAIInterface()->setWayPointToMove(1);
                     sendDBChatMessage(4764);     // The time is now! Leave none standing!
-                    getCreature()->setUInt64Value(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9);
+                    getCreature()->setUInt64Value(UNIT_FIELD_FLAGS, UNIT_FLAG_IGNORE_PLAYER_COMBAT);
                     getCreature()->CastSpell(getCreature(), sSpellCustomizations.GetSpellInfo(VASHJ_SHIELD), true);
                     getCreature()->GetAIInterface()->setOutOfCombatRange(3000);
                     Phase = 2;
@@ -1387,14 +1383,15 @@ class VashjAI : public CreatureAIScript
 
             //if nobody is in range, shot or multishot
             bool InRange = false;
-            for (std::set<Object*>::iterator itr = getCreature()->GetInRangeSetBegin(); itr != getCreature()->GetInRangeSetEnd(); ++itr)
+            for (const auto& itr : getCreature()->getInRangeObjectsSet())
             {
-                if (isHostile(getCreature(), (*itr)) && getCreature()->GetDistance2dSq((*itr)) < 100) //10 yards
+                if (itr && isHostile(getCreature(), itr) && getCreature()->GetDistance2dSq(itr) < 100) //10 yards
                 {
                     InRange = true;
                     break;
                 }
             }
+
             if (!InRange)
             {
                 Shoot(getCreature()->GetAIInterface()->getNextTarget());
@@ -1459,19 +1456,18 @@ class VashjAI : public CreatureAIScript
             CoilfangStriderTimer--;
             if (!CoilfangStriderTimer)
             {
-                Creature* summoned = NULL;
-                summoned = spawnCreature(CN_COILFANG_STRIDER, -29.761278f, -980.252930f, 41.097122f, 0.0f);
+                Creature* summoned = spawnCreature(CN_COILFANG_STRIDER, -29.761278f, -980.252930f, 41.097122f, 0.0f);
                 if (summoned)
                 {
                     //attack nearest target
-                    Unit* nearest = NULL;
+                    Unit* nearest = nullptr;
                     float nearestdist = 0;
-                    for (std::set<Object*>::iterator itr = summoned->GetInRangeSetBegin(); itr != summoned->GetInRangeSetEnd(); ++itr)
+                    for (const auto& itr : summoned->getInRangeObjectsSet())
                     {
-                        if ((*itr)->IsUnit() && isHostile(summoned, (*itr)) && (summoned->GetDistance2dSq((*itr)) < nearestdist || !nearestdist))
+                        if (itr && itr->IsUnit() && isHostile(summoned, itr) && (summoned->GetDistance2dSq(itr) < nearestdist || !nearestdist))
                         {
-                            nearestdist = summoned->GetDistance2dSq((*itr));
-                            nearest = static_cast<Unit*>((*itr));
+                            nearestdist = summoned->GetDistance2dSq(itr);
+                            nearest = static_cast<Unit*>(itr);
                         }
                     }
                     if (nearest)
@@ -1483,19 +1479,18 @@ class VashjAI : public CreatureAIScript
             if (!CoilfangEliteTimer)
             {
                 uint32 pos = Util::getRandomUInt(3);
-                Creature* summoned = NULL;
-                summoned = spawnCreature(CN_COILFANG_ELITE, CoilfangEliteSpawnPoints[pos].x, CoilfangEliteSpawnPoints[pos].y, CoilfangEliteSpawnPoints[pos].z, CoilfangEliteSpawnPoints[pos].o);
+                Creature* summoned = spawnCreature(CN_COILFANG_ELITE, CoilfangEliteSpawnPoints[pos].x, CoilfangEliteSpawnPoints[pos].y, CoilfangEliteSpawnPoints[pos].z, CoilfangEliteSpawnPoints[pos].o);
                 if (summoned)
                 {
                     //attack nearest target
-                    Unit* nearest = NULL;
+                    Unit* nearest = nullptr;
                     float nearestdist = 0;
-                    for (std::set<Object*>::iterator itr = summoned->GetInRangeSetBegin(); itr != summoned->GetInRangeSetEnd(); ++itr)
+                    for (const auto& itr : summoned->getInRangeObjectsSet())
                     {
-                        if ((*itr)->IsUnit() && isHostile(summoned, (*itr)) && (summoned->GetDistance2dSq((*itr)) < nearestdist || !nearestdist))
+                        if (itr && itr->IsUnit() && isHostile(summoned, itr) && (summoned->GetDistance2dSq(itr) < nearestdist || !nearestdist))
                         {
-                            nearestdist = summoned->GetDistance2dSq((*itr));
-                            nearest = static_cast<Unit*>((*itr));
+                            nearestdist = summoned->GetDistance2dSq(itr);
+                            nearest = static_cast<Unit*>(itr);
                         }
                     }
                     if (nearest)
@@ -1514,13 +1509,11 @@ class VashjAI : public CreatureAIScript
             if (getCreature()->GetHealthPct() <= 50)
             {
                 //despawn enchanted elementals
-                Creature* creature = NULL;
-                for (std::set<Object*>::iterator itr = getCreature()->GetInRangeSetBegin(); itr != getCreature()->GetInRangeSetEnd(); ++itr)
+                for (const auto& itr : getCreature()->getInRangeObjectsSet())
                 {
-                    if ((*itr)->IsCreature())
+                    if (itr && itr->IsCreature())
                     {
-                        creature = static_cast<Creature*>((*itr));
-
+                        Creature* creature = static_cast<Creature*>(itr);
                         if (creature->GetCreatureProperties()->Id == CN_ENCHANTED_ELEMENTAL && creature->isAlive())
                             creature->Despawn(0, 0);
                     }

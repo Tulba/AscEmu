@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (C) 2014-2017 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -85,16 +85,16 @@ bool Cannibalize(uint8_t effectIndex, Spell* s)
     float rad = s->GetRadius(effectIndex);
     rad *= rad;
 
-    for (Object::InRangeSet::iterator itr = s->p_caster->GetInRangeSetBegin(); itr != s->p_caster->GetInRangeSetEnd(); ++itr)
+    for (const auto& itr : s->p_caster->getInRangeObjectsSet())
     {
-        if ((*itr)->IsCreature())
+        if (itr && itr->IsCreature())
         {
-            if (static_cast<Creature*>((*itr))->getDeathState() == CORPSE)
+            if (static_cast<Creature*>(itr)->getDeathState() == CORPSE)
             {
-                CreatureProperties const* cn = static_cast<Creature*>((*itr))->GetCreatureProperties();
+                CreatureProperties const* cn = static_cast<Creature*>(itr)->GetCreatureProperties();
                 if (cn->Type == UNIT_TYPE_HUMANOID || cn->Type == UNIT_TYPE_UNDEAD)
                 {
-                    if (s->p_caster->GetDistance2dSq((*itr)) < rad)
+                    if (s->p_caster->GetDistance2dSq(itr) < rad)
                     {
                         check = true;
                         break;

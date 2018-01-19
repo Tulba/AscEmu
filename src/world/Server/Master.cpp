@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2017 AscEmu Team <http://www.ascemu.org/>
+ * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -54,10 +54,10 @@ ConfigMgr Config;
 // DB version
 #if VERSION_STRING != Cata
 static const char* REQUIRED_CHAR_DB_VERSION = "2017-09-13_01_account_permissions";
-static const char* REQUIRED_WORLD_DB_VERSION = "2017-12-10_01_creature_spawns";
+static const char* REQUIRED_WORLD_DB_VERSION = "2018-01-01_01_gameobject_spawns";
 #else
 static const char* REQUIRED_CHAR_DB_VERSION = "2017-09-13_01_account_permissions";
-static const char* REQUIRED_WORLD_DB_VERSION = "2017-12-10_01_creature_spawns";
+static const char* REQUIRED_WORLD_DB_VERSION = "2018-01-01_01_gameobject_spawns";
 #endif
 
 void Master::_OnSignal(int s)

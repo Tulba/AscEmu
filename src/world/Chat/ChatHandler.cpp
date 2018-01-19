@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2017 AscEmu Team <http://www.ascemu.org/>
+Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -175,7 +175,7 @@ int ChatHandler::ParseCommands(const char* text, WorldSession* session)
     catch (AscEmu::Exception::PlayerNotFoundException e)
     {
         // TODO: Handle this properly (what do we do when we're running commands with no player object?)
-        LOG_ERROR("PlayerNotFoundException occurred when processing command [%s]. Exception: %s", text, e.what());
+        LOG_ERROR("PlayerNotFoundException occurred when processing command [%s]. Exception: %s", text, e.AEwhat());
     }
 
     return 1;

@@ -470,7 +470,7 @@ class GruulTheDragonkillerAI : public CreatureAIScript
             {
                 _castAISpell(mGroundSlam);
                 _castAISpell(mGroundSlam2);
-                _castAISpell(mStoned);
+                //_castAISpell(mStoned);
             }
         }
 
@@ -514,13 +514,13 @@ class GruulTheDragonkillerAI : public CreatureAIScript
                 else if (_isTimerFinished(mHurtfulTimer))
                 {
                     Unit* pCurrentTarget = getCreature()->GetAIInterface()->getNextTarget();
-                    if (pCurrentTarget != NULL)
+                    if (pCurrentTarget != nullptr)
                     {
                         Unit* pTarget = pCurrentTarget;
-                        for (std::set< Object* >::iterator itr = getCreature()->GetInRangePlayerSetBegin(); itr != getCreature()->GetInRangePlayerSetEnd(); ++itr)
+                        for (const auto& itr : getCreature()->getInRangePlayersSet())
                         {
-                            Player* pPlayer = static_cast< Player* >(*itr);
-                            if (!pPlayer->isAlive())
+                            Player* pPlayer = static_cast<Player*>(itr);
+                            if (!pPlayer || !pPlayer->isAlive())
                                 continue;
                             if (pPlayer->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_FEIGN_DEATH))
                                 continue;
@@ -550,8 +550,8 @@ class GruulTheDragonkillerAI : public CreatureAIScript
         CreatureAISpells* mHurtfulStrike;
         CreatureAISpells* mGroundSlam;
         CreatureAISpells* mGroundSlam2;
-        CreatureAISpells* mStoned;
-        CreatureAISpells* mShatter;
+        //CreatureAISpells* mStoned;
+        //CreatureAISpells* mShatter;
         CreatureAISpells* mShatter2;
 };
 

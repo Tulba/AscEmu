@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (C) 2014-2017 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -49,8 +49,8 @@ public:
         void Create(Unit* caster, Spell* pSpell, float x, float y, float z, uint32 duration, float radius, uint32 type);
         void UpdateTargets();
 
-        void AddInRangeObject(Object* pObj);
-        void OnRemoveInRangeObject(Object* pObj);
+        void addToInRangeObjects(Object* pObj);
+        void onRemoveInRangeObject(Object* pObj);
         void Remove();
 
     protected:

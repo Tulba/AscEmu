@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2017 AscEmu Team <http://www.ascemu.org/>
+ * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -200,7 +200,7 @@ void MapMgr::PushObject(Object* obj)
     // Assertions
     ARCEMU_ASSERT(obj != nullptr);
 
-    ///\todo That object types are not map objects. TODO: add AI groups here?
+    //\todo That object types are not map objects. TODO: add AI groups here?
     if (obj->IsItem() || obj->IsContainer())
     {
         // mark object as updatable and exit
@@ -212,7 +212,7 @@ void MapMgr::PushObject(Object* obj)
         m_corpses.insert(static_cast< Corpse* >(obj));
     }
 
-    obj->ClearInRangeSet();
+    obj->clearInRangeSets();
 
     // Check valid cell x/y values
     ARCEMU_ASSERT(obj->GetMapId() == _mapId);
@@ -493,30 +493,42 @@ void MapMgr::RemoveObject(Object* obj, bool free_guid)
     if (obj->IsPlayer())
     {
         plObj = static_cast<Player*>(obj);
+
         _processQueue.erase(plObj);     // Clear any updates pending
         plObj->ClearAllPendingUpdates();
     }
 
-    obj->RemoveSelfFromInrangeSets();
-    obj->ClearInRangeSet();             // Clear object's in-range set
+    obj->removeSelfFromInrangeSets();
+    obj->clearInRangeSets();             // Clear object's in-range set
 
     uint8 cellNumber = worldConfig.server.mapCellNumber;
 
     // If it's a player - update his nearby cells
-    if (!_shutdown && obj->IsPlayer())
+    if (!_shutdown)
     {
-        // get x/y
-        if (obj->GetPositionX() < _maxX || obj->GetPositionX() > _minY || obj->GetPositionY() < _maxY || obj->GetPositionY() > _minY)
-        {
-            uint32 x = GetPosX(obj->GetPositionX());
-            uint32 y = GetPosY(obj->GetPositionY());
-            UpdateCellActivity(x, y, 2 + cellNumber);
+        if (obj->IsPlayer())
+        {// get x/y
+            if (obj->GetPositionX() < _maxX || obj->GetPositionX() > _minY || obj->GetPositionY() < _maxY || obj->GetPositionY() > _minY)
+            {
+                uint32 x = GetPosX(obj->GetPositionX());
+                uint32 y = GetPosY(obj->GetPositionY());
+                UpdateCellActivity(x, y, 2 + cellNumber);
+            }
+            m_PlayerStorage.erase(static_cast<Player*>(obj)->GetLowGUID());
         }
-        m_PlayerStorage.erase(static_cast< Player* >(obj)->GetLowGUID());
+        else if (obj->IsUnit() && static_cast<Unit*>(obj)->mPlayerControler != nullptr)
+        {
+            if (obj->GetPositionX() < _maxX || obj->GetPositionX() > _minY || obj->GetPositionY() < _maxY || obj->GetPositionY() > _minY)
+            {
+                uint32 x = GetPosX(obj->GetPositionX());
+                uint32 y = GetPosY(obj->GetPositionY());
+                UpdateCellActivity(x, y, 2 + cellNumber);
+            }
+        }
     }
 
     // Remove the session from our set if it is a player.
-    if (obj->IsPlayer())
+    if (obj->IsPlayer() || obj->IsUnit() && static_cast<Unit*>(obj)->mPlayerControler != nullptr)
     {
         for (std::set<Object*>::iterator itr = _mapWideStaticObjects.begin(); itr != _mapWideStaticObjects.end(); ++itr)
         {
@@ -555,41 +567,44 @@ void MapMgr::ChangeObjectLocation(Object* obj)
     }
 
     Player* plObj = nullptr;
-    ByteBuffer* buf = 0;
+    ByteBuffer* buf = nullptr;
 
     if (obj->IsPlayer())
-    {
         plObj = static_cast<Player*>(obj);
-    }
+    if (obj->IsUnit() && static_cast<Unit*>(obj)->mPlayerControler != nullptr)
+        plObj = static_cast<Unit*>(obj)->mPlayerControler;
 
-    Object* curObj;
     float fRange = 0.0f;
 
     // Update in-range data for old objects
-    if (obj->HasInRangeObjects())
+    if (obj->hasInRangeObjects())
     {
-        for (Object::InRangeSet::iterator iter = obj->GetInRangeSetBegin(); iter != obj->GetInRangeSetEnd();)
+        for (const auto& iter : obj->getInRangeObjectsSet())
         {
-            curObj = *iter;
-            ++iter;
-
-            fRange = GetUpdateDistance(curObj, obj, plObj);
-
-            if (fRange > 0.0f && (curObj->GetDistance2dSq(obj) > fRange))
+            if (iter)
             {
-                if (plObj != nullptr)
-                    plObj->RemoveIfVisible(curObj->GetGUID());
+                Object* curObj = iter;
 
-                if (curObj->IsPlayer())
-                    static_cast< Player* >(curObj)->RemoveIfVisible(obj->GetGUID());
+                fRange = GetUpdateDistance(curObj, obj, plObj);
 
-                curObj->RemoveInRangeObject(obj);
-
-                if (obj->GetMapMgr() != this)
+                if (fRange > 0.0f && (curObj->GetDistance2dSq(obj) > fRange))
                 {
-                    return;             //Something removed us.
+                    if (plObj != nullptr)
+                        plObj->RemoveIfVisible(curObj->GetGUID());
+
+                    if (curObj->IsPlayer())
+                        static_cast<Player*>(curObj)->RemoveIfVisible(obj->GetGUID());
+
+                    if (curObj->IsUnit() && static_cast<Unit*>(curObj)->mPlayerControler != nullptr)
+                        static_cast<Unit*>(curObj)->mPlayerControler->RemoveIfVisible(obj->GetGUID());
+
+                    curObj->removeObjectFromInRangeObjectsSet(obj);
+
+                    if (obj->GetMapMgr() != this)
+                        return;             //Something removed us.
+
+                    obj->removeObjectFromInRangeObjectsSet(curObj);
                 }
-                obj->RemoveInRangeObject(curObj);
             }
         }
     }
@@ -644,7 +659,7 @@ void MapMgr::ChangeObjectLocation(Object* obj)
 
         // if player we need to update cell activity radius = 2 is used in order to update
         // both old and new cells
-        if (obj->IsPlayer())
+        if (obj->IsPlayer() || obj->IsUnit() && static_cast<Unit*>(obj)->mPlayerControler != nullptr)
         {
             // have to unlock/lock here to avoid a deadlock situation.
             UpdateCellActivity(cellX, cellY, 2 + cellNumber);
@@ -738,14 +753,27 @@ void MapMgr::UpdateInRangeSet(Object* obj, Player* plObj, MapCell* cell, ByteBuf
 
         if (curObj != obj && (curObj->GetDistance2dSq(obj) <= fRange || fRange == 0.0f))
         {
-            if (!obj->IsInRangeSet(curObj))
+            if (!obj->isObjectInInRangeObjectsSet(curObj))
             {
-                obj->AddInRangeObject(curObj);          // Object in range, add to set
-                curObj->AddInRangeObject(obj);
+                obj->addToInRangeObjects(curObj);          // Object in range, add to set
+                curObj->addToInRangeObjects(obj);
 
                 if (curObj->IsPlayer())
                 {
                     plObj2 = static_cast<Player*>(curObj);
+
+                    if (plObj2->CanSee(obj) && !plObj2->IsVisible(obj->GetGUID()))
+                    {
+                        CHECK_BUF;
+                        count = obj->BuildCreateUpdateBlockForPlayer(*buf, plObj2);
+                        plObj2->PushCreationData(*buf, count);
+                        plObj2->AddVisibleObject(obj->GetGUID());
+                        (*buf)->clear();
+                    }
+                }
+                else if (curObj->IsUnit() && static_cast<Unit*>(curObj)->mPlayerControler != nullptr)
+                {
+                    plObj2 = static_cast<Unit*>(curObj)->mPlayerControler;
 
                     if (plObj2->CanSee(obj) && !plObj2->IsVisible(obj->GetGUID()))
                     {
@@ -775,6 +803,25 @@ void MapMgr::UpdateInRangeSet(Object* obj, Player* plObj, MapCell* cell, ByteBuf
                 if (curObj->IsPlayer())
                 {
                     plObj2 = static_cast<Player*>(curObj);
+                    cansee = plObj2->CanSee(obj);
+                    isvisible = plObj2->IsVisible(obj->GetGUID());
+                    if (!cansee && isvisible)
+                    {
+                        plObj2->PushOutOfRange(obj->GetNewGUID());
+                        plObj2->RemoveVisibleObject(obj->GetGUID());
+                    }
+                    else if (cansee && !isvisible)
+                    {
+                        CHECK_BUF;
+                        count = obj->BuildCreateUpdateBlockForPlayer(*buf, plObj2);
+                        plObj2->PushCreationData(*buf, count);
+                        plObj2->AddVisibleObject(obj->GetGUID());
+                        (*buf)->clear();
+                    }
+                }
+                else if (curObj->IsUnit() && static_cast<Unit*>(curObj)->mPlayerControler != nullptr)
+                {
+                    plObj2 = static_cast<Unit*>(curObj)->mPlayerControler;
                     cansee = plObj2->CanSee(obj);
                     isvisible = plObj2->IsVisible(obj->GetGUID());
                     if (!cansee && isvisible)
@@ -887,6 +934,15 @@ void MapMgr::_UpdateObjects()
                         update.clear();
                     }
                 }
+                else if (pObj->IsUnit() && static_cast<Unit*>(pObj)->mPlayerControler != nullptr)
+                {
+                    count = pObj->BuildValuesUpdateBlockForPlayer(&update, static_cast<Unit*>(pObj)->mPlayerControler);
+                    if (count)
+                    {
+                        static_cast<Unit*>(pObj)->mPlayerControler->PushUpdateData(&update, count);
+                        update.clear();
+                    }
+                }
 
                 if (pObj->IsUnit() && pObj->HasUpdateField(UNIT_FIELD_HEALTH))
                     static_cast<Unit*>(pObj)->EventHealthChangeSinceLastUpdate();
@@ -896,12 +952,12 @@ void MapMgr::_UpdateObjects()
 
                 if (count)
                 {
-                    for (std::set<Object*>::iterator itr = pObj->GetInRangePlayerSetBegin(); itr != pObj->GetInRangePlayerSetEnd(); ++itr)
+                    for (const auto& itr : pObj->getInRangePlayersSet())
                     {
-                        Player* lplr = static_cast<Player*>(*itr);
+                        Player* lplr = static_cast<Player*>(itr);
 
                         // Make sure that the target player can see us.
-                        if (lplr->IsVisible(pObj->GetGUID()))
+                        if (lplr && lplr->IsVisible(pObj->GetGUID()))
                             lplr->PushUpdateData(&update, count);
                     }
                     update.clear();
@@ -1800,7 +1856,7 @@ GameObject* MapMgr::CreateAndSpawnGameObject(uint32 entryID, float x, float y, f
     go->PushToWorld(this);
 
     // Create spawn instance
-    auto go_spawn = new GameobjectSpawn;
+    auto go_spawn = new MySQLStructure::GameobjectSpawn;
     go_spawn->entry = go->GetEntry();
     go_spawn->id = objmgr.GenerateGameObjectSpawnID();
     go_spawn->map = go->GetMapId();
@@ -1943,10 +1999,10 @@ GameObject* MapMgr::FindNearestGoWithType(Object* o, uint32 type)
     GameObject* go = nullptr;
     float r = FLT_MAX;
 
-    for (std::set<Object*>::iterator itr = o->GetInRangeSetBegin(); itr != o->GetInRangeSetEnd(); ++itr)
+    for (const auto& itr : o->getInRangeObjectsSet())
     {
-        Object* iro = *itr;
-        if (!iro->IsGameObject())
+        Object* iro = itr;
+        if (!iro || !iro->IsGameObject())
             continue;
 
         GameObject* irgo = static_cast<GameObject*>(iro);

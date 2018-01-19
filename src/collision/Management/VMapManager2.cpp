@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (C) 2014-2017 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -269,11 +269,13 @@ namespace VMAP
                     floor = info.ground_Z;
                     ASSERT(floor < std::numeric_limits<float>::max());
                     ASSERT(info.hitModel);
-                    type = info.hitModel->GetLiquidType();  // entry from LiquidType.dbc
+                    if (info.hitModel)
+                        type = info.hitModel->GetLiquidType();  // entry from LiquidType.dbc
+
                     if (reqLiquidType && !(GetLiquidFlagsPtr(type) & reqLiquidType))
                         return false;
                     ASSERT(info.hitInstance);
-                    if (info.hitInstance->GetLiquidLevel(pos, info, level))
+                    if (info.hitInstance && info.hitInstance->GetLiquidLevel(pos, info, level))
                         return true;
                 }
             }

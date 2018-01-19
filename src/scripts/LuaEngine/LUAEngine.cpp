@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (C) 2014-2017 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2007 Moon++ <http://www.moonplusplus.info/>
  *
@@ -224,7 +224,7 @@ void LuaEngine::LoadScripts()
         }
         else
         {
-            if (errorCode == lua_pcall(lu, 0, 0, 0))
+            if (errorCode != lua_pcall(lu, 0, 0, 0))
             {
                 LOG_ERROR("%s failed.(could not run). Error code %i", itr->c_str(), errorCode);
                 report(lu);

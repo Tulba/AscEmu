@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2017 AscEmu Team <http://www.ascemu.org/>
+ * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -1445,7 +1445,7 @@ void WorldSession::HandleSetWatchedFactionIndexOpcode(WorldPacket & recvPacket)
 
     uint32 factionid;
     recvPacket >> factionid;
-    GetPlayer()->setUInt32Value(PLAYER_FIELD_WATCHED_FACTION_INDEX, factionid);
+    GetPlayer()->setInt32Value(PLAYER_FIELD_WATCHED_FACTION_INDEX, factionid);
 }
 
 void WorldSession::HandleTogglePVPOpcode(WorldPacket& /*recv_data*/)

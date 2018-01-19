@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2014-2017 AscEmu Team <http://www.ascemu.org/>
+ Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
  This file is released under the MIT license. See README-MIT for more information.
  */
 
@@ -47,7 +47,7 @@ class SilverCovenantMageGuard : public CreatureAIScript
 
         void AIUpdate()
         {
-            if (getCreature()->GetInRangePlayersCount() > 0)
+            if (getCreature()->getInRangePlayersCount() > 0)
                 StartDefense();
         }
 };
@@ -94,7 +94,7 @@ class SunreaversMageGuard : public CreatureAIScript
 
         void AIUpdate()
         {
-            if (getCreature()->GetInRangePlayersCount() > 0)
+            if (getCreature()->getInRangePlayersCount() > 0)
                 StartDefense();
         }
 };

@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2017 AscEmu Team <http://www.ascemu.org/>
+ * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -316,7 +316,7 @@ void WorldSession::HandleMovementOpcodes(WorldPacket& recv_data)
 
     bool moved = true;
 
-    if (_player->GetCharmedByGUID() || _player->GetPlayerStatus() == TRANSFER_PENDING || _player->GetTaxiState() || _player->getDeathState() == JUST_DIED)
+    if (/*_player->GetCharmedByGUID() || */_player->GetPlayerStatus() == TRANSFER_PENDING || _player->GetTaxiState() || _player->getDeathState() == JUST_DIED)
         return;
 
     // spell cancel on movement, for now only fishing is added
@@ -341,6 +341,14 @@ void WorldSession::HandleMovementOpcodes(WorldPacket& recv_data)
         }
     }
 
+    Unit* mover = _player->mControledUnit;
+
+    ASSERT(mover != nullptr)
+
+    Player* plrMover = nullptr;
+    if (mover->IsPlayer())
+        plrMover = dynamic_cast<Player*>(mover);
+
     /************************************************************************/
     /* Clear standing state to stand.				                        */
     /************************************************************************/
@@ -359,14 +367,7 @@ void WorldSession::HandleMovementOpcodes(WorldPacket& recv_data)
     recv_data >> guid;
     movement_info.init(recv_data);
 
-    if (guid != m_MoverWoWGuid.GetOldGuid())
-    {
-        return;
-    }
-
-    // Player is in control of some entity, so we move that instead of the player
-    Unit* mover = _player->GetMapMgr()->GetUnit(m_MoverWoWGuid.GetOldGuid());
-    if (mover == NULL)
+    if (guid != mover->GetGUID())
         return;
 
     /* Anti Multi-Jump Check */
@@ -385,11 +386,7 @@ void WorldSession::HandleMovementOpcodes(WorldPacket& recv_data)
     /* Update player movement state                                         */
     /************************************************************************/
 
-#if VERSION_STRING == Cata
-    uint32_t opcode = recv_data.GetOpcode();
-#else
     uint16 opcode = recv_data.GetOpcode();
-#endif
     switch (opcode)
     {
         case MSG_MOVE_START_FORWARD:
@@ -531,7 +528,7 @@ void WorldSession::HandleMovementOpcodes(WorldPacket& recv_data)
     /************************************************************************/
     /* Copy into the output buffer.                                         */
     /************************************************************************/
-    if (_player->m_inRangePlayers.size())
+    if (_player->getInRangePlayersCount())
     {
         move_time = (movement_info.time - (mstime - m_clientTimeDelay)) + MOVEMENT_PACKET_TIME_DELAY + mstime;
         memcpy(&movement_packet[0], recv_data.contents(), recv_data.size());
@@ -540,15 +537,13 @@ void WorldSession::HandleMovementOpcodes(WorldPacket& recv_data)
         /************************************************************************/
         /* Distribute to all inrange players.                                   */
         /************************************************************************/
-        for (std::set<Object*>::iterator itr = _player->m_inRangePlayers.begin(); itr != _player->m_inRangePlayers.end(); ++itr)
+        for (const auto& itr : mover->getInRangePlayersSet())
         {
-
-            Player* p = static_cast< Player* >((*itr));
+            Player* p = static_cast<Player*>(itr);
 
             *(uint32*)&movement_packet[pos + 6] = uint32(move_time + p->GetSession()->m_moveDelayTime);
 
             p->GetSession()->OutPacket(recv_data.GetOpcode(), uint16(recv_data.size() + pos), movement_packet);
-
         }
     }
 

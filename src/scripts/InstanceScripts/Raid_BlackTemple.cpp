@@ -1581,7 +1581,7 @@ class EssenceOfSufferingAI : public CreatureAIScript
                 setCanEnterCombat(false);
                 _setMeleeDisabled(false);
                 _setCastDisabled(true);
-                getCreature()->setUInt64Value(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9);
+                getCreature()->setUInt64Value(UNIT_FIELD_FLAGS, UNIT_FLAG_IGNORE_PLAYER_COMBAT);
                 _removeAllAuras();
                 _removeAuraOnPlayers(EOS_AURA_OF_SUFFERING);
 
@@ -1635,7 +1635,7 @@ class EssenceOfDesireAI : public CreatureAIScript
                 setCanEnterCombat(false);
                 _setMeleeDisabled(false);
                 _setCastDisabled(true);
-                getCreature()->setUInt64Value(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9);
+                getCreature()->setUInt64Value(UNIT_FIELD_FLAGS, UNIT_FLAG_IGNORE_PLAYER_COMBAT);
                 _removeAllAuras();
                 _removeAuraOnPlayers(EOD_AURA_OF_DESIRE);
 
@@ -1730,7 +1730,7 @@ class ReliquaryOfSoulsAI : public CreatureAIScript
 
         void OnCombatStart(Unit* /*mTarget*/) override
         {
-            getCreature()->setUInt64Value(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9);
+            getCreature()->setUInt64Value(UNIT_FIELD_FLAGS, UNIT_FLAG_IGNORE_PLAYER_COMBAT);
             _setMeleeDisabled(false);
             _setRangedDisabled(true);
 
@@ -1834,13 +1834,11 @@ class ReliquaryOfSoulsAI : public CreatureAIScript
                         }
                         if (SpawnedEnsalvedSoul)
                         {
-
-                            Creature* creature = NULL;
-                            for (std::set<Object*>::iterator itr = getCreature()->GetInRangeSetBegin(); itr != getCreature()->GetInRangeSetEnd(); ++itr)
+                            for (const auto& itr : getCreature()->getInRangeObjectsSet())
                             {
-                                if ((*itr)->IsCreature())
+                                if (itr && itr->IsCreature())
                                 {
-                                    creature = static_cast<Creature*>((*itr));
+                                    Creature* creature = static_cast<Creature*>(itr);
                                     if (creature->GetCreatureProperties()->Id == CN_ENSLAVED_SOUL && !creature->isAlive())
                                         DeadSoulCount++;
                                 }
@@ -3416,21 +3414,18 @@ class AkamaAI : public CreatureAIScript
         // A bit rewritten FindTarget function
         Unit* FindClosestTargetToUnit(Unit* pSeeker)
         {
-            if (pSeeker == NULL)
-                return NULL;
+            if (pSeeker == nullptr)
+                return nullptr;
 
-            Unit* pTarget = NULL;
+            Unit* pTarget = nullptr;
             float distance = 70.0f;
             float z_diff;
 
-            Unit* pUnit;
-            float dist;
-
-            for (std::set< Object* >::iterator itr = getCreature()->GetInRangePlayerSetBegin(); itr != getCreature()->GetInRangePlayerSetEnd(); ++itr)
+            for (const auto& itr : getCreature()->getInRangePlayersSet())
             {
-                pUnit = static_cast< Unit* >(*itr);
+                Unit* pUnit = static_cast<Unit*>(itr);
 
-                if (pUnit->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_FEIGN_DEATH))
+                if (!pUnit || pUnit->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_FEIGN_DEATH))
                     continue;
 
                 z_diff = fabs(getCreature()->GetPositionZ() - pUnit->GetPositionZ());
@@ -3440,7 +3435,7 @@ class AkamaAI : public CreatureAIScript
                 if (!pUnit->isAlive())
                     continue;
 
-                dist = pSeeker->GetDistance2dSq(pUnit);
+                float dist = pSeeker->GetDistance2dSq(pUnit);
 
                 if (dist > distance * distance)
                     continue;
@@ -3935,6 +3930,7 @@ class IllidanStormrageAI : public CreatureAIScript
             mYellTimer = 0;
             mEnrageTimer = 0;
             mCurrentWaypoint = 0;
+            mLocaleEnrageTimerId = 0;
         }
 
         void OnCombatStart(Unit* /*pTarget*/) override
@@ -4035,7 +4031,7 @@ class IllidanStormrageAI : public CreatureAIScript
                 _applyAura(ILLIDAN_DEATH1);
                 _applyAura(ILLIDAN_DEATH2);
 
-                pMaiev->setUInt64Value(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9);
+                pMaiev->setUInt64Value(UNIT_FIELD_FLAGS, UNIT_FLAG_IGNORE_PLAYER_COMBAT);
                 pMaiev->GetAIInterface()->setAiState(AI_STATE_IDLE);
                 pMaiev->GetAIInterface()->WipeTargetList();
                 pMaiev->GetAIInterface()->WipeHateList();
@@ -4284,7 +4280,7 @@ class IllidanStormrageAI : public CreatureAIScript
                         }
                         break;
                     case 5:
-                        for (uint8 i = 0 ; i < 2; ++i)
+                        for (uint8 i = 0; i < 2; ++i)
                         {
                             Creature* Blade = getNearestCreature(UnitPos[i].x, UnitPos[i].y, UnitPos[i].z, CN_BLADE_OF_AZZINOTH);
                             if (Blade != NULL)
@@ -4856,21 +4852,24 @@ class IllidanStormrageAI : public CreatureAIScript
                     if (mFlameBurstTimer <= 0)
                     {
                         //CastSpellNowNoScheduling(mFlameBurst);
-                        for (std::set< Object* >::iterator itr = getCreature()->GetInRangePlayerSetBegin(); itr != getCreature()->GetInRangePlayerSetEnd(); ++itr)
+                        for (const auto& itr : getCreature()->getInRangePlayersSet())
                         {
-                            Unit* pUnit = static_cast< Unit* >(*itr);
-                            CreatureAIScript* pAI = spawnCreatureAndGetAIScript(CN_FLAME_BURST, (*itr)->GetPositionX(), (*itr)->GetPositionY(), (*itr)->GetPositionZ(), 0, getCreature()->GetFaction());
-                            getCreature()->CastSpell(pUnit, ILLIDAN_FLAME_BURST2, true);
-                            if (pAI != nullptr)
+                            Unit* pUnit = static_cast<Unit*>(itr);
+                            if (pUnit)
                             {
-                                float Distance = getRangeToObject(pUnit);
-                                if (Distance == 0.0f)
+                                CreatureAIScript* pAI = spawnCreatureAndGetAIScript(CN_FLAME_BURST, itr->GetPositionX(), itr->GetPositionY(), itr->GetPositionZ(), 0, getCreature()->GetFaction());
+                                getCreature()->CastSpell(pUnit, ILLIDAN_FLAME_BURST2, true);
+                                if (pAI != nullptr)
                                 {
-                                    pAI->RegisterAIUpdateEvent(300);        // o'rly?
-                                }
-                                else
-                                {
-                                    pAI->RegisterAIUpdateEvent((uint32)(Distance * 1000 / 32.796));
+                                    float Distance = getRangeToObject(pUnit);
+                                    if (Distance == 0.0f)
+                                    {
+                                        pAI->RegisterAIUpdateEvent(300);        // o'rly?
+                                    }
+                                    else
+                                    {
+                                        pAI->RegisterAIUpdateEvent((uint32)(Distance * 1000 / 32.796));
+                                    }
                                 }
                             }
                         }

@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (C) 2014-2017 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -171,6 +171,7 @@ class IckAI : public CreatureAIScript
         mShadowBoltTimer = 0;
         mExplosionBarageEndTimer = 0;
         mSpecialAttackTimer = 0;
+        mMightyKickTimer = 0;
 
         // Emotes
         // Krick
@@ -424,7 +425,7 @@ class KrickAI : public CreatureAIScript
             setCanEnterCombat(false);
 
             // Clear Hatelist dont allow Combat and root the Unit
-            getCreature()->setUInt64Value(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_9);
+            getCreature()->setUInt64Value(UNIT_FIELD_FLAGS, UNIT_FLAG_IGNORE_PLAYER_COMBAT);
             getCreature()->GetAIInterface()->setAiState(AI_STATE_IDLE);
             getCreature()->GetAIInterface()->WipeTargetList();
             getCreature()->GetAIInterface()->WipeHateList();

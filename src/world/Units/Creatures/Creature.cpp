@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2017 AscEmu Team <http://www.ascemu.org/>
+ * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -398,7 +398,7 @@ void Creature::SaveToDB()
 {
     if (m_spawn == NULL)
     {
-        m_spawn = new CreatureSpawn;
+        m_spawn = new MySQLStructure::CreatureSpawn;
         m_spawn->entry = GetEntry();
         m_spawn->form = 0;
         m_spawn->id = spawnid = objmgr.GenerateCreatureSpawnID();
@@ -828,8 +828,8 @@ void Creature::EnslaveExpire()
 
     GetAIInterface()->Init(((Unit*)this), AI_SCRIPT_AGRO, Movement::WP_MOVEMENT_SCRIPT_NONE);
 
-    UpdateOppFactionSet();
-    UpdateSameFactionSet();
+    updateInRangeOppositeFactionSet();
+    updateInRangeSameFactionSet();
 }
 
 uint32 Creature::GetEnslaveCount()
@@ -857,12 +857,12 @@ bool Creature::RemoveEnslave()
     return RemoveAura(m_enslaveSpell);
 }
 
-void Creature::AddInRangeObject(Object* pObj)
+void Creature::addToInRangeObjects(Object* pObj)
 {
-    Unit::AddInRangeObject(pObj);
+    Unit::addToInRangeObjects(pObj);
 }
 
-void Creature::OnRemoveInRangeObject(Object* pObj)
+void Creature::onRemoveInRangeObject(Object* pObj)
 {
     if (m_escorter == pObj)
     {
@@ -875,12 +875,12 @@ void Creature::OnRemoveInRangeObject(Object* pObj)
         Despawn(1000, 1000);
     }
 
-    Unit::OnRemoveInRangeObject(pObj);
+    Unit::onRemoveInRangeObject(pObj);
 }
 
-void Creature::ClearInRangeSet()
+void Creature::clearInRangeSets()
 {
-    Unit::ClearInRangeSet();
+    Unit::clearInRangeSets();
 }
 
 void Creature::CalcResistance(uint16 type)
@@ -1260,7 +1260,7 @@ Movement::WayPoint* Creature::CreateWaypointStruct()
 }
 //#define SAFE_FACTIONS
 
-bool Creature::isattackable(CreatureSpawn* spawn)
+bool Creature::isattackable(MySQLStructure::CreatureSpawn* spawn)
 {
     if (spawn == nullptr)
         return false;
@@ -1300,7 +1300,7 @@ bool Creature::Teleport(const LocationVector& vec, MapMgr* map)
     }
 }
 
-bool Creature::Load(CreatureSpawn* spawn, uint8 mode, MySQLStructure::MapInfo const* info)
+bool Creature::Load(MySQLStructure::CreatureSpawn* spawn, uint8 mode, MySQLStructure::MapInfo const* info)
 {
     m_spawn = spawn;
     creature_properties = sMySQLStore.getCreatureProperties(spawn->entry);
@@ -2426,11 +2426,10 @@ void Creature::Die(Unit* pAttacker, uint32 /*damage*/, uint32 spellid)
     }
 
     // Stop players from casting
-    for (std::set< Object* >::iterator itr = GetInRangePlayerSetBegin(); itr != GetInRangePlayerSetEnd(); ++itr)
+    for (const auto& itr : getInRangePlayersSet())
     {
-        Unit* attacker = static_cast< Unit* >(*itr);
-
-        if (attacker->isCastingNonMeleeSpell())
+        Unit* attacker = static_cast<Unit*>(itr);
+        if (attacker && attacker->isCastingNonMeleeSpell())
         {
             for (uint8_t i = 0; i < CURRENT_SPELL_MAX; ++i)
             {
