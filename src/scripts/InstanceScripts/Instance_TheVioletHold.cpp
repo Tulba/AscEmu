@@ -247,7 +247,7 @@ class IntroPortalAI : public CreatureAIScript
             setRooted(true);
             getCreature()->m_canRegenerateHP = false;
             setCanEnterCombat(false);
-            spawnTimer = _addTimer(RandomUInt(8, 15) * 1000);
+            spawnTimer = _addTimer(Util::getRandomUInt(8, 15) * 1000);
         }
 
         void AIUpdate() override
@@ -255,7 +255,7 @@ class IntroPortalAI : public CreatureAIScript
             if (_isTimerFinished(spawnTimer) && VH_instance && !(VH_instance->GetInstanceData(INDEX_INSTANCE_PROGRESS) == InProgress || VH_instance->GetInstanceData(INDEX_INSTANCE_PROGRESS) == Performed) && portalId != -1)
             {
                 float landHeight = getCreature()->GetMapMgr()->GetLandHeight(getCreature()->GetPositionX(), getCreature()->GetPositionY(), getCreature()->GetPositionZ());
-                if (Creature* pAttacker = spawnCreature(VHIntroMobs[RandomUInt(VHIntroMobCount - 1)], getCreature()->GetPositionX(), getCreature()->GetPositionY(), landHeight, getCreature()->GetOrientation()))
+                if (Creature* pAttacker = spawnCreature(VHIntroMobs[Util::getRandomUInt(VHIntroMobCount - 1)], getCreature()->GetPositionX(), getCreature()->GetPositionY(), landHeight, getCreature()->GetOrientation()))
                 {
                     float runSpeed = pAttacker->GetCreatureProperties()->run_speed;
                     switch (portalId)
@@ -305,7 +305,7 @@ class IntroPortalAI : public CreatureAIScript
                         }break;
                     }
                 }
-                _resetTimer(spawnTimer, RandomUInt(8, 15) * 1000);
+                _resetTimer(spawnTimer, Util::getRandomUInt(8, 15) * 1000);
             }
         }
 
@@ -612,7 +612,7 @@ class TeleportationPortalAI : public CreatureAIScript
                             // Spawn 3 random portal guardians
                             for (uint8_t i = 0; i < 3; i++)
                             {
-                                if (Creature* pSummon = spawnCreature(portalGuardians[RandomUInt(maxPortalGuardians - 1)], getCreature()->GetPositionX() + RandomFloat(float(i)) + 1.0f, getCreature()->GetPositionY() + RandomFloat(float(i)) + 1.0f, landHeight, getCreature()->GetOrientation()))
+                                if (Creature* pSummon = spawnCreature(portalGuardians[Util::getRandomUInt(maxPortalGuardians - 1)], getCreature()->GetPositionX() + Util::getRandomFloat(float(i)) + 1.0f, getCreature()->GetPositionY() + Util::getRandomFloat(float(i)) + 1.0f, landHeight, getCreature()->GetOrientation()))
                                 {
                                     AddWaypoint(pSummon, pInstance->m_activePortal.id, 0);
                                 }
@@ -627,7 +627,7 @@ class TeleportationPortalAI : public CreatureAIScript
                         //TODO: This count needs to be corrected
                         for (uint8_t i = 0; i < 5; i++)
                         {
-                            if (Creature* pSummon = spawnCreature(portalGuardians[RandomUInt(maxPortalGuardians - 1)], getCreature()->GetPositionX() + RandomFloat(float(i)) + 1.0f, getCreature()->GetPositionY() + RandomFloat(float(i)) + 1.0f, landHeight, getCreature()->GetOrientation()))
+                            if (Creature* pSummon = spawnCreature(portalGuardians[Util::getRandomUInt(maxPortalGuardians - 1)], getCreature()->GetPositionX() + Util::getRandomFloat(float(i)) + 1.0f, getCreature()->GetPositionY() + Util::getRandomFloat(float(i)) + 1.0f, landHeight, getCreature()->GetOrientation()))
                             {
                                 //TODO: replace this with cleaner solution
                                 pInstance->m_activePortal.summonsList.push_back(GET_LOWGUID_PART(pSummon->GetGUID()));
@@ -691,7 +691,7 @@ class TeleportationPortalAI : public CreatureAIScript
                     }break;
                     case 7: // Squad group near Zuramat
                     {
-                        if (RandomUInt(1))
+                        if (Util::getRandomUInt(1))
                         {
                             for (uint8_t i = 0; i < MaxSecondPortalLeftWPS; i++)
                             {
@@ -2104,7 +2104,6 @@ void TheVioletHoldInstance::OnCreaturePushToWorld(Creature* pCreature)
             pCreature->setByteFlag(UNIT_FIELD_BYTES_2, 0, SHEATH_STATE_MELEE);
             pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLUS_MOB | UNIT_FLAG_UNKNOWN_16);
             pCreature->SetFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_ENABLE_POWER_REGEN);
-            pCreature->setUInt32Value(UNIT_DYNAMIC_FLAGS, 0);
         }break;
         case CN_LIEUTNANT_SINCLARI:
         {
