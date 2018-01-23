@@ -1,9 +1,10 @@
-# Copyright (C) 2014-2017 AscEmu Team <http://www.ascemu.org/>
+# Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
 
 set(PATH_PREFIX Auth)
 
 set(SRC_AUTH_FILES
    ${PATH_PREFIX}/AccountCache.cpp
+   ${PATH_PREFIX}/AccountCache.TBC.cpp
    ${PATH_PREFIX}/AccountCache.h
    ${PATH_PREFIX}/AuthSocket.Legacy.cpp
    ${PATH_PREFIX}/AuthSocket.cpp
