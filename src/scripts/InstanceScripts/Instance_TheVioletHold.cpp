@@ -349,7 +349,6 @@ class VHAttackerAI : public CreatureAIScript
         {
             // Stop channelling
             StartChanneling(0);
-            getCreature()->Despawn(1000, 0);
         }
 
         void OnCombatStart(Unit* /*pKiller*/) override
@@ -1618,8 +1617,8 @@ uint32_t TheVioletHoldInstance::GetInstanceData(uint32_t pIndex)
 void TheVioletHoldInstance::GeneratePortalInfo(VHPortalInfo & newPortal)
 {
     uint8_t currentPortalCount = GetInstanceData(DATA_PORTAL_COUNT);
-    uint8_t perviousPortal = currentPortalCount != 0 ? GetInstanceData(DATA_PERVIOUS_PORTAL_ID) : RandomUInt(MaxPortalPositions - 1);
-    uint8_t newPortalId = RandomUInt(MaxPortalPositions - 1);
+    uint8_t perviousPortal = currentPortalCount != 0 ? GetInstanceData(DATA_PERVIOUS_PORTAL_ID) : Util::getRandomUInt(MaxPortalPositions - 1);
+    uint8_t newPortalId = Util::getRandomUInt(MaxPortalPositions - 1);
 
     // Clear pervious portal data
     newPortal.ResetData();
@@ -1629,7 +1628,7 @@ void TheVioletHoldInstance::GeneratePortalInfo(VHPortalInfo & newPortal)
         // Generate new portal id which doesn't match to pervious portal
         while (newPortalId == perviousPortal)
         {
-            newPortalId = RandomUInt(MaxPortalPositions - 1);
+            newPortalId = Util::getRandomUInt(MaxPortalPositions - 1);
         }
         newPortal.id = newPortalId;
 
@@ -1640,7 +1639,7 @@ void TheVioletHoldInstance::GeneratePortalInfo(VHPortalInfo & newPortal)
         }
         else
         {
-            newPortal.guardianEntry = RandomUInt(1) ? CN_PORTAL_GUARDIAN : CN_PORTAL_KEEPER;
+            newPortal.guardianEntry = Util::getRandomUInt(1) ? CN_PORTAL_GUARDIAN : CN_PORTAL_KEEPER;
             newPortal.type = VH_PORTAL_TYPE_GUARDIAN;
             // summon list data will published on spawn event
         }
@@ -1666,7 +1665,7 @@ void TheVioletHoldInstance::GeneratePortalInfo(VHPortalInfo & newPortal)
                     // Generate random boss entry
                     while (newPortal.bossEntry == 0 || getData(newPortal.bossEntry) == Finished)
                     {
-                        newPortal.bossEntry = randomVHBossArray[RandomUInt(maxVHBosses - 1)];
+                        newPortal.bossEntry = randomVHBossArray[Util::getRandomUInt(maxVHBosses - 1)];
                     }
                     SetInstanceData(DATA_GROUP1_BOSS_ENTRY, newPortal.bossEntry);
                 }
@@ -1684,7 +1683,7 @@ void TheVioletHoldInstance::GeneratePortalInfo(VHPortalInfo & newPortal)
                     // Generate random boss entry
                     while (newPortal.bossEntry == 0 || getData(newPortal.bossEntry) == Finished)
                     {
-                        newPortal.bossEntry = randomVHBossArray[RandomUInt(maxVHBosses - 1)];
+                        newPortal.bossEntry = randomVHBossArray[Util::getRandomUInt(maxVHBosses - 1)];
                     }
                     SetInstanceData(DATA_GROUP2_BOSS_ENTRY, newPortal.bossEntry);
                 }
@@ -2202,7 +2201,7 @@ void TheVioletHoldInstance::OnCreatureDeath(Creature* pCreature, Unit* /*pKiller
         case CN_INTRO_AZURE_MAGE_SLAYER_MELEE:
         case CN_INTRO_AZURE_SPELLBREAKER_ARCANE:
         {
-            pCreature->Despawn(1000, 0);
+            pCreature->Despawn(3000, 0);
         }break;
         case CN_CYANIGOSA:
         {
