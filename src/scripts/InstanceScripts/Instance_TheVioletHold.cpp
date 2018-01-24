@@ -326,47 +326,62 @@ class VHAttackerAI : public CreatureAIScript
             pInstance = static_cast<TheVioletHoldInstance*>(pCreature->GetMapMgr()->GetScript());
             switch (pCreature->GetEntry())
             {
-                //CN_AZURE_INVADER
+                case CN_INTRO_AZURE_MAGE_SLAYER_MELEE:
+                {
+                    addAISpell(58469, 9.0f, TARGET_SELF, 0, 11, false, true);    // Arcane Empowerment
+                }break;
+                case CN_INTRO_AZURE_SPELLBREAKER_ARCANE:
+                {
+                    addAISpell(58462, 9.0f, TARGET_ATTACKING, 0, 0, false, true);   // Arcane Blast
+                    addAISpell(25603, 8.0f, TARGET_ATTACKING, 0, 0, false, true);   // Slow
+                }break;
+                case CN_AZURE_INVADER:
+                case CN_INTRO_AZURE_INVADER_ARMS:
+                {
+                    addAISpell(15496, 9.0f, TARGET_ATTACKING, 0, 0, false, true);    // Cleave
+                    addAISpell(58459, 8.0f, TARGET_ATTACKING, 0, 13, false, true);   // Impale
+                }break;
                 case CN_AZURE_SPELLBREAKER:
                 {
-                    addAISpell(58462, 9.0f, TARGET_ATTACKING, 0, 0, false, true);    // Arcane Blast (untested)
+                    addAISpell(58462, 9.0f, TARGET_ATTACKING, 0, 0, false, true);    // Arcane Blast
                 }break;
                 case CN_AZURE_BINDER:
+                case CN_INTRO_AZURE_BINDER_ARCANE:
                 {
-                    addAISpell(58456, 9.0f, TARGET_ATTACKING, 0, 2, false, true);    // Arcane Barrage (untested)
-                    addAISpell(58455, 8.0f, TARGET_SELF, 0, 5, false, false);         // Arcane Explosion (untested)
+                    addAISpell(58456, 9.0f, TARGET_ATTACKING, 0, 2, false, true);    // Arcane Barrage
+                    addAISpell(58455, 8.0f, TARGET_SELF, 0, 5, false, false);         // Arcane Explosion
                 }break;
                 case CN_AZURE_MAGE_SLAYER:
                 {
-                    addAISpell(60204, 9.0f, TARGET_SELF, 0, 11, false, true);    // Arcane Empowerment (untested)
+                    addAISpell(60204, 9.0f, TARGET_SELF, 0, 11, false, true);    // Arcane Empowerment
                 }break;
                 case CN_AZURE_CAPTAIN:
                 {
-                    addAISpell(32736, 9.0f, TARGET_ATTACKING, 0, 6, false, true);    // Mortal Strike (untested)
-                    addAISpell(41057, 9.0f, TARGET_ATTACKING, 0, 5, false, true);    // Wirtlwind (untested)
+                    addAISpell(32736, 9.0f, TARGET_ATTACKING, 0, 6, false, true);    // Mortal Strike
+                    addAISpell(41057, 9.0f, TARGET_ATTACKING, 0, 5, false, true);    // Wirtlwind
                 }break;
                 case CN_AZURE_SORCERER:
                 {
-                    addAISpell(60182, 8.0f, TARGET_ATTACKING, 0, 0, false, true);       // Mana Detonation (untested)
+                    addAISpell(60182, 8.0f, TARGET_ATTACKING, 0, 0, false, true);       // Mana Detonation
                     if (pCreature->GetMapMgr()->iInstanceMode == MODE_HEROIC)
                     {
-                        addAISpell(60204, 9.0f, TARGET_ATTACKING, 4, 0, false, true);    // Arcane Stream (untested)
+                        addAISpell(60204, 9.0f, TARGET_ATTACKING, 4, 0, false, true);    // Arcane Stream
                     }
                 }break;
                 case CN_AZURE_RAIDER:
                 {
-                    addAISpell(60158, 8.0f, TARGET_SELF, 0, 6, false, true);       // Magic Reflection (untested)
+                    addAISpell(60158, 8.0f, TARGET_SELF, 0, 6, false, true);       // Magic Reflection
                 }break;
                 case CN_AZURE_STALKER:
                 {
-                    addAISpell(58471, 8.0f, TARGET_ATTACKING, 0, 0, false, true);       // Backstab   (untested)
-                    addAISpell(58470, 7.0f, TARGET_ATTACKING, 0, 0, false, true);       // Tactical Blink (untested)
+                    addAISpell(58471, 8.0f, TARGET_ATTACKING, 0, 0, false, true);       // Backstab
+                    addAISpell(58470, 7.0f, TARGET_ATTACKING, 0, 0, false, true);       // Tactical Blink
                 }break;
                 case CN_VETERAN_MAGE_HUNTER:
                 {
-                    addAISpell(20829, 8.0f, TARGET_ATTACKING, 1, 0, false, true);    // Arcane Bolt (untested)
-                    addAISpell(20823, 7.0f, TARGET_ATTACKING, 3, 0, false, true);    // Fireball    (untested)
-                    addAISpell(20822, 6.0f, TARGET_ATTACKING, 3, 0, false, true);    // Frostbolt   (untested)
+                    addAISpell(20829, 8.0f, TARGET_ATTACKING, 1, 0, false, true);    // Arcane Bolt
+                    addAISpell(20823, 7.0f, TARGET_ATTACKING, 3, 0, false, true);    // Fireball
+                    addAISpell(20822, 6.0f, TARGET_ATTACKING, 3, 0, false, true);    // Frostbolt
                 }break;
             }
         }
