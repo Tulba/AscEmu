@@ -2306,6 +2306,7 @@ void TheVioletHoldInstance::OnCreatureDeath(Creature* pCreature, Unit* /*pKiller
         case CN_AZURE_SORCERER:
         case CN_AZURE_RAIDER:
         case CN_AZURE_STALKER:
+        case CN_VETERAN_MAGE_HUNTER:
         {
             if (m_activePortal.type == VH_PORTAL_TYPE_SQUAD && GetInstanceData(INDEX_PORTAL_PROGRESS) == InProgress)
             {
