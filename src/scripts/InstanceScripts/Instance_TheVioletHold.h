@@ -76,6 +76,7 @@ enum CreatureEntry : uint32_t
     CN_AZURE_SORCERER                       = 30667,
     CN_AZURE_RAIDER                         = 30668,
     CN_AZURE_STALKER                        = 32191,
+    CN_VETERAN_MAGE_HUNTER                  = 30665,
 
     // Zurumat event
     CN_ZURAMAT                              = 29314,
@@ -394,7 +395,7 @@ struct VHPortalInfo
     }
 };
 
-const uint8 maxPortalGuardians = 8;
+const uint8 maxPortalGuardians = 9;
 const uint32_t portalGuardians[maxPortalGuardians] =
 {
     CN_AZURE_INVADER,
@@ -404,7 +405,8 @@ const uint32_t portalGuardians[maxPortalGuardians] =
     CN_AZURE_CAPTAIN,
     CN_AZURE_SORCERER,
     CN_AZURE_RAIDER,
-    CN_AZURE_STALKER
+    CN_AZURE_STALKER,
+    CN_VETERAN_MAGE_HUNTER
 };
 
 // Keepers/guardians/squad groups announce

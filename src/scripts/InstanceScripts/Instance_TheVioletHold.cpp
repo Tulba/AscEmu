@@ -645,7 +645,6 @@ class TeleportationPortalAI : public CreatureAIScript
                         float landHeight = getCreature()->GetMapMgr()->GetLandHeight(getCreature()->GetPositionX(), getCreature()->GetPositionY(), getCreature()->GetPositionZ());
                         if (pInstance->GetInstanceData(DATA_PORTAL_COUNT) != 18)
                         {
-                            printf("instance count %u \n", pInstance->GetInstanceData(DATA_PORTAL_COUNT));
                             if (Creature* pSaboteur = spawnCreature(CN_AZURE_SABOTEUR, getCreature()->GetPositionX(), getCreature()->GetPositionY(), landHeight, getCreature()->GetOrientation()))
                             {
                                 AddWaypoint(pSaboteur, 0, pInstance->m_activePortal.bossEntry);
@@ -2356,6 +2355,7 @@ void SetupTheVioletHold(ScriptMgr* mgr)
     mgr->register_creature_script(CN_AZURE_SORCERER, &VHAttackerAI::Create);
     mgr->register_creature_script(CN_AZURE_RAIDER, &VHAttackerAI::Create);
     mgr->register_creature_script(CN_AZURE_STALKER, &VHAttackerAI::Create);
+    mgr->register_creature_script(CN_VETERAN_MAGE_HUNTER, &VHAttackerAI::Create);
     mgr->register_creature_script(CN_AZURE_SABOTEUR, &AzureSaboteurAI::Create);
 
     // Bosses
