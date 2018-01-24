@@ -394,12 +394,12 @@ class VHAttackerAI : public CreatureAIScript
         {
             // Stop channelling
             StartChanneling(0);
+            despawn(2000);
         }
 
         void OnCombatStart(Unit* /*pKiller*/) override
         {
-            StartChanneling(0);             // Stop channeling
-            ModifyAIUpdateEvent(1000);
+            StartChanneling(0); // Stop channeling
         }
 
         void OnCombatStop(Unit* /*pEnemy*/) override
@@ -2144,20 +2144,14 @@ void TheVioletHoldInstance::OnCreaturePushToWorld(Creature* pCreature)
         case CN_VIOLET_HOLD_GUARD:
         {
             m_guardsGuids.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
-            pCreature->setByteFlag(UNIT_FIELD_BYTES_2, 0, SHEATH_STATE_MELEE);
-            pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLUS_MOB | UNIT_FLAG_UNKNOWN_16);
-            pCreature->SetFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_ENABLE_POWER_REGEN);
         }break;
         case CN_LIEUTNANT_SINCLARI:
         {
             m_sinclariGUID = GET_LOWGUID_PART(pCreature->GetGUID());
-            pCreature->setByteFlag(UNIT_FIELD_BYTES_2, 0, SHEATH_STATE_MELEE);
-            pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLUS_MOB | UNIT_FLAG_UNKNOWN_16);
         }break;
         case CN_PORTAL_INTRO:
         {
             m_introSpawns.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
-            pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNKNOWN_16);
         }break;
         case CN_INTRO_AZURE_BINDER_ARCANE:
         case CN_INTRO_AZURE_INVADER_ARMS:
@@ -2165,8 +2159,6 @@ void TheVioletHoldInstance::OnCreaturePushToWorld(Creature* pCreature)
         case CN_INTRO_AZURE_SPELLBREAKER_ARCANE:
         {
             m_introSpawns.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
-            pCreature->setByteFlag(UNIT_FIELD_BYTES_2, 0, SHEATH_STATE_MELEE);
-            pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNKNOWN_16);
         }break;
         case CN_DEFENSE_SYSTEM_TRIGGER:
         {
@@ -2245,7 +2237,14 @@ void TheVioletHoldInstance::OnCreatureDeath(Creature* pCreature, Unit* /*pKiller
         case CN_INTRO_AZURE_MAGE_SLAYER_MELEE:
         case CN_INTRO_AZURE_SPELLBREAKER_ARCANE:
         {
-            pCreature->Despawn(3000, 0);
+            for (std::vector<uint32_t>::iterator itr = m_introSpawns.begin(); itr != m_introSpawns.end(); ++itr)
+            {
+                if ((*itr) == GET_LOWGUID_PART(pCreature->GetGUID()))
+                {
+                    m_introSpawns.erase(itr);
+                    break;
+                }
+            }
         }break;
         case CN_CYANIGOSA:
         {
