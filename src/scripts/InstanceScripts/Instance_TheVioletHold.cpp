@@ -1166,12 +1166,7 @@ class ZuramatAI : public CreatureAIScript
     {
         SPELL_SHROUD_OF_DARKNESS        = 54524,
         SPELL_SUMMON_VOID_SENTRY        = 54369,
-        SPELL_VOID_SHIFT                = 54361,
-        SPELL_VOID_SHIFTED              = 54343,
-        SPELL_ZURAMAT_ADD               = 54341,
-        SPELL_ZURAMAT_ADD_2             = 54342,
-        SPELL_ZURAMAT_ADD_DUMMY         = 54351,
-        SPELL_SUMMON_VOID_SENTRY_BALL   = 58650
+        SPELL_VOID_SHIFT                = 54361
     };
 
     uint32_t mVoidSentryTimer;
@@ -1201,6 +1196,12 @@ public:
         mVoidSentryTimer = 0;
         mVoidShiftTimer = 0;
         mShroudTimer = 0;
+
+        addEmoteForEvent(Event_OnCombatStart, YELL_ZURAMAT_AGROO);
+        addEmoteForEvent(Event_OnDied, YELL_ZURAMAT_DEATH);
+        addEmoteForEvent(Event_OnTargetDied, YELL_ZURAMAT_SLAY1);
+        addEmoteForEvent(Event_OnTargetDied, YELL_ZURAMAT_SLAY2);
+        addEmoteForEvent(Event_OnTargetDied, YELL_ZURAMAT_SLAY3);
     }
 
     void OnCombatStart(Unit* pEnemy) override
@@ -1233,6 +1234,7 @@ public:
             if (pTarget && pTarget->isAlive())
             {
                 getCreature()->CastSpell(pTarget, SPELL_VOID_SHIFT, false);
+                sendDBChatMessage(YELL_ZURAMAT_VOID);
                 _resetTimer(mVoidShiftTimer, 15000);
             }
         }
@@ -1241,6 +1243,7 @@ public:
         {
             getCreature()->CastSpell(getCreature(), SPELL_SHROUD_OF_DARKNESS, true);
             _resetTimer(mShroudTimer, Util::getRandomUInt(18, 20) * 1000);
+            sendDBChatMessage(YELL_ZURAMAT_SHROUD);
         }
     }
 };
@@ -1659,6 +1662,7 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
                     if (Creature* Zuramat = GetCreatureByGuid(m_ZuramatGUID))
                     {
                         Zuramat->GetAIInterface()->StopMovement(5000);
+                        Zuramat->SendScriptTextChatMessage(YELL_ZURAMAT_RELEASE);
                         Zuramat->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_FORWARDTHENSTOP);
                         Zuramat->GetAIInterface()->setWayPointToMove(1);
                     }
@@ -1739,6 +1743,7 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
                     if (Creature* Xevozz = GetCreatureByGuid(m_XevozzGUID))
                     {
                         Xevozz->SendScriptTextChatMessage(YELL_XEVOZZ_RELEASE);
+                        Xevozz->GetAIInterface()->StopMovement(5000);
                         Xevozz->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_FORWARDTHENSTOP);
                         Xevozz->GetAIInterface()->setWayPointToMove(1);
                     }
@@ -2500,8 +2505,12 @@ void SetupTheVioletHold(ScriptMgr* mgr)
     mgr->register_creature_script(CN_MORAGG, &MoraggAI::Create);
     mgr->register_creature_script(CN_ICHORON, &IchoronAI::Create);
 
+    // Zuramat event
     mgr->register_creature_script(CN_ZURAMAT, &ZuramatAI::Create);
+    mgr->register_creature_script(CN_VOID_SENTRY, &VoidSentryAI::Create);
+
     mgr->register_hook(SERVER_HOOK_EVENT_ON_AURA_REMOVE, (void*)OnRemoveVoidShift);
+
     mgr->register_creature_script(CN_LAVANTHOR, &LavanthorAI::Create);
     mgr->register_creature_script(CN_EREKEM, &ErekemAI::Create);
     mgr->register_creature_script(CN_XEVOZZ, &XevozzAI::Create);

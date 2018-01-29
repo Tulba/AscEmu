@@ -182,7 +182,13 @@ enum VH_Texts : uint32_t
 
     // Zuramat texts
     YELL_ZURAMAT_RELEASE        = 4556,     // "I am... renewed."
-
+    YELL_ZURAMAT_AGROO          = 4551,     // "Eradicate."
+    YELL_ZURAMAT_SHROUD         = 4557,     // "Know... my... pain."
+    YELL_ZURAMAT_VOID           = 4558,     // "Gaze... into the void."
+    YELL_ZURAMAT_SLAY1          = 4552,     // "More... energy."
+    YELL_ZURAMAT_SLAY2          = 4553,     // "Relinquish."
+    YELL_ZURAMAT_SLAY3          = 4554,     // "Fall... to shadow."
+    YELL_ZURAMAT_DEATH          = 4555,     // "Disperse."
 };
 
 // Worldstate entries used in instance
