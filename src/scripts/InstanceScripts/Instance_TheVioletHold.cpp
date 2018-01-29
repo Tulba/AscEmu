@@ -409,7 +409,7 @@ class VHAttackerAI : public CreatureAIScript
         {
             // Stop channelling
             StartChanneling(0);
-            despawn(2000);
+            despawn(3000, 0);
             if (pInstance)
             {
                 pInstance->RemoveIntroNpcByGuid(GET_LOWGUID_PART(getCreature()->GetGUID()));
@@ -469,7 +469,7 @@ class VHAttackerAI : public CreatureAIScript
         {
             // attack closest enemy
             Unit* pEnemy = getBestUnitTarget(TargetFilter_Closest);
-            if (pEnemy && getRangeToObject(pEnemy) < 15.0f)
+            if (pEnemy && getRangeToObject(pEnemy) < 40.0f)
             {
                 getCreature()->GetAIInterface()->AttackReaction(pEnemy, 1, 0);
             }
@@ -1249,7 +1249,6 @@ class VoidSentryAI : public CreatureAIScript
 {
     enum Spells
     {
-        SPELL_VOID_SHIFTED = 54343,
         SPELL_ZURAMAT_ADD = 54341,
         SPELL_ZURAMAT_ADD_2 = 54342,
         SPELL_ZURAMAT_ADD_DUMMY = 54351,
@@ -1267,6 +1266,7 @@ public:
     {
         pCreature->GetAIInterface()->setAiScriptType(AI_SCRIPT_PASSIVE);
         setRooted(true);
+        _setMeleeDisabled(true);
     }
 
     void OnLoad() override
@@ -1287,11 +1287,13 @@ bool OnRemoveVoidShift(Aura* aura)
     if (aura && aura->GetSpellInfo()->getId() == 54361) // Void Shift
     {
         Unit* pTarget = aura->GetTarget();
-        if (pTarget && pTarget->isAlive())
+        if (pTarget && pTarget->isAlive() && pTarget->IsPlayer())
         {
             pTarget->CastSpell(pTarget, 54343, true);   // Void Shifted
+            return true;
         }
     }
+    return false;
 }
 
 // Ichonor boss event

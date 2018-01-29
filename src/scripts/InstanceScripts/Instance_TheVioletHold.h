@@ -178,7 +178,11 @@ enum VH_Texts : uint32_t
     YELL_XEVOZZ_CHARGE          = 4547,     // "It would seem that a renegotiation is in order."
     YELL_XEVOZZ_ARCANE_SUMMON1  = 4548,     // "The air teems with latent energy... quite the harvest!"
     YELL_XEVOZZ_ARCANE_SUMMON2  = 4549,     // "Plentiful, exploitable resources... primed for acquisition!"
-    YELL_XEVOZZ_ARCANE_SUMMON3  = 4550      // "Intriguing... a high quantity of arcane energy is near. Time for some prospecting..."
+    YELL_XEVOZZ_ARCANE_SUMMON3  = 4550,     // "Intriguing... a high quantity of arcane energy is near. Time for some prospecting..."
+
+    // Zuramat texts
+    YELL_ZURAMAT_RELEASE        = 4556,     // "I am... renewed."
+
 };
 
 // Worldstate entries used in instance
