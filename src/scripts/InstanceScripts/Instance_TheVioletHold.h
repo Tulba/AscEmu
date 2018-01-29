@@ -648,7 +648,7 @@ class TheVioletHoldInstance : public InstanceScript
     std::vector<uint32_t> m_crystalGuids;     // Activation crystal guids
     std::vector<uint32_t> m_introSpawns;      // Intro creatures guids
     std::vector<uint32_t> m_defenseTriggers;  // Used for visual effect in defense npc AI
-    std::vector<uint32_t> m_eventSpawns;      // Portal event spawns (it won't contain main portal guardians)
+    std::vector<uint32_t> m_eventSpawns;      // Portal event spawns (attackers)
 
     // Portal summoning event
     uint32_t m_portalSummonTimer;

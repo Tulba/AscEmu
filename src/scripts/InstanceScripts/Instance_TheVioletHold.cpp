@@ -328,37 +328,37 @@ class VHAttackerAI : public CreatureAIScript
             {
                 case CN_INTRO_AZURE_MAGE_SLAYER_MELEE:
                 {
-                    addAISpell(58469, 9.0f, TARGET_SELF, 0, 11, false, true);    // Arcane Empowerment
+                    addAISpell(58469, 9.0f, TARGET_SELF, 0, 11, false, true);           // Arcane Empowerment
                 }break;
                 case CN_INTRO_AZURE_SPELLBREAKER_ARCANE:
                 {
-                    addAISpell(58462, 9.0f, TARGET_ATTACKING, 0, 0, false, true);   // Arcane Blast
-                    addAISpell(25603, 8.0f, TARGET_ATTACKING, 0, 0, false, true);   // Slow
+                    addAISpell(58462, 9.0f, TARGET_ATTACKING, 0, 0, false, true);       // Arcane Blast
+                    addAISpell(25603, 8.0f, TARGET_ATTACKING, 0, 0, false, true);       // Slow
                 }break;
                 case CN_AZURE_INVADER:
                 case CN_INTRO_AZURE_INVADER_ARMS:
                 {
-                    addAISpell(15496, 9.0f, TARGET_ATTACKING, 0, 0, false, true);    // Cleave
-                    addAISpell(58459, 8.0f, TARGET_ATTACKING, 0, 13, false, true);   // Impale
+                    addAISpell(15496, 9.0f, TARGET_ATTACKING, 0, 0, false, true);       // Cleave
+                    addAISpell(58459, 8.0f, TARGET_ATTACKING, 0, 13, false, true);      // Impale
                 }break;
                 case CN_AZURE_SPELLBREAKER:
                 {
-                    addAISpell(58462, 9.0f, TARGET_ATTACKING, 0, 0, false, true);    // Arcane Blast
+                    addAISpell(58462, 9.0f, TARGET_ATTACKING, 0, 0, false, true);       // Arcane Blast
                 }break;
                 case CN_AZURE_BINDER:
                 case CN_INTRO_AZURE_BINDER_ARCANE:
                 {
-                    addAISpell(58456, 9.0f, TARGET_ATTACKING, 0, 2, false, true);    // Arcane Barrage
-                    addAISpell(58455, 8.0f, TARGET_SELF, 0, 5, false, false);         // Arcane Explosion
+                    addAISpell(58456, 9.0f, TARGET_ATTACKING, 0, 2, false, true);       // Arcane Barrage
+                    addAISpell(58455, 8.0f, TARGET_SELF, 0, 5, false, false);           // Arcane Explosion
                 }break;
                 case CN_AZURE_MAGE_SLAYER:
                 {
-                    addAISpell(60204, 9.0f, TARGET_SELF, 0, 11, false, true);    // Arcane Empowerment
+                    addAISpell(60204, 9.0f, TARGET_SELF, 0, 11, false, true);           // Arcane Empowerment
                 }break;
                 case CN_AZURE_CAPTAIN:
                 {
-                    addAISpell(32736, 9.0f, TARGET_ATTACKING, 0, 6, false, true);    // Mortal Strike
-                    addAISpell(41057, 9.0f, TARGET_ATTACKING, 0, 5, false, true);    // Wirtlwind
+                    addAISpell(32736, 9.0f, TARGET_ATTACKING, 0, 6, false, true);       // Mortal Strike
+                    addAISpell(41057, 9.0f, TARGET_ATTACKING, 0, 5, false, true);       // Wirtlwind
                 }break;
                 case CN_AZURE_SORCERER:
                 {
@@ -370,7 +370,7 @@ class VHAttackerAI : public CreatureAIScript
                 }break;
                 case CN_AZURE_RAIDER:
                 {
-                    addAISpell(60158, 8.0f, TARGET_SELF, 0, 6, false, true);       // Magic Reflection
+                    addAISpell(60158, 8.0f, TARGET_SELF, 0, 6, false, true);            // Magic Reflection
                 }break;
                 case CN_AZURE_STALKER:
                 {
@@ -379,9 +379,9 @@ class VHAttackerAI : public CreatureAIScript
                 }break;
                 case CN_VETERAN_MAGE_HUNTER:
                 {
-                    addAISpell(20829, 8.0f, TARGET_ATTACKING, 1, 0, false, true);    // Arcane Bolt
-                    addAISpell(20823, 7.0f, TARGET_ATTACKING, 3, 0, false, true);    // Fireball
-                    addAISpell(20822, 6.0f, TARGET_ATTACKING, 3, 0, false, true);    // Frostbolt
+                    addAISpell(20829, 8.0f, TARGET_ATTACKING, 1, 0, false, true);       // Arcane Bolt
+                    addAISpell(20823, 7.0f, TARGET_ATTACKING, 3, 0, false, true);       // Fireball
+                    addAISpell(20822, 6.0f, TARGET_ATTACKING, 3, 0, false, true);       // Frostbolt
                 }break;
             }
         }
@@ -410,6 +410,10 @@ class VHAttackerAI : public CreatureAIScript
             // Stop channelling
             StartChanneling(0);
             despawn(2000);
+            if (pInstance)
+            {
+                pInstance->RemoveIntroNpcByGuid(GET_LOWGUID_PART(getCreature()->GetGUID()));
+            }
         }
 
         void OnCombatStart(Unit* /*pKiller*/) override
@@ -456,22 +460,13 @@ class VHAttackerAI : public CreatureAIScript
                 {
 
                     StartChanneling(pTriggerTarget->GetGUID());
-                    ModifyAIUpdateEvent(6000);
-                    //getCreature()->CastSpellAoF(pTriggerTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_DESTROY_DOOR_SEAL), false);
+                    getCreature()->CastSpell(pTriggerTarget, sSpellCustomizations.GetSpellInfo(SPELL_VH_DESTROY_DOOR_SEAL), true);
                 }
             }
         }
 
         void AIUpdate() override
         {
-            // TODO: this should be handled by periodic aura
-            if (!getCreature()->CombatStatus.IsInCombat() && getCreature()->GetChannelSpellTargetGUID() != 0 && getCreature()->GetChannelSpellId() != 0
-            && pInstance && pInstance->GetInstanceData(INDEX_INSTANCE_PROGRESS) && pInstance->GetInstanceData(DATA_SEAL_HEALTH) != 0)
-            {
-                ModifyAIUpdateEvent(7000);
-                pInstance->SetInstanceData(DATA_SEAL_HEALTH, pInstance->GetInstanceData(DATA_SEAL_HEALTH) - 1);
-            }
-
             // attack closest enemy
             Unit* pEnemy = getBestUnitTarget(TargetFilter_Closest);
             if (pEnemy && getRangeToObject(pEnemy) < 15.0f)
@@ -508,7 +503,7 @@ class VH_DefenseAI : public CreatureAIScript
                 // Intro spawns
                 if (!pInstance->m_introSpawns.empty())
                 {
-                    for (std::vector<uint32_t>::iterator itr = pInstance->m_introSpawns.begin(); itr != pInstance->m_introSpawns.end(); ++itr)
+                    for (std::vector<uint32_t>::iterator itr = pInstance->m_introSpawns.begin(); itr != pInstance->m_introSpawns.end();)
                     {
                         if (counter == 3)
                         {
@@ -518,6 +513,7 @@ class VH_DefenseAI : public CreatureAIScript
                                 getCreature()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_LIGHTNING_INTRO), true);
                                 pTarget->Die(pTarget, pTarget->GetHealth(), 0);
                             }
+                            itr = pInstance->m_introSpawns.erase(itr);
                         }
                         else
                         {
@@ -530,6 +526,7 @@ class VH_DefenseAI : public CreatureAIScript
                                 }
                                 getCreature()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_LIGHTNING_INTRO), true);
                             }
+                            ++itr;
                         }
                     }
                 }
@@ -547,6 +544,7 @@ class VH_DefenseAI : public CreatureAIScript
                                 getCreature()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_LIGHTNING_INTRO), true);
                                 pTarget->Die(pTarget, pTarget->GetHealth(), 0);
                             }
+                            itr = pInstance->m_eventSpawns.erase(itr);
                         }
                         else
                         {
@@ -554,6 +552,7 @@ class VH_DefenseAI : public CreatureAIScript
                             {
                                 getCreature()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_LIGHTNING_INTRO), true);
                             }
+                            ++itr;
                         }
                     }
                 }
@@ -588,7 +587,7 @@ class VH_DefenseAI : public CreatureAIScript
                     }
                 }
 
-                if (counter >= 3)
+                if (counter > 3)
                 {
                     getCreature()->CastSpell(getCreature(), SPELL_VH_DEFENSE_SYSTEM_SPAWN, true);
                 }
@@ -690,7 +689,6 @@ class TeleportationPortalAI : public CreatureAIScript
                             {
                                 //TODO: replace this with cleaner solution
                                 pInstance->m_activePortal.summonsList.push_back(GET_LOWGUID_PART(pSummon->GetGUID()));
-                                pInstance->m_eventSpawns.push_back(GET_LOWGUID_PART(pSummon->GetGUID()));
                                 pInstance->m_eventSpawns.push_back(GET_LOWGUID_PART(pSummon->GetGUID()));
                                 AddWaypoint(pSummon, pInstance->m_activePortal.id, 0);
                             }
@@ -1164,6 +1162,22 @@ public:
 
 class ZuramatAI : public CreatureAIScript
 {
+    enum Spells
+    {
+        SPELL_SHROUD_OF_DARKNESS        = 54524,
+        SPELL_SUMMON_VOID_SENTRY        = 54369,
+        SPELL_VOID_SHIFT                = 54361,
+        SPELL_VOID_SHIFTED              = 54343,
+        SPELL_ZURAMAT_ADD               = 54341,
+        SPELL_ZURAMAT_ADD_2             = 54342,
+        SPELL_ZURAMAT_ADD_DUMMY         = 54351,
+        SPELL_SUMMON_VOID_SENTRY_BALL   = 58650
+    };
+
+    uint32_t mVoidSentryTimer;
+    uint32_t mVoidShiftTimer;
+    uint32_t mShroudTimer;
+
 public:
 
     static CreatureAIScript* Create(Creature* c) { return new ZuramatAI(c); }
@@ -1184,6 +1198,16 @@ public:
         }
         pCreature->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
         setCanEnterCombat(false);
+        mVoidSentryTimer = 0;
+        mVoidShiftTimer = 0;
+        mShroudTimer = 0;
+    }
+
+    void OnCombatStart(Unit* pEnemy) override
+    {
+        mVoidSentryTimer = _addTimer(4000);
+        mVoidShiftTimer = _addTimer(9000);
+        mShroudTimer = _addTimer(Util::getRandomUInt(18, 20) * 1000);
     }
 
     void OnReachWP(uint32_t iWaypointId, bool /*bForwards*/) override
@@ -1194,8 +1218,81 @@ public:
             getCreature()->GetAIInterface()->AttackReaction(getNearestPlayer(), 1, 0);
         }
     }
+
+    void AIUpdate() override
+    {
+        if (_isTimerFinished(mVoidSentryTimer))
+        {
+            getCreature()->CastSpell(getCreature(), SPELL_SUMMON_VOID_SENTRY, true);
+            _resetTimer(mVoidSentryTimer, Util::getRandomUInt(7, 10) * 1000);
+        }
+
+        if (_isTimerFinished(mVoidShiftTimer))
+        {
+            Unit* pTarget = getBestPlayerTarget(static_cast<TargetFilter>(TargetFilter_Aggroed | TargetFilter_InRangeOnly), 0, 60.0f);
+            if (pTarget && pTarget->isAlive())
+            {
+                getCreature()->CastSpell(pTarget, SPELL_VOID_SHIFT, false);
+                _resetTimer(mVoidShiftTimer, 15000);
+            }
+        }
+
+        if (_isTimerFinished(mShroudTimer))
+        {
+            getCreature()->CastSpell(getCreature(), SPELL_SHROUD_OF_DARKNESS, true);
+            _resetTimer(mShroudTimer, Util::getRandomUInt(18, 20) * 1000);
+        }
+    }
 };
 
+class VoidSentryAI : public CreatureAIScript
+{
+    enum Spells
+    {
+        SPELL_VOID_SHIFTED = 54343,
+        SPELL_ZURAMAT_ADD = 54341,
+        SPELL_ZURAMAT_ADD_2 = 54342,
+        SPELL_ZURAMAT_ADD_DUMMY = 54351,
+        SPELL_SUMMON_VOID_SENTRY_BALL = 58650
+    };
+
+    uint32_t mVoidSentryTimer;
+    uint32_t mVoidShiftTimer;
+    uint32_t mShroudTimer;
+
+public:
+
+    static CreatureAIScript* Create(Creature* c) { return new VoidSentryAI(c); }
+    VoidSentryAI(Creature* pCreature) : CreatureAIScript(pCreature)
+    {
+        pCreature->GetAIInterface()->setAiScriptType(AI_SCRIPT_PASSIVE);
+        setRooted(true);
+    }
+
+    void OnLoad() override
+    {
+        getCreature()->CastSpell(getCreature(), SPELL_ZURAMAT_ADD, true);
+        getCreature()->CastSpell(getCreature(), SPELL_ZURAMAT_ADD_DUMMY, true);
+        getCreature()->CastSpell(getCreature(), SPELL_SUMMON_VOID_SENTRY_BALL, true);
+    }
+
+    void OnDied(Unit* /*pEnemy*/) override
+    {
+        despawn(2000, 0);
+    }
+};
+
+bool OnRemoveVoidShift(Aura* aura)
+{
+    if (aura && aura->GetSpellInfo()->getId() == 54361) // Void Shift
+    {
+        Unit* pTarget = aura->GetTarget();
+        if (pTarget && pTarget->isAlive())
+        {
+            pTarget->CastSpell(pTarget, 54343, true);   // Void Shifted
+        }
+    }
+}
 
 // Ichonor boss event
 
@@ -2143,9 +2240,6 @@ void TheVioletHoldInstance::OnCreaturePushToWorld(Creature* pCreature)
     // Make sure all spawned npcs are in phase 1
     pCreature->Phase(PHASE_SET, 1);
 
-    // Resolve OnDied event calls (this should be done by core)
-    //pCreature->GetAIInterface()->setAiScriptType(AI_SCRIPT_LONER);
-
     switch (pCreature->GetEntry())
     {
         case CN_DOOR_SEAL:
@@ -2165,9 +2259,6 @@ void TheVioletHoldInstance::OnCreaturePushToWorld(Creature* pCreature)
             m_sinclariGUID = GET_LOWGUID_PART(pCreature->GetGUID());
         }break;
         case CN_PORTAL_INTRO:
-        {
-            m_introSpawns.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
-        }break;
         case CN_INTRO_AZURE_BINDER_ARCANE:
         case CN_INTRO_AZURE_INVADER_ARMS:
         case CN_INTRO_AZURE_MAGE_SLAYER_MELEE:
@@ -2246,21 +2337,6 @@ void TheVioletHoldInstance::OnCreatureDeath(Creature* pCreature, Unit* /*pKiller
         {
             SetInstanceData(INDEX_ACHIEV_VOID_DANCE, State_Failed);
         }break;
-        case CN_PORTAL_INTRO:
-        case CN_INTRO_AZURE_BINDER_ARCANE:
-        case CN_INTRO_AZURE_INVADER_ARMS:
-        case CN_INTRO_AZURE_MAGE_SLAYER_MELEE:
-        case CN_INTRO_AZURE_SPELLBREAKER_ARCANE:
-        {
-            for (std::vector<uint32_t>::iterator itr = m_introSpawns.begin(); itr != m_introSpawns.end(); ++itr)
-            {
-                if ((*itr) == GET_LOWGUID_PART(pCreature->GetGUID()))
-                {
-                    m_introSpawns.erase(itr);
-                    break;
-                }
-            }
-        }break;
         case CN_CYANIGOSA:
         {
             if (GetInstance()->iInstanceMode == MODE_HEROIC && GetInstanceData(INDEX_ACHIEV_DEFENSELESS) != State_Failed)
@@ -2272,7 +2348,7 @@ void TheVioletHoldInstance::OnCreatureDeath(Creature* pCreature, Unit* /*pKiller
         case CN_VIOLET_HOLD_GUARD:
         {
             sEventMgr.RemoveEvents(pCreature);
-            pCreature->Despawn(1000, 0);
+            pCreature->Despawn(2000, 0);
             for (std::vector<uint32>::iterator itr = m_guardsGuids.begin(); itr != m_guardsGuids.end();)
             {
                 if ((*itr) == GET_LOWGUID_PART(pCreature->GetGUID()))
@@ -2421,7 +2497,9 @@ void SetupTheVioletHold(ScriptMgr* mgr)
     // Bosses
     mgr->register_creature_script(CN_MORAGG, &MoraggAI::Create);
     mgr->register_creature_script(CN_ICHORON, &IchoronAI::Create);
+
     mgr->register_creature_script(CN_ZURAMAT, &ZuramatAI::Create);
+    mgr->register_hook(SERVER_HOOK_EVENT_ON_AURA_REMOVE, (void*)OnRemoveVoidShift);
     mgr->register_creature_script(CN_LAVANTHOR, &LavanthorAI::Create);
     mgr->register_creature_script(CN_EREKEM, &ErekemAI::Create);
     mgr->register_creature_script(CN_XEVOZZ, &XevozzAI::Create);
