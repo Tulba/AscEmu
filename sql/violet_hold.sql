@@ -40,6 +40,24 @@ UPDATE `creature_properties` SET `invisibility_type` = '0' WHERE `entry` in (
     31134           -- Cyanigosa
 );
 
+UPDATE `creature_properties` SET `invisibility_type` = '0' WHERE `entry` in (
+SELECT difficulty_1 FROM creature_difficulty WHERE entry in (
+    -- guards
+    31505, 
+    -- intro npcs
+    31499, 31485, 31489, 31496,
+    -- portal guardians
+    31487, 31494, 31483, 31497, 31486, 31493, 31490, 32192,
+    -- bosses and their adds
+    31512, 31518,   -- Zuramat
+    31507, 32549,   -- Erekem
+    31510,          -- Moragg
+    31508,          -- Ichonor (TODO: adds)
+    31511,          -- Xevozz (TODO: adds)
+    31509,          -- Lavanthor
+    31134           -- Cyanigosa
+));
+
 -- Added missing Sinclari's script texts
 delete from npc_script_text where entry in (8797, 8798);
 insert into `npc_script_text` (`entry`, `text`, `creature_entry`, `id`, `type`, `language`, `probability`, `emote`, `duration`, `sound`, `broadcast_id`) values
@@ -57,3 +75,9 @@ UPDATE `worldmap_info` SET `viewingDistance` = '1000' WHERE `entry` = '608';
 
 -- Update prison seal invisibility, base invisibility is hack done in script
 UPDATE `creature_properties` SET `invisibility_type` = '0' WHERE `entry` = 30896;
+UPDATE creature_properties SET `invisibility_type` = '0' WHERE entry IN (SELECT difficulty_1 FROM creature_difficulty WHERE entry = 30896);
+
+-- Update keeper/guardian stats
+update creature_properties set minlevel=76, maxlevel=76, faction=1720 where entry in (30695, 30660);
+UPDATE creature_properties SET minlevel=76, maxlevel=76, faction=1720 WHERE entry IN (SELECT difficulty_1 FROM creature_difficulty WHERE entry IN(30695, 30660));
+
