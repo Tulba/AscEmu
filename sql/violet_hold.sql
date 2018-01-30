@@ -79,5 +79,8 @@ UPDATE creature_properties SET `invisibility_type` = '0' WHERE entry IN (SELECT 
 
 -- Update keeper/guardian stats
 update creature_properties set minlevel=76, maxlevel=76, faction=1720 where entry in (30695, 30660);
-UPDATE creature_properties SET minlevel=76, maxlevel=76, faction=1720 WHERE entry IN (SELECT difficulty_1 FROM creature_difficulty WHERE entry IN(30695, 30660));
+UPDATE creature_properties SET minlevel=81, maxlevel=81, faction=1720 WHERE entry IN (SELECT difficulty_1 FROM creature_difficulty WHERE entry IN(30695, 30660));
+
+update creature_properties set minlevel=77, maxlevel=77, faction=16 where entry = 31134;
+UPDATE creature_properties SET minlevel=82, maxlevel=82, faction=16 WHERE entry IN (SELECT difficulty_1 FROM creature_difficulty WHERE entry=31134);
 

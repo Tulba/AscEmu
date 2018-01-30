@@ -1092,6 +1092,44 @@ class AzureSaboteurAI : public CreatureAIScript
         }
 };
 
+class PortalGuardianAI : public CreatureAIScript
+{
+    enum Spells : uint32_t
+    {
+        SPELL_AGONIZING_STRIKE  = 58504,
+        SPELL_MAGIC_IMPEDENCE   = 58510,
+        SPELL_SIDE_SWIPE        = 58508
+    };
+public:
+
+    static CreatureAIScript* Create(Creature* c) { return new PortalGuardianAI(c); }
+    PortalGuardianAI(Creature* pCreature) : CreatureAIScript(pCreature)
+    {
+        addAISpell(SPELL_AGONIZING_STRIKE, 9.0f, TARGET_ATTACKING, 0, 7);
+        addAISpell(SPELL_SIDE_SWIPE, 9.0f, TARGET_ATTACKING, 0, 4);
+        addAISpell(SPELL_MAGIC_IMPEDENCE, 9.0f, TARGET_RANDOM_SINGLE, 0, 7);
+    }
+};
+
+class PortalKeeperAI : public CreatureAIScript
+{
+    enum Spells : uint32_t
+    {
+        SPELL_ARCANE_MISSILES   = 58531,
+        SPELL_FROSTBOLT_VOLLEY  = 58510,
+        SPELL_DEEP_FREEZE       = 58534
+    };
+public:
+
+    static CreatureAIScript* Create(Creature* c) { return new PortalKeeperAI(c); }
+    PortalKeeperAI(Creature* pCreature) : CreatureAIScript(pCreature)
+    {
+        addAISpell(SPELL_ARCANE_MISSILES, 9.0f, TARGET_ATTACKING, 0, 5);
+        addAISpell(SPELL_FROSTBOLT_VOLLEY, 9.0f, TARGET_SELF, 0, 5, false, true);
+        addAISpell(SPELL_DEEP_FREEZE, 9.0f, TARGET_RANDOM_SINGLE, 0, 5);
+    }
+};
+
 // BOSSES
 
 // Moragg boss event
@@ -1230,20 +1268,20 @@ public:
 
         if (_isTimerFinished(mVoidShiftTimer))
         {
-            Unit* pTarget = getBestPlayerTarget(static_cast<TargetFilter>(TargetFilter_Aggroed | TargetFilter_InRangeOnly), 0, 60.0f);
+            Unit* pTarget = getBestPlayerTarget(TargetFilter_Aggroed, 0, 60.0f);
             if (pTarget && pTarget->isAlive())
             {
-                getCreature()->CastSpell(pTarget, SPELL_VOID_SHIFT, false);
                 sendDBChatMessage(YELL_ZURAMAT_VOID);
+                getCreature()->CastSpell(pTarget, SPELL_VOID_SHIFT, false);
                 _resetTimer(mVoidShiftTimer, 15000);
             }
         }
 
         if (_isTimerFinished(mShroudTimer))
         {
+            sendDBChatMessage(YELL_ZURAMAT_SHROUD);
             getCreature()->CastSpell(getCreature(), SPELL_SHROUD_OF_DARKNESS, true);
             _resetTimer(mShroudTimer, Util::getRandomUInt(18, 20) * 1000);
-            sendDBChatMessage(YELL_ZURAMAT_SHROUD);
         }
     }
 };
@@ -1285,7 +1323,7 @@ public:
     }
 };
 
-bool OnRemoveVoidShift(Aura* aura)
+bool OnRemoveVoidShiftAura(Aura* aura)
 {
     if (aura && aura->GetSpellInfo()->getId() == 54361) // Void Shift
     {
@@ -2500,6 +2538,8 @@ void SetupTheVioletHold(ScriptMgr* mgr)
     mgr->register_creature_script(CN_AZURE_STALKER, &VHAttackerAI::Create);
     mgr->register_creature_script(CN_VETERAN_MAGE_HUNTER, &VHAttackerAI::Create);
     mgr->register_creature_script(CN_AZURE_SABOTEUR, &AzureSaboteurAI::Create);
+    mgr->register_creature_script(CN_PORTAL_GUARDIAN, &PortalGuardianAI::Create);
+    mgr->register_creature_script(CN_PORTAL_KEEPER, &PortalKeeperAI::Create);
 
     // Bosses
     mgr->register_creature_script(CN_MORAGG, &MoraggAI::Create);
@@ -2508,8 +2548,7 @@ void SetupTheVioletHold(ScriptMgr* mgr)
     // Zuramat event
     mgr->register_creature_script(CN_ZURAMAT, &ZuramatAI::Create);
     mgr->register_creature_script(CN_VOID_SENTRY, &VoidSentryAI::Create);
-
-    mgr->register_hook(SERVER_HOOK_EVENT_ON_AURA_REMOVE, (void*)OnRemoveVoidShift);
+    mgr->register_hook(SERVER_HOOK_EVENT_ON_AURA_REMOVE, (void*)OnRemoveVoidShiftAura);
 
     mgr->register_creature_script(CN_LAVANTHOR, &LavanthorAI::Create);
     mgr->register_creature_script(CN_EREKEM, &ErekemAI::Create);
