@@ -409,7 +409,19 @@ class VHAttackerAI : public CreatureAIScript
         {
             // Stop channelling
             StartChanneling(0);
-            despawn(3000, 0);
+
+            // Quickly despawn only intro attackers, other attackers corpses will despawned by server decay settings
+            switch (getCreature()->GetEntry())
+            {
+                case CN_INTRO_AZURE_MAGE_SLAYER_MELEE:
+                case CN_INTRO_AZURE_SPELLBREAKER_ARCANE:
+                case CN_INTRO_AZURE_BINDER_ARCANE:
+                    despawn(3000, 0);
+                    break;
+                default:
+                    break;
+            }
+            
             if (pInstance)
             {
                 pInstance->RemoveIntroNpcByGuid(GET_LOWGUID_PART(getCreature()->GetGUID()));
