@@ -1675,7 +1675,9 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
                     setGameObjectStateForEntry(GO_MORAGG_CELL, GO_STATE_OPEN);
                     if (Creature* Moragg = GetCreatureByGuid(m_MoraggGUID))
                     {
-                        Moragg->GetAIInterface()->StopMovement(5000);
+                        Moragg->PlaySoundToSet(SOUND_MORAGG_RELEASE);
+                        Moragg->CastSpell(Moragg, SPELL_MORAGG_EMOTE_ROAR, true);
+                        Moragg->GetAIInterface()->StopMovement(3000);
                         Moragg->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_FORWARDTHENSTOP);
                         Moragg->GetAIInterface()->setWayPointToMove(1);
                     }
@@ -1715,7 +1717,8 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
                     setGameObjectStateForEntry(GO_ZURAMAT_CELL, GO_STATE_OPEN);
                     if (Creature* Zuramat = GetCreatureByGuid(m_ZuramatGUID))
                     {
-                        Zuramat->GetAIInterface()->StopMovement(5000);
+                        Zuramat->CastSpell(Zuramat, SPELL_ZURAMAT_COSMETIC_CHANNEL_OMNI, true);
+                        Zuramat->GetAIInterface()->StopMovement(3000);
                         Zuramat->SendScriptTextChatMessage(YELL_ZURAMAT_RELEASE);
                         Zuramat->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_FORWARDTHENSTOP);
                         Zuramat->GetAIInterface()->setWayPointToMove(1);
@@ -1777,8 +1780,10 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
                     setGameObjectStateForEntry(GO_LAVANTHOR_CELL, GO_STATE_OPEN);
                     if (Creature* Lavanthor = GetCreatureByGuid(m_LavanthorGUID))
                     {
+                        Lavanthor->CastSpell(Lavanthor, SPELL_LAVANTHOR_SPECIAL_UNARMED, true);
                         Lavanthor->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_FORWARDTHENSTOP);
                         Lavanthor->GetAIInterface()->setWayPointToMove(1);
+                        Lavanthor->GetAIInterface()->StopMovement(3000);
                     }
                 }break;
                 case State_Failed:

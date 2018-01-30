@@ -103,6 +103,15 @@ enum CreatureEntry : uint32_t
     CN_LAVA_HOUND                           = 32237
 };
 
+enum BossIntroSpecialSpells : uint32_t
+{
+    SPELL_CYANIGOSA_TRANSFORM           = 58668,
+    SPELL_CYANIGOSA_ARCANE_POWER_STATE  = 49411,
+    SPELL_MORAGG_EMOTE_ROAR             = 48350,
+    SPELL_LAVANTHOR_SPECIAL_UNARMED     = 33334,
+    SPELL_ZURAMAT_COSMETIC_CHANNEL_OMNI = 57552
+};
+
 // General dungeon timers
 enum VHTimers : uint32_t
 {
@@ -189,6 +198,8 @@ enum VH_Texts : uint32_t
     YELL_ZURAMAT_SLAY2          = 4553,     // "Relinquish."
     YELL_ZURAMAT_SLAY3          = 4554,     // "Fall... to shadow."
     YELL_ZURAMAT_DEATH          = 4555,     // "Disperse."
+
+    SOUND_MORAGG_RELEASE        = 10112,
 };
 
 // Worldstate entries used in instance
