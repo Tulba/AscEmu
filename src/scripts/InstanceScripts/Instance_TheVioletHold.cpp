@@ -1325,7 +1325,7 @@ public:
 
 bool OnRemoveVoidShiftAura(Aura* aura)
 {
-    if (aura && aura->GetSpellInfo()->getId() == 54361) // Void Shift
+    if (aura && aura->GetSpellInfo() && aura->GetSpellInfo()->getId() == 54361) // Void Shift
     {
         Unit* pTarget = aura->GetTarget();
         if (pTarget && pTarget->isAlive() && pTarget->IsPlayer())
