@@ -1375,9 +1375,16 @@ public:
 
 
 // Lavanthor boss event
-
 class LavanthorAI : public CreatureAIScript
 {
+    enum Spells
+    {
+        SPELL_CAUTERIZING_FLAMES    = 59466, // Only in heroic
+        SPELL_FIREBOLT              = 54235,
+        SPELL_FLAME_BREATH          = 54282,
+        SPELL_LAVA_BURN             = 54249
+    };
+
 public:
 
     static CreatureAIScript* Create(Creature* c) { return new LavanthorAI(c); }
@@ -1398,6 +1405,15 @@ public:
         }
         pCreature->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
         setCanEnterCombat(false);
+
+        if (_isHeroic())
+        {
+            addAISpell(SPELL_CAUTERIZING_FLAMES, 9.0f, TARGET_RANDOM_DESTINATION, 2, Util::getRandomUInt(10, 16));
+        }
+
+        addAISpell(SPELL_FIREBOLT, 9.0f, TARGET_RANDOM_SINGLE, 0, 5);
+        addAISpell(SPELL_FLAME_BREATH, 9.0f, TARGET_ATTACKING, 0, 5);
+        addAISpell(SPELL_LAVA_BURN, 9.0f, TARGET_RANDOM_SINGLE, 0, 5);
     }
 
     void OnReachWP(uint32_t iWaypointId, bool /*bForwards*/) override
