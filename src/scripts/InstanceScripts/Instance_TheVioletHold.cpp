@@ -453,9 +453,9 @@ class VHAttackerAI : public CreatureAIScript
         void OnLoad() override
         {
             if (getCreature()->GetEntry() != CN_AZURE_MAGE_SLAYER
-                && getCreature()->GetEntry != CN_INTRO_AZURE_BINDER_ARCANE
-                && getCreature()->GetEntry() == CN_INTRO_AZURE_INVADER_ARMS
-                && getCreature()->GetEntry() == CN_INTRO_AZURE_MAGE_SLAYER_MELEE)
+                && getCreature()->GetEntry() != CN_INTRO_AZURE_BINDER_ARCANE
+                && getCreature()->GetEntry() != CN_INTRO_AZURE_INVADER_ARMS
+                && getCreature()->GetEntry() != CN_INTRO_AZURE_MAGE_SLAYER_MELEE)
             {
                 switch (Util::getRandomUInt(0, 6))
                 {
