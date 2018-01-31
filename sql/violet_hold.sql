@@ -100,3 +100,15 @@ insert into `npc_script_text` (`entry`, `text`, `creature_entry`, `id`, `type`, 
 ('8953','Why do you defend the Kirin Tor...','30695','0','14','0','100','0','0','0','0'),
 ('8954','You shall not disrupt this portal!','30695','0','14','0','100','0','0','0','0'),
 ('8955','Your pathetic defense ends here!','30695','0','14','0','100','0','0','0','0');
+
+-- update azure spellbreaker level
+UPDATE `creature_properties` SET `minlevel` = '75' , `maxlevel` = '75' WHERE `entry` = '30662'; 
+UPDATE creature_properties SET minlevel=80, maxlevel=80 WHERE entry IN (SELECT difficulty_1 FROM creature_difficulty WHERE entry=30662);
+
+-- update azure saboteur level
+UPDATE `creature_properties` SET `minlevel` = '75' , `maxlevel` = '75' WHERE `entry` = '31079'; 
+UPDATE creature_properties SET minlevel=80, maxlevel=80 WHERE entry IN (SELECT difficulty_1 FROM creature_difficulty WHERE entry=31079);
+
+-- update azure mage slayer level
+UPDATE `creature_properties` SET `minlevel` = '75' , `maxlevel` = '75' WHERE `entry` = '30664'; 
+UPDATE creature_properties SET minlevel=80, maxlevel=80 WHERE entry IN (SELECT difficulty_1 FROM creature_difficulty WHERE entry=30664);
