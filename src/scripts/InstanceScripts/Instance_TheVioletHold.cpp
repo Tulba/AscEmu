@@ -583,7 +583,7 @@ class VH_DefenseAI : public CreatureAIScript
                 // Main event spawns
                 if (!pInstance->m_eventSpawns.empty())
                 {
-                    for (std::vector<uint32_t>::iterator itr = pInstance->m_eventSpawns.begin(); itr != pInstance->m_eventSpawns.end(); ++itr)
+                    for (std::vector<uint32_t>::iterator itr = pInstance->m_eventSpawns.begin(); itr != pInstance->m_eventSpawns.end();)
                     {
                         if (counter == 3)
                         {
@@ -984,8 +984,6 @@ class TeleportationPortalAI : public CreatureAIScript
             }
         }
 };
-
-
 
 class AzureSaboteurAI : public CreatureAIScript
 {
