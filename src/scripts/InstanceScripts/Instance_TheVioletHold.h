@@ -177,6 +177,17 @@ enum VH_Texts : uint32_t
     SAY_SINCLARI_CLOSING_GATES  = 8797,     // "I'm locking the door. Good luck, and thank you for doing this."
     SAY_SINCLARI_INSTANCE_DONE  = 8798,     // "You did it! You held the Blue Dragonflight back and defeated their commander. Amazing work!"
 
+    // Portal keeper/guardian texts
+    YELL_DEFENDER_SPAWN1        = 8952,     // "The way into Dalaran has been opened!"
+    YELL_DEFENDER_SPAWN2        = 8951,     // "The portal has stabilized! Attack!"
+    YELL_DEFENDER_SPAWN3        = 8950,     // "The destruction of Dalaran is inevitable!"
+    YELL_DEFENDER_AGROO1        = 8954,     // "You shall not disrupt this portal!"
+    YELL_DEFENDER_AGROO2        = 8955,     // "Your pathetic defense ends here!"
+    YELL_DEFENDER_AGROO3        = 8947,     // "I will defend this portal with my life!"
+    YELL_DEFENDER_DEATH1        = 8953,     // "Why do you defend the Kirin Tor..."
+    YELL_DEFENDER_DEATH2        = 8949,     // "My death will not stop this invasion!"
+    YELL_DEFENDER_DEATH3        = 8948,     // "More portals will take this one's place!"
+
     // Xevozz texts
     YELL_XEVOZZ_AGROO           = 4541,     // "It seems my freedom must be bought with blood!"
     YELL_XEVOZZ_TARGET_DEATH1   = 4542,     // "Nothing personal."
@@ -199,6 +210,7 @@ enum VH_Texts : uint32_t
     YELL_ZURAMAT_SLAY3          = 4554,     // "Fall... to shadow."
     YELL_ZURAMAT_DEATH          = 4555,     // "Disperse."
 
+    // Moragg sound
     SOUND_MORAGG_RELEASE        = 10112,
 };
 

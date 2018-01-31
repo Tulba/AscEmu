@@ -416,15 +416,15 @@ class VHAttackerAI : public CreatureAIScript
                 case CN_INTRO_AZURE_MAGE_SLAYER_MELEE:
                 case CN_INTRO_AZURE_SPELLBREAKER_ARCANE:
                 case CN_INTRO_AZURE_BINDER_ARCANE:
+                {
                     despawn(3000, 0);
-                    break;
+                    if (pInstance)
+                    {
+                        pInstance->RemoveIntroNpcByGuid(GET_LOWGUID_PART(getCreature()->GetGUID()));
+                    }
+                }break;
                 default:
                     break;
-            }
-            
-            if (pInstance)
-            {
-                pInstance->RemoveIntroNpcByGuid(GET_LOWGUID_PART(getCreature()->GetGUID()));
             }
         }
 
@@ -1120,6 +1120,32 @@ public:
         addAISpell(SPELL_AGONIZING_STRIKE, 9.0f, TARGET_ATTACKING, 0, 7);
         addAISpell(SPELL_SIDE_SWIPE, 9.0f, TARGET_ATTACKING, 0, 4);
         addAISpell(SPELL_MAGIC_IMPEDENCE, 9.0f, TARGET_RANDOM_SINGLE, 0, 7);
+
+        addEmoteForEvent(Event_OnCombatStart, YELL_DEFENDER_AGROO1);
+        addEmoteForEvent(Event_OnCombatStart, YELL_DEFENDER_AGROO2);
+        addEmoteForEvent(Event_OnCombatStart, YELL_DEFENDER_AGROO3);
+        addEmoteForEvent(Event_OnDied, YELL_DEFENDER_DEATH1);
+        addEmoteForEvent(Event_OnDied, YELL_DEFENDER_DEATH2);
+        addEmoteForEvent(Event_OnDied, YELL_DEFENDER_DEATH3);
+    }
+
+    void OnLoad() override
+    {
+        switch (Util::getRandomUInt(0, 2))
+        {
+            case 0:
+            {
+                sendDBChatMessage(YELL_DEFENDER_SPAWN1);
+            }break;
+            case 1:
+            {
+                sendDBChatMessage(YELL_DEFENDER_SPAWN2);
+            }break;
+            case 2:
+            {
+                sendDBChatMessage(YELL_DEFENDER_SPAWN3);
+            }break;
+        }
     }
 };
 
@@ -1139,6 +1165,32 @@ public:
         addAISpell(SPELL_ARCANE_MISSILES, 9.0f, TARGET_ATTACKING, 0, 5);
         addAISpell(SPELL_FROSTBOLT_VOLLEY, 9.0f, TARGET_SELF, 0, 5, false, true);
         addAISpell(SPELL_DEEP_FREEZE, 9.0f, TARGET_RANDOM_SINGLE, 0, 5);
+
+        addEmoteForEvent(Event_OnCombatStart, YELL_DEFENDER_AGROO1);
+        addEmoteForEvent(Event_OnCombatStart, YELL_DEFENDER_AGROO2);
+        addEmoteForEvent(Event_OnCombatStart, YELL_DEFENDER_AGROO3);
+        addEmoteForEvent(Event_OnDied, YELL_DEFENDER_DEATH1);
+        addEmoteForEvent(Event_OnDied, YELL_DEFENDER_DEATH2);
+        addEmoteForEvent(Event_OnDied, YELL_DEFENDER_DEATH3);
+    }
+
+    void OnLoad() override
+    {
+        switch (Util::getRandomUInt(0, 2))
+        {
+            case 0:
+            {
+                sendDBChatMessage(YELL_DEFENDER_SPAWN1);
+            }break;
+            case 1:
+            {
+                sendDBChatMessage(YELL_DEFENDER_SPAWN2);
+            }break;
+            case 2:
+            {
+                sendDBChatMessage(YELL_DEFENDER_SPAWN3);
+            }break;
+        }
     }
 };
 

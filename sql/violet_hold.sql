@@ -81,6 +81,22 @@ UPDATE creature_properties SET `invisibility_type` = '0' WHERE entry IN (SELECT 
 update creature_properties set minlevel=76, maxlevel=76, faction=1720 where entry in (30695, 30660);
 UPDATE creature_properties SET minlevel=81, maxlevel=81, faction=1720 WHERE entry IN (SELECT difficulty_1 FROM creature_difficulty WHERE entry IN(30695, 30660));
 
+-- update Cyanigosa stats
 update creature_properties set minlevel=77, maxlevel=77, faction=16 where entry = 31134;
 UPDATE creature_properties SET minlevel=82, maxlevel=82, faction=16 WHERE entry IN (SELECT difficulty_1 FROM creature_difficulty WHERE entry=31134);
 
+-- Remove Xevozz npc_monstersay data
+delete from npc_monstersay where entry = 31511;
+
+-- Portal keeper/guardian texts
+delete from `npc_script_text` where `entry` between 8946 and 8955;
+insert into `npc_script_text` (`entry`, `text`, `creature_entry`, `id`, `type`, `language`, `probability`, `emote`, `duration`, `sound`, `broadcast_id`) values
+('8947','I will defend this portal with my life!','30695','0','14','0','100','0','0','0','0'),
+('8948','More portals will take this one\'s place!','30695','0','14','0','100','0','0','0','0'),
+('8949','My death will not stop this invasion!','30695','0','14','0','100','0','0','0','0'),
+('8950','The destruction of Dalaran is inevitable!','30695','0','14','0','100','0','0','0','0'),
+('8951','The portal has stabilized! Attack!','30695','0','14','0','100','0','0','0','0'),
+('8952','The way into Dalaran has been opened!','30695','0','14','0','100','0','0','0','0'),
+('8953','Why do you defend the Kirin Tor...','30695','0','14','0','100','0','0','0','0'),
+('8954','You shall not disrupt this portal!','30695','0','14','0','100','0','0','0','0'),
+('8955','Your pathetic defense ends here!','30695','0','14','0','100','0','0','0','0');
