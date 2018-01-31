@@ -91,15 +91,15 @@ delete from npc_monstersay where entry = 31511;
 -- Portal keeper/guardian texts
 delete from `npc_script_text` where `entry` between 8946 and 8955;
 insert into `npc_script_text` (`entry`, `text`, `creature_entry`, `id`, `type`, `language`, `probability`, `emote`, `duration`, `sound`, `broadcast_id`) values
-('8947','I will defend this portal with my life!','30695','0','14','0','100','0','0','0','0'),
-('8948','More portals will take this one\'s place!','30695','0','14','0','100','0','0','0','0'),
-('8949','My death will not stop this invasion!','30695','0','14','0','100','0','0','0','0'),
-('8950','The destruction of Dalaran is inevitable!','30695','0','14','0','100','0','0','0','0'),
-('8951','The portal has stabilized! Attack!','30695','0','14','0','100','0','0','0','0'),
-('8952','The way into Dalaran has been opened!','30695','0','14','0','100','0','0','0','0'),
-('8953','Why do you defend the Kirin Tor...','30695','0','14','0','100','0','0','0','0'),
-('8954','You shall not disrupt this portal!','30695','0','14','0','100','0','0','0','0'),
-('8955','Your pathetic defense ends here!','30695','0','14','0','100','0','0','0','0');
+('8947','I will defend this portal with my life!','0','0','14','0','100','0','0','0','0'),
+('8948','More portals will take this one\'s place!','0','0','14','0','100','0','0','0','0'),
+('8949','My death will not stop this invasion!','0','0','14','0','100','0','0','0','0'),
+('8950','The destruction of Dalaran is inevitable!','0','0','14','0','100','0','0','0','0'),
+('8951','The portal has stabilized! Attack!','0','0','14','0','100','0','0','0','0'),
+('8952','The way into Dalaran has been opened!','0','0','14','0','100','0','0','0','0'),
+('8953','Why do you defend the Kirin Tor...','0','0','14','0','100','0','0','0','0'),
+('8954','You shall not disrupt this portal!','0','0','14','0','100','0','0','0','0'),
+('8955','Your pathetic defense ends here!','0','0','14','0','100','0','0','0','0');
 
 -- update azure spellbreaker level
 UPDATE `creature_properties` SET `minlevel` = '75' , `maxlevel` = '75' WHERE `entry` = '30662'; 
