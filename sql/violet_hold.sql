@@ -89,7 +89,7 @@ UPDATE creature_properties SET minlevel=82, maxlevel=82, faction=16 WHERE entry 
 delete from npc_monstersay where entry = 31511;
 
 -- Portal keeper/guardian texts
-delete from `npc_script_text` where `entry` between 8946 and 8955;
+delete from `npc_script_text` where `entry` between 8946 and 8956;
 insert into `npc_script_text` (`entry`, `text`, `creature_entry`, `id`, `type`, `language`, `probability`, `emote`, `duration`, `sound`, `broadcast_id`) values
 ('8947','I will defend this portal with my life!','0','0','14','0','100','0','0','0','0'),
 ('8948','More portals will take this one\'s place!','0','0','14','0','100','0','0','0','0'),
@@ -112,3 +112,14 @@ UPDATE creature_properties SET minlevel=80, maxlevel=80 WHERE entry IN (SELECT d
 -- update azure mage slayer level
 UPDATE `creature_properties` SET `minlevel` = '75' , `maxlevel` = '75' WHERE `entry` = '30664'; 
 UPDATE creature_properties SET minlevel=80, maxlevel=80 WHERE entry IN (SELECT difficulty_1 FROM creature_difficulty WHERE entry=30664);
+
+-- Attackers texts
+delete from `npc_script_text` where `entry` between 8955 and 8963;
+insert into `npc_script_text` (`entry`, `text`, `creature_entry`, `id`, `type`, `language`, `probability`, `emote`, `duration`, `sound`, `broadcast_id`) values
+('8956','Dalaran must fall!','0','0','12','0','100','0','0','0','0'),
+('8957','Destroy all who stand against us!','0','0','12','0','100','0','0','0','0'),
+('8958','For the Spellweaver!','0','0','12','0','100','0','0','0','0'),
+('8959','Magic must be... contained...','0','0','12','0','100','0','0','0','0'),
+('8960','The Kirin Tor must be stopped!','0','0','12','0','100','0','0','0','0'),
+('8961','The Nexus War will not be stopped!','0','0','12','0','100','0','0','0','0'),
+('8962','You cannot stop us all!','0','0','12','0','100','0','0','0','0');

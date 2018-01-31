@@ -188,6 +188,15 @@ enum VH_Texts : uint32_t
     YELL_DEFENDER_DEATH2        = 8949,     // "My death will not stop this invasion!"
     YELL_DEFENDER_DEATH3        = 8948,     // "More portals will take this one's place!"
 
+    // Attackers texts
+    SAY_ATTACKER_SPAWN1         = 8956,     // "Dalaran must fall!"
+    SAY_ATTACKER_SPAWN2         = 8957,     // "Destroy all who stand against us!"
+    SAY_ATTACKER_SPAWN3         = 8958,     // "For the Spellweaver!"
+    SAY_ATTACKER_SPAWN4         = 8959,     // "Magic must be... contained..."
+    SAY_ATTACKER_SPAWN5         = 8960,     // "The Kirin Tor must be stopped!"
+    SAY_ATTACKER_SPAWN6         = 8961,     // "The Nexus War will not be stopped!"
+    SAY_ATTACKER_SPAWN7         = 8962,     // "You cannot stop us all!"
+
     // Xevozz texts
     YELL_XEVOZZ_AGROO           = 4541,     // "It seems my freedom must be bought with blood!"
     YELL_XEVOZZ_TARGET_DEATH1   = 4542,     // "Nothing personal."

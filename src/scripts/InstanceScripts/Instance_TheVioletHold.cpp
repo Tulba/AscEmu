@@ -452,6 +452,43 @@ class VHAttackerAI : public CreatureAIScript
 
         void OnLoad() override
         {
+            if (getCreature()->GetEntry() != CN_AZURE_MAGE_SLAYER
+                && getCreature()->GetEntry != CN_INTRO_AZURE_BINDER_ARCANE
+                && getCreature()->GetEntry() == CN_INTRO_AZURE_INVADER_ARMS
+                && getCreature()->GetEntry() == CN_INTRO_AZURE_MAGE_SLAYER_MELEE)
+            {
+                switch (Util::getRandomUInt(0, 6))
+                {
+                    case 0:
+                    {
+                        sendDBChatMessage(SAY_ATTACKER_SPAWN1);
+                    }break;
+                    case 1:
+                    {
+                        sendDBChatMessage(SAY_ATTACKER_SPAWN2);
+                    }break;
+                    case 2:
+                    {
+                        sendDBChatMessage(SAY_ATTACKER_SPAWN3);
+                    }break;
+                    case 3:
+                    {
+                        sendDBChatMessage(SAY_ATTACKER_SPAWN4);
+                    }break;
+                    case 4:
+                    {
+                        sendDBChatMessage(SAY_ATTACKER_SPAWN5);
+                    }break;
+                    case 5:
+                    {
+                        sendDBChatMessage(SAY_ATTACKER_SPAWN6);
+                    }break;
+                    case 6:
+                    {
+                        sendDBChatMessage(SAY_ATTACKER_SPAWN7);
+                    }break;
+                }
+            }
             getCreature()->GetAIInterface()->StopMovement(2000);
             getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_FORWARDTHENSTOP);
             getCreature()->GetAIInterface()->setWayPointToMove(1);
