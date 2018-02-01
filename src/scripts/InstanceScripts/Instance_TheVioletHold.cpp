@@ -10,6 +10,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 // Helper functions
 
+// Calculates waypoints wait time
 uint32_t GenerateWPWaitTime(float speed, float newX, float currentX, float newY, float currentY)
 {
     float distanceX = (newX - currentX) * (newX - currentX);
@@ -21,6 +22,8 @@ uint32_t GenerateWPWaitTime(float speed, float newX, float currentX, float newY,
     return waitTime;
 }
 
+// Returns one of given values
+uint32_t urand(uint32_t value1, uint32_t value2) { return Util::getRandomInt(0, 1) == 0 ? value1 : value2; }
 
 // Sinclari's escort event
 
@@ -48,6 +51,8 @@ class SinclariAI : public CreatureAIScript
                 pCreature->GetAIInterface()->addWayPoint(CreateWaypoint(i + 1, waitTime, Movement::WP_MOVE_TYPE_WALK, SinclariWps[i]));
                 pCreature->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
             }
+
+            pCreature->GetAIInterface()->setCombatDisabled(true);
         }
 
         void StartEvent()
@@ -247,7 +252,12 @@ class IntroPortalAI : public CreatureAIScript
             setRooted(true);
             getCreature()->m_canRegenerateHP = false;
             setCanEnterCombat(false);
-            spawnTimer = _addTimer(Util::getRandomUInt(8, 15) * 1000);
+            spawnTimer = _addTimer(urand(8000, 15000));
+        }
+
+        void OnDied(Unit* /*pKiller*/) override
+        {
+            despawn(1000, 0);
         }
 
         void AIUpdate() override
@@ -305,7 +315,7 @@ class IntroPortalAI : public CreatureAIScript
                         }break;
                     }
                 }
-                _resetTimer(spawnTimer, Util::getRandomUInt(8, 15) * 1000);
+                _resetTimer(spawnTimer, urand(8000, 15000));
             }
         }
 
@@ -508,9 +518,11 @@ class VHAttackerAI : public CreatureAIScript
             {
                 if (Creature* pTriggerTarget = getNearestCreature(1823.696045f, 803.604858f, 44.895786f, CN_DOOR_SEAL))
                 {
-
-                    StartChanneling(pTriggerTarget->GetGUID());
-                    getCreature()->CastSpell(pTriggerTarget, sSpellCustomizations.GetSpellInfo(SPELL_VH_DESTROY_DOOR_SEAL), true);
+                    if (getCreature()->CalcDistance(pTriggerTarget) <= 40.0f)
+                    {
+                        StartChanneling(pTriggerTarget->GetGUID());
+                        getCreature()->CastSpell(pTriggerTarget, sSpellCustomizations.GetSpellInfo(SPELL_VH_DESTROY_DOOR_SEAL), true);
+                    }
                 }
             }
         }
@@ -523,21 +535,28 @@ class VHAttackerAI : public CreatureAIScript
             {
                 getCreature()->GetAIInterface()->AttackReaction(pEnemy, 1, 0);
             }
+
         }
 };
-
 
 // Defense system AI
 
 class VH_DefenseAI : public CreatureAIScript
 {
-        uint32_t counter;
+    enum Spells : uint32_t
+    {
+        SPELL_ARCANE_LIGHTNING_DAMAGE       = 57912,
+        SPELL_ARCANE_LIGHTNING_INSTAKILL    = 58152,
+        SPELL_ARCANE_LIGHTNING_DUMMY        = 57930
+    };
+
+    uint32_t counter;
     public:
 
         static CreatureAIScript* Create(Creature* c) { return new VH_DefenseAI(c); }
         VH_DefenseAI(Creature* pCreature) : CreatureAIScript(pCreature), counter(0)
         {
-            despawn(5000);
+            despawn(7000, 0);
         }
 
         void OnLoad() override
@@ -547,100 +566,19 @@ class VH_DefenseAI : public CreatureAIScript
 
         void AIUpdate() override
         {
-
-            if (TheVioletHoldInstance* pInstance = static_cast<TheVioletHoldInstance*>(getCreature()->GetMapMgr()->GetScript()))
+            if (counter == 2)
             {
-                // Intro spawns
-                if (!pInstance->m_introSpawns.empty())
-                {
-                    std::vector<uint32_t> spawns2 = pInstance->m_introSpawns;
-                    for (std::vector<uint32_t>::iterator itr = spawns2.begin(); itr != spawns2.end(); ++itr)
-                    {
-                        if (counter == 3)
-                        {
-                            if (Creature* pTarget = pInstance->GetInstance()->GetCreature(*itr))
-                            {
-                                // HACK
-                                getCreature()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_LIGHTNING_INTRO), true);
-                                pTarget->Die(pTarget, pTarget->GetHealth(), 0);
-                            }
-                        }
-                        else
-                        {
-                            if (Creature* pTarget = pInstance->GetInstance()->GetCreature(*itr))
-                            {
-                                // Despawn portals
-                                if (pTarget->GetEntry() == CN_PORTAL_INTRO)
-                                {
-                                    pTarget->Despawn(1000, 0);
-                                }
-                                getCreature()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_LIGHTNING_INTRO), true);
-                            }
-                        }
-                    }
-                }
-
-                // Main event spawns
-                if (!pInstance->m_eventSpawns.empty())
-                {
-                    std::vector<uint32_t> spawns2 = pInstance->m_eventSpawns;
-                    for (std::vector<uint32_t>::iterator itr = spawns2.begin(); itr != spawns2.end(); ++itr)
-                    {
-                        if (counter == 3)
-                        {
-                            if (Creature* pTarget = pInstance->GetInstance()->GetCreature(*itr))
-                            {
-                                //HACK
-                                getCreature()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_LIGHTNING_INTRO), true);
-                                pTarget->Die(pTarget, pTarget->GetHealth(), 0);
-                            }
-                        }
-                        else
-                        {
-                            if (Creature* pTarget = pInstance->GetInstance()->GetCreature(*itr))
-                            {
-                                getCreature()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_LIGHTNING_INTRO), true);
-                            }
-                        }
-                    }
-                }
-
-                // Defense triggers (ONLY animation)
-                if (!pInstance->m_defenseTriggers.empty() && counter < 3)
-                {
-                    for (std::vector<uint32_t>::iterator itr = pInstance->m_defenseTriggers.begin(); itr != pInstance->m_defenseTriggers.end(); ++itr)
-                    {
-                        if (Creature* pTarget = pInstance->GetInstance()->GetCreature(*itr))
-                        {
-                            getCreature()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_LIGHTNING_INTRO), true);
-                        }
-                    }
-                }
-
-                // Damage guardians too
-                if (pInstance->m_activePortal.guardianEntry != 0)
-                {
-                    Creature* pCreature = pInstance->GetInstance()->GetCreature(pInstance->m_portalGuardianGUID);
-                    if (pCreature && pCreature->isAlive())
-                    {
-                        if (counter == 3)
-                        {
-                            getCreature()->CastSpellAoF(pCreature->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_LIGHTNING_INTRO), true);
-                            //pCreature->Die(pCreature, pCreature->GetHealth(), 0);
-                        }
-                        else
-                        {
-                            getCreature()->CastSpellAoF(pCreature->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_LIGHTNING_INTRO), true);
-                        }
-                    }
-                }
-
-                if (counter > 3)
-                {
-                    getCreature()->CastSpell(getCreature(), SPELL_VH_DEFENSE_SYSTEM_SPAWN, true);
-                }
+                getCreature()->CastSpell(getCreature(), SPELL_ARCANE_LIGHTNING_INSTAKILL, false);
+                removeAiUpdateFrequency();
+                RemoveAIUpdateEvent();
+            }
+            else
+            {
+                getCreature()->CastSpell(getCreature(), SPELL_ARCANE_LIGHTNING_DAMAGE, false);
+                getCreature()->CastSpell(getCreature(), SPELL_ARCANE_LIGHTNING_DUMMY, false);
                 ++counter;
             }
+            printf("counter %u \n", counter);
         }
 };
 
@@ -712,6 +650,7 @@ class TeleportationPortalAI : public CreatureAIScript
                                 getCreature()->SetChannelSpellId(SPELL_VH_PORTAL_CHANNEL);
                                 getCreature()->SetChannelSpellTargetGUID(pGuardian->GetGUID());
                             }
+                            pInstance->SetInstanceData(DATA_ARE_SUMMONS_MADE, 1);
                         }
                         else
                         {
@@ -741,8 +680,8 @@ class TeleportationPortalAI : public CreatureAIScript
                                 AddWaypoint(pSummon, pInstance->m_activePortal.id, 0);
                             }
                         }
+                        pInstance->SetInstanceData(DATA_ARE_SUMMONS_MADE, 1);
                         _removeTimer(spawnTimer);
-                        RemoveAIUpdateEvent();
                         despawn(1000, 0);
                     }break;
                     // Spawn Soboteur which will open boss cell
@@ -760,12 +699,11 @@ class TeleportationPortalAI : public CreatureAIScript
                         {
                             spawnCreature(CN_CYANIGOSA, getCreature()->GetPositionX(), getCreature()->GetPositionY(), landHeight, getCreature()->GetOrientation());
                         }
+                        pInstance->SetInstanceData(DATA_ARE_SUMMONS_MADE, 1);
                         _removeTimer(spawnTimer);
-                        RemoveAIUpdateEvent();
                         despawn(1000, 0);
                     }break;
                 }
-                pInstance->SetInstanceData(DATA_ARE_SUMMONS_MADE, 1);
             }
         }
 
@@ -1277,7 +1215,7 @@ public:
         }
         else
         {
-            addAISpell(SPELL_RAY_OF_PAIN, TARGET_RANDOM_SINGLE,11.0f, 0, 25);
+            addAISpell(SPELL_RAY_OF_PAIN, TARGET_RANDOM_SINGLE, 11.0f, 0, 25);
             addAISpell(SPELL_RAY_OF_SUFFERING, TARGET_RANDOM_SINGLE, 11.0f, 0, 5);
         }
         setCanEnterCombat(false);
@@ -1529,6 +1467,16 @@ public:
 
 class XevozzAI : public CreatureAIScript
 {
+    enum Spells
+    {
+        SPELL_ARCANE_POWER = 54160,
+        H_SPELL_ARCANE_POWER = 59474,
+        SPELL_MAGIC_PULL = 50770,
+        SPELL_SUMMON_PLAYERS = 54164,
+        SPELL_POWER_BALL_VISUAL = 54141,
+        SPELL_POWER_BALL_DAMAGE_TRIGGER = 54207,
+        SPELL_POWER_BALL_DAMAGE_TRIGGER_H = 59476
+    };
 public:
 
     static CreatureAIScript* Create(Creature* c) { return new XevozzAI(c); }
