@@ -552,7 +552,8 @@ class VH_DefenseAI : public CreatureAIScript
                 // Intro spawns
                 if (!pInstance->m_introSpawns.empty())
                 {
-                    for (std::vector<uint32_t>::iterator itr = pInstance->m_introSpawns.begin(); itr != pInstance->m_introSpawns.end();)
+                    std::vector<uint32_t> spawns2 = pInstance->m_introSpawns;
+                    for (std::vector<uint32_t>::iterator itr = spawns2.begin(); itr != spawns2.end(); ++itr)
                     {
                         if (counter == 3)
                         {
@@ -562,7 +563,6 @@ class VH_DefenseAI : public CreatureAIScript
                                 getCreature()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_LIGHTNING_INTRO), true);
                                 pTarget->Die(pTarget, pTarget->GetHealth(), 0);
                             }
-                            itr = pInstance->m_introSpawns.erase(itr);
                         }
                         else
                         {
@@ -575,7 +575,6 @@ class VH_DefenseAI : public CreatureAIScript
                                 }
                                 getCreature()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_LIGHTNING_INTRO), true);
                             }
-                            ++itr;
                         }
                     }
                 }
@@ -583,7 +582,8 @@ class VH_DefenseAI : public CreatureAIScript
                 // Main event spawns
                 if (!pInstance->m_eventSpawns.empty())
                 {
-                    for (std::vector<uint32_t>::iterator itr = pInstance->m_eventSpawns.begin(); itr != pInstance->m_eventSpawns.end();)
+                    std::vector<uint32_t> spawns2 = pInstance->m_eventSpawns;
+                    for (std::vector<uint32_t>::iterator itr = spawns2.begin(); itr != spawns2.end(); ++itr)
                     {
                         if (counter == 3)
                         {
@@ -593,7 +593,6 @@ class VH_DefenseAI : public CreatureAIScript
                                 getCreature()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_LIGHTNING_INTRO), true);
                                 pTarget->Die(pTarget, pTarget->GetHealth(), 0);
                             }
-                            itr = pInstance->m_eventSpawns.erase(itr);
                         }
                         else
                         {
@@ -601,7 +600,6 @@ class VH_DefenseAI : public CreatureAIScript
                             {
                                 getCreature()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_VH_LIGHTNING_INTRO), true);
                             }
-                            ++itr;
                         }
                     }
                 }
@@ -1270,16 +1268,16 @@ public:
         pCreature->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_NONE);
 
         // Prepare spells
-        addAISpell(SPELL_CORROSIVE_SALIVA, TARGET_ATTACKING, 8.0f, 0, 6);
+        addAISpell(SPELL_CORROSIVE_SALIVA, TARGET_ATTACKING, 11.0f, 0, 6);
         if (pCreature->GetMapMgr()->iInstanceMode == MODE_HEROIC)
         {
-            addAISpell(SPELL_RAY_OF_PAIN_H, TARGET_RANDOM_SINGLE, 7.0f, 0, 25);
-            addAISpell(SPELL_RAY_OF_SUFFERING_H, TARGET_RANDOM_SINGLE, 7.0f, 0, 5);
+            addAISpell(SPELL_RAY_OF_PAIN_H, TARGET_RANDOM_SINGLE, 11.0f, 0, 25);
+            addAISpell(SPELL_RAY_OF_SUFFERING_H, TARGET_RANDOM_SINGLE, 11.0f, 0, 5);
         }
         else
         {
-            addAISpell(SPELL_RAY_OF_PAIN, TARGET_RANDOM_SINGLE, 7.0f, 0, 25);
-            addAISpell(SPELL_RAY_OF_SUFFERING, TARGET_RANDOM_SINGLE, 7.0f, 0, 5);
+            addAISpell(SPELL_RAY_OF_PAIN, TARGET_RANDOM_SINGLE,11.0f, 0, 25);
+            addAISpell(SPELL_RAY_OF_SUFFERING, TARGET_RANDOM_SINGLE, 11.0f, 0, 5);
         }
         setCanEnterCombat(false);
     }
