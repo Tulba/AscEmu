@@ -455,7 +455,8 @@ class VHAttackerAI : public CreatureAIScript
             if (getCreature()->GetEntry() != CN_AZURE_MAGE_SLAYER
                 && getCreature()->GetEntry() != CN_INTRO_AZURE_BINDER_ARCANE
                 && getCreature()->GetEntry() != CN_INTRO_AZURE_INVADER_ARMS
-                && getCreature()->GetEntry() != CN_INTRO_AZURE_MAGE_SLAYER_MELEE)
+                && getCreature()->GetEntry() != CN_INTRO_AZURE_MAGE_SLAYER_MELEE
+                && getCreature()->GetEntry() != CN_INTRO_AZURE_SPELLBREAKER_ARCANE)
             {
                 switch (Util::getRandomUInt(0, 6))
                 {
@@ -1269,7 +1270,7 @@ public:
 
         // Prepare spells
         addAISpell(SPELL_CORROSIVE_SALIVA, TARGET_ATTACKING, 11.0f, 0, 6);
-        if (pCreature->GetMapMgr()->iInstanceMode == MODE_HEROIC)
+        if (_isHeroic())
         {
             addAISpell(SPELL_RAY_OF_PAIN_H, TARGET_RANDOM_SINGLE, 11.0f, 0, 25);
             addAISpell(SPELL_RAY_OF_SUFFERING_H, TARGET_RANDOM_SINGLE, 11.0f, 0, 5);
