@@ -243,7 +243,7 @@ class IntroPortalAI : public CreatureAIScript
             // Make sure guid is removed from list
             if (VH_instance)
             {
-                VH_instance->RemoveIntroNpcByGuid(GET_LOWGUID_PART(getCreature()->GetGUID()));
+                VH_instance->RemoveEventNpcByGuid(GET_LOWGUID_PART(getCreature()->GetGUID()));
             }
         }
 
@@ -423,18 +423,20 @@ class VHAttackerAI : public CreatureAIScript
             // Quickly despawn only intro attackers, other attackers corpses will despawned by server decay settings
             switch (getCreature()->GetEntry())
             {
+                case CN_INTRO_AZURE_INVADER_ARMS:
                 case CN_INTRO_AZURE_MAGE_SLAYER_MELEE:
                 case CN_INTRO_AZURE_SPELLBREAKER_ARCANE:
                 case CN_INTRO_AZURE_BINDER_ARCANE:
                 {
                     despawn(3000, 0);
-                    if (pInstance)
-                    {
-                        pInstance->RemoveIntroNpcByGuid(GET_LOWGUID_PART(getCreature()->GetGUID()));
-                    }
                 }break;
                 default:
                     break;
+            }
+
+            if (pInstance)
+            {
+                pInstance->RemoveEventNpcByGuid(GET_LOWGUID_PART(getCreature()->GetGUID()));
             }
         }
 
@@ -547,16 +549,19 @@ class VH_DefenseAI : public CreatureAIScript
     {
         SPELL_ARCANE_LIGHTNING_DAMAGE       = 57912,
         SPELL_ARCANE_LIGHTNING_INSTAKILL    = 58152,
-        SPELL_ARCANE_LIGHTNING_DUMMY        = 57930
+        SPELL_ARCANE_LIGHTNING_DUMMY        = 57930,
+        SPELL_LIGHTNING_INTRO               = 60038
     };
 
     uint32_t counter;
+    TheVioletHoldInstance* pInstance;
     public:
 
         static CreatureAIScript* Create(Creature* c) { return new VH_DefenseAI(c); }
         VH_DefenseAI(Creature* pCreature) : CreatureAIScript(pCreature), counter(0)
         {
             despawn(7000, 0);
+            pInstance = static_cast<TheVioletHoldInstance*>(pCreature->GetMapMgr()->GetScript());
         }
 
         void OnLoad() override
@@ -568,17 +573,72 @@ class VH_DefenseAI : public CreatureAIScript
         {
             if (counter == 2)
             {
+#ifdef USE_VH_HACKS
+                if (pInstance)
+                {
+                    for (auto itr : pInstance->m_eventSpawns)
+                    {
+                        if (Creature* pTarget = getCreature()->GetMapMgrCreature(itr))
+                        {
+                            getCreature()->CastSpellAoF(pTarget->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_LIGHTNING_INTRO), true);
+                            if (pTarget->GetEntry() == CN_PORTAL_GUARDIAN || pTarget->GetEntry() == CN_PORTAL_KEEPER)
+                            {
+                                // This needs to be corrected for heroic mode
+                                pTarget->DealDamage(pTarget, 13000, 0, 0, 0, false);
+                            }
+                            else
+                            {
+                                pTarget->Die(pTarget, pTarget->GetMaxHealth(), 0);
+                            }
+                        }
+                    }
+
+                    for (auto itr : pInstance->m_defenseTriggers)
+                    {
+                        if (Creature* pCreature = getCreature()->GetMapMgrCreature(itr))
+                        {
+                            getCreature()->CastSpellAoF(pCreature->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_LIGHTNING_INTRO), true);
+                        }
+                    }
+                }
+#else
                 getCreature()->CastSpell(getCreature(), SPELL_ARCANE_LIGHTNING_INSTAKILL, false);
+#endif  // USE_VH_HACKS
                 removeAiUpdateFrequency();
                 RemoveAIUpdateEvent();
             }
             else
             {
+#ifdef USE_VH_HACKS
+                if (pInstance)
+                {
+                    std::vector<uint32> spawns2 = pInstance->m_eventSpawns;
+                    for (auto itr : spawns2)
+                    {
+                        if (Creature* pCreature = getCreature()->GetMapMgrCreature(itr))
+                        {
+                            getCreature()->CastSpellAoF(pCreature->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_LIGHTNING_INTRO), true);
+                            // This needs to be corrected for heroic mode
+                            pCreature->DealDamage(pCreature, 13000 , 0, 0, 0, false);
+                        }
+                    }
+
+                    spawns2.clear();
+
+                    for (auto itr : pInstance->m_defenseTriggers)
+                    {
+                        if (Creature* pCreature = getCreature()->GetMapMgrCreature(itr))
+                        {
+                            getCreature()->CastSpellAoF(pCreature->GetPosition(), sSpellCustomizations.GetSpellInfo(SPELL_LIGHTNING_INTRO), true);
+                        }
+                    }
+                }
+#else
                 getCreature()->CastSpell(getCreature(), SPELL_ARCANE_LIGHTNING_DAMAGE, false);
                 getCreature()->CastSpell(getCreature(), SPELL_ARCANE_LIGHTNING_DUMMY, false);
+#endif // USE_VH_HACKS
                 ++counter;
             }
-            printf("counter %u \n", counter);
         }
 };
 
@@ -2147,15 +2207,15 @@ void TheVioletHoldInstance::RemoveIntroNpcs(bool deadOnly)
     }
 }
 
-void TheVioletHoldInstance::RemoveIntroNpcByGuid(uint32_t guid)
+void TheVioletHoldInstance::RemoveEventNpcByGuid(uint32_t guid)
 {
-    if (!m_introSpawns.empty())
+    if (!m_eventSpawns.empty())
     {
-        for (std::vector<uint32_t>::iterator itr = m_introSpawns.begin(); itr != m_introSpawns.end(); ++itr)
+        for (std::vector<uint32_t>::iterator itr = m_eventSpawns.begin(); itr != m_eventSpawns.end(); ++itr)
         {
             if ((*itr) == guid)
             {
-                m_introSpawns.erase(itr);
+                m_eventSpawns.erase(itr);
                 break;
             }
         }
@@ -2250,9 +2310,10 @@ void TheVioletHoldInstance::CallGuardsOut()
         {
             if (pGuard->isAlive())
             {
+                pGuard->GetAIInterface()->setAiState(AI_STATE_EVADE);
                 pGuard->GetAIInterface()->setSplineRun();
                 pGuard->GetAIInterface()->MoveTo(introMoveLoc.x, introMoveLoc.y, introMoveLoc.z);
-                pGuard->Despawn(4500, 0);
+                pGuard->Despawn(5000, 0);
             }
         }
     }
@@ -2376,7 +2437,7 @@ void TheVioletHoldInstance::OnCreaturePushToWorld(Creature* pCreature)
         case CN_INTRO_AZURE_MAGE_SLAYER_MELEE:
         case CN_INTRO_AZURE_SPELLBREAKER_ARCANE:
         {
-            m_introSpawns.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
+            m_eventSpawns.push_back(GET_LOWGUID_PART(pCreature->GetGUID()));
         }break;
         case CN_DEFENSE_SYSTEM_TRIGGER:
         {

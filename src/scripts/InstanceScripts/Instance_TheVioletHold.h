@@ -5,6 +5,10 @@ This file is released under the MIT license. See README-MIT for more information
 
 #pragma once
 
+// sanctum32: i cannot make this working without hacks when spell mechanics are working poorly
+// comment this line to disable all of my used hacks - you may notice many issues in dungeon
+#define USE_VH_HACKS
+
 // Violet hold during whole encounters has total 18 portals summoned
 // one portal group is equal to 6 portals, every 6th portal unlocks boss
 enum DataIndex : uint8_t
@@ -239,8 +243,6 @@ enum VH_Spells : uint32_t
     SPELL_VH_CRYSTAL_ACTIVATION         = 57804,
     SPELL_VH_DEFENSE_SYSTEM_VISUAL      = 57887,
     SPELL_VH_DEFENSE_SYSTEM_SPAWN       = 57886,
-    SPELL_VH_LIGHTNING_INTRO            = 60038,
-    SPELL_VH_ARCANE_DAMAGE              = 57912,
 
     SPELL_VH_TELEPORT_PLAYER            = 62138,
     SPELL_VH_TELEPORT_PLAYER_EFFECT     = 62139,
@@ -723,7 +725,7 @@ public:
     void RemoveIntroNpcs(bool deadOnly);
 
     // Removed intro npcs by low guid
-    void RemoveIntroNpcByGuid(uint32_t guid);
+    void RemoveEventNpcByGuid(uint32_t guid);
 
     // Call guards out
     void CallGuardsOut();
