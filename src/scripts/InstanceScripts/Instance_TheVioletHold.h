@@ -88,7 +88,7 @@ enum CreatureEntry : uint32_t
 
     // Erekem event
     CN_EREKEM                               = 29315,
-    CN_EREKEM_GUARD                         = 32228,
+    CN_EREKEM_GUARD                         = 29395,
 
     //Bosses
     CN_MORAGG                               = 29316,
@@ -690,7 +690,6 @@ class TheVioletHoldInstance : public InstanceScript
     // Guid lists
     std::vector<uint32_t> m_guardsGuids;      // Guards at entrance guids
     std::vector<uint32_t> m_crystalGuids;     // Activation crystal guids
-    std::vector<uint32_t> m_introSpawns;      // Intro creatures guids
     std::vector<uint32_t> m_defenseTriggers;  // Used for visual effect in defense npc AI
     std::vector<uint32_t> m_eventSpawns;      // Portal event spawns (attackers)
 
@@ -721,9 +720,6 @@ public:
     // Gets instance data - used for events handling
     uint32_t GetInstanceData(uint32_t pIndex);
 
-    // Removes all dead intro npcs
-    void RemoveIntroNpcs(bool deadOnly);
-
     // Removed intro npcs by low guid
     void RemoveEventNpcByGuid(uint32_t guid);
 
@@ -740,9 +736,6 @@ private:
     // SpawnPortal
     void SpawnPortal();
 
-    // Activates crystal event
-    void DoCrystalActivation();
-
     // Resets whole dungeon and starts intro npcs summoning
     void ResetIntro();
 
@@ -756,7 +749,7 @@ private:
     void SpawnIntro();
 
     // Resets activation crystals
-    void ResetCrystals(bool isSelectable);
+    void SetCrystalSelectable(bool isSelectable);
 
     // Update achievement criteria for all players by id
     void UpdateAchievCriteriaForPlayers(uint32_t id, uint32_t criteriaCount);

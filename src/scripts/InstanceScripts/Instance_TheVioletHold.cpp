@@ -16,10 +16,9 @@ uint32_t GenerateWPWaitTime(float speed, float newX, float currentX, float newY,
     float distanceX = (newX - currentX) * (newX - currentX);
     float distanceY = (newY - currentY) * (newY - currentY);
     float baseDistance = sqrt(distanceX + distanceY);
-    uint32_t waitTime = static_cast<uint32_t>((1000 * std::abs(baseDistance / speed)));
-    if (waitTime > 2000)
-        waitTime -= 2000;
-    return waitTime;
+    int32_t waitTime = static_cast<int32_t>((1000 * std::abs(baseDistance / speed)));
+    waitTime -= 780;
+    return waitTime >= 0 ? static_cast<uint32_t>(waitTime) : 0;
 }
 
 // Returns one of given values
@@ -252,7 +251,7 @@ class IntroPortalAI : public CreatureAIScript
             setRooted(true);
             getCreature()->m_canRegenerateHP = false;
             setCanEnterCombat(false);
-            spawnTimer = _addTimer(urand(8000, 15000));
+            spawnTimer = _addTimer(urand(5000, 8000));
         }
 
         void OnDied(Unit* /*pKiller*/) override
@@ -262,7 +261,7 @@ class IntroPortalAI : public CreatureAIScript
 
         void AIUpdate() override
         {
-            if (_isTimerFinished(spawnTimer) && VH_instance && !(VH_instance->GetInstanceData(INDEX_INSTANCE_PROGRESS) == InProgress || VH_instance->GetInstanceData(INDEX_INSTANCE_PROGRESS) == Performed) && portalId != -1)
+            if (_isTimerFinished(spawnTimer) && VH_instance && !(VH_instance->GetInstanceData(INDEX_INSTANCE_PROGRESS) == InProgress || VH_instance->GetInstanceData(INDEX_INSTANCE_PROGRESS) == Performed))
             {
                 float landHeight = getCreature()->GetMapMgr()->GetLandHeight(getCreature()->GetPositionX(), getCreature()->GetPositionY(), getCreature()->GetPositionZ());
                 if (Creature* pAttacker = spawnCreature(VHIntroMobs[Util::getRandomUInt(VHIntroMobCount - 1)], getCreature()->GetPositionX(), getCreature()->GetPositionY(), landHeight, getCreature()->GetOrientation()))
@@ -315,15 +314,13 @@ class IntroPortalAI : public CreatureAIScript
                         }break;
                     }
                 }
-                _resetTimer(spawnTimer, urand(8000, 15000));
+                _resetTimer(spawnTimer, urand(10000, 20000));
             }
         }
 
-// public variables
 public:
     int8_t portalId;
 };
-
 
 class VHAttackerAI : public CreatureAIScript
 {
@@ -449,7 +446,6 @@ class VHAttackerAI : public CreatureAIScript
         {
             if (getCreature()->isAlive())
             {
-                getCreature()->GetAIInterface()->StopMovement(3000);
                 getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_FORWARDTHENSTOP);
                 if (getCreature()->GetAIInterface()->getCurrentWayPointId() < getCreature()->GetAIInterface()->getWayPointsCount() - 1)
                 {
@@ -502,7 +498,6 @@ class VHAttackerAI : public CreatureAIScript
                     }break;
                 }
             }
-            getCreature()->GetAIInterface()->StopMovement(2000);
             getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_FORWARDTHENSTOP);
             getCreature()->GetAIInterface()->setWayPointToMove(1);
         }
@@ -1246,10 +1241,11 @@ class MoraggAI : public CreatureAIScript
         SPELL_OPTIC_LINK_LEVEL_2 = 54394,
         SPELL_OPTIC_LINK_LEVEL_3 = 54395
     };
+    uint32_t mIntroTimer;
 public:
 
     static CreatureAIScript* Create(Creature* c) { return new MoraggAI(c); }
-    MoraggAI(Creature* pCreature) : CreatureAIScript(pCreature)
+    MoraggAI(Creature* pCreature) : CreatureAIScript(pCreature), mIntroTimer(0)
     {
         // Prepare waypoints
         float walkSpeed = pCreature->GetCreatureProperties()->walk_speed;
@@ -1281,12 +1277,25 @@ public:
         setCanEnterCombat(false);
     }
 
+    void StartIntro()
+    {
+        mIntroTimer = _addTimer(4000);
+    }
+
     void OnReachWP(uint32_t iWaypointId, bool /*bForwards*/) override
     {
         if (iWaypointId == MoraggPathSize - 1)
         {
             setCanEnterCombat(true);
             getCreature()->GetAIInterface()->AttackReaction(getNearestPlayer(), 1, 0);
+        }
+    }
+
+    void AIUpdate() override
+    {
+        if (_isTimerFinished(mIntroTimer))
+        {
+
         }
     }
 };
@@ -1682,12 +1691,12 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
             {
                 case Performed:
                 {
-                    DoCrystalActivation();
+                    spawnCreature(CN_DEFENSE_SYSTEM, DefenseSystemLocation.x, DefenseSystemLocation.y, DefenseSystemLocation.z, DefenseSystemLocation.o);
                 }break;
                 case PreProgress:
                 {
                     setGameObjectStateForEntry(GO_PRISON_SEAL, GO_STATE_CLOSED);
-                    ResetCrystals(true);
+                    SetCrystalSelectable(true);
                     SetInstanceData(DATA_SEAL_HEALTH, 100);
                 }break;
                 case InProgress:
@@ -1698,6 +1707,7 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
                 {
                     ResetIntro();
                     ResetInstanceData();
+                    SetCrystalSelectable(false);
                 }break;
                 case Finished:
                 {
@@ -1783,8 +1793,7 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
                     {
                         Moragg->PlaySoundToSet(SOUND_MORAGG_RELEASE);
                         Moragg->CastSpell(Moragg, SPELL_MORAGG_EMOTE_ROAR, true);
-                        Moragg->GetAIInterface()->StopMovement(3000);
-                        Moragg->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_FORWARDTHENSTOP);
+                        Moragg->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
                         Moragg->GetAIInterface()->setWayPointToMove(1);
                     }
                 }break;
@@ -1803,7 +1812,6 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
                     setGameObjectStateForEntry(GO_ICHORON_CELL, GO_STATE_OPEN);
                     if (Creature* Ichoron = GetCreatureByGuid(m_IchoronGUID))
                     {
-                        Ichoron->GetAIInterface()->StopMovement(5000);
                         Ichoron->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_FORWARDTHENSTOP);
                         Ichoron->GetAIInterface()->setWayPointToMove(1);
                     }
@@ -1824,7 +1832,6 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
                     if (Creature* Zuramat = GetCreatureByGuid(m_ZuramatGUID))
                     {
                         Zuramat->CastSpell(Zuramat, SPELL_ZURAMAT_COSMETIC_CHANNEL_OMNI, true);
-                        Zuramat->GetAIInterface()->StopMovement(3000);
                         Zuramat->SendScriptTextChatMessage(YELL_ZURAMAT_RELEASE);
                         Zuramat->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_FORWARDTHENSTOP);
                         Zuramat->GetAIInterface()->setWayPointToMove(1);
@@ -1845,7 +1852,6 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
                     setGameObjectStateForEntry(GO_EREKEM_CELL, GO_STATE_OPEN);
                     if (Creature* Erekem = GetCreatureByGuid(m_ErekemGUID))
                     {
-                        Erekem->GetAIInterface()->StopMovement(5000);
                         Erekem->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_FORWARDTHENSTOP);
                         Erekem->GetAIInterface()->setWayPointToMove(1);
                     }
@@ -1854,7 +1860,6 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
                     setGameObjectStateForEntry(GO_EREKEM_GUARD_CELL1, GO_STATE_OPEN);
                     if (Creature* Guard = GetInstance()->GetInterface()->GetCreatureNearestCoords(leftErekemGuardPosition.x, leftErekemGuardPosition.y, leftErekemGuardPosition.z, CN_EREKEM_GUARD))
                     {
-                        Guard->GetAIInterface()->StopMovement(5000);
                         Guard->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_FORWARDTHENSTOP);
                         Guard->GetAIInterface()->setWayPointToMove(1);
                     }
@@ -1863,7 +1868,6 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
                     setGameObjectStateForEntry(GO_EREKEM_GUARD_CELL2, GO_STATE_OPEN);
                     if (Creature* Guard = GetInstance()->GetInterface()->GetCreatureNearestCoords(rightErekemGuardPosition.x, rightErekemGuardPosition.y, rightErekemGuardPosition.z, CN_EREKEM_GUARD))
                     {
-                        Guard->GetAIInterface()->StopMovement(5000);
                         Guard->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_FORWARDTHENSTOP);
                         Guard->GetAIInterface()->setWayPointToMove(1);
                     }
@@ -1908,7 +1912,6 @@ void TheVioletHoldInstance::SetInstanceData(uint32_t pIndex, uint32_t pData)
                     if (Creature* Xevozz = GetCreatureByGuid(m_XevozzGUID))
                     {
                         Xevozz->SendScriptTextChatMessage(YELL_XEVOZZ_RELEASE);
-                        Xevozz->GetAIInterface()->StopMovement(5000);
                         Xevozz->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_FORWARDTHENSTOP);
                         Xevozz->GetAIInterface()->setWayPointToMove(1);
                     }
@@ -2077,14 +2080,10 @@ void TheVioletHoldInstance::SpawnPortal()
 
     UpdateWorldStates();
 }
-    /////////////////////////////////////////////////////////
-    /// Helper functions
-    ///
 
-void TheVioletHoldInstance::DoCrystalActivation()
-{
-    spawnCreature(CN_DEFENSE_SYSTEM, DefenseSystemLocation.x, DefenseSystemLocation.y, DefenseSystemLocation.z, DefenseSystemLocation.o);
-}
+/////////////////////////////////////////////////////////
+/// Helper functions
+///
 
 void TheVioletHoldInstance::ResetIntro()
 {
@@ -2174,37 +2173,6 @@ void TheVioletHoldInstance::ResetIntro()
 
     // Do base stuff
     SpawnIntro();
-    ResetCrystals(false);
-}
-
-void TheVioletHoldInstance::RemoveIntroNpcs(bool deadOnly)
-{
-    if (!m_introSpawns.empty())
-    {
-        for (std::vector<uint32_t>::iterator itr = m_introSpawns.begin(); itr != m_introSpawns.end();)
-        {
-            Creature* pIntroSummon = GetInstance()->GetCreature(*itr);
-            if (pIntroSummon && pIntroSummon->IsInInstance())
-            {
-                if (deadOnly)
-                {
-                    if (!pIntroSummon->isAlive())
-                    {
-                        pIntroSummon->Despawn(4000, 0);
-                        itr = m_introSpawns.erase(itr);
-                        continue;
-                    }
-                }
-                else
-                {
-                    pIntroSummon->Despawn(4000, 0);
-                    itr = m_introSpawns.erase(itr);
-                    continue;
-                }
-            }
-            ++itr;
-        }
-    }
 }
 
 void TheVioletHoldInstance::RemoveEventNpcByGuid(uint32_t guid)
@@ -2266,20 +2234,20 @@ void TheVioletHoldInstance::SpawnIntro()
     }
 }
 
-void TheVioletHoldInstance::ResetCrystals(bool setSelectable)
+void TheVioletHoldInstance::SetCrystalSelectable(bool setSelectable)
 {
-    for (std::vector<uint32_t>::iterator itr = m_crystalGuids.begin(); itr != m_crystalGuids.end(); ++itr)
+    for (auto itr : m_crystalGuids)
     {
-        if (GameObject* pCrystal = GetInstance()->GetGameObject(*itr))
+        if (GameObject* pCrystal = GetGameObjectByGuid(itr))
         {
-            pCrystal->SetState(GO_STATE_CLOSED);
+            pCrystal->SetState(setSelectable ? GO_STATE_CLOSED : GO_STATE_OPEN);
             if (!setSelectable)
             {
-                pCrystal->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NONSELECTABLE);
+                pCrystal->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
             }
             else
             {
-                pCrystal->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NONSELECTABLE);
+                pCrystal->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
             }
         }
     }
@@ -2313,7 +2281,7 @@ void TheVioletHoldInstance::CallGuardsOut()
                 pGuard->GetAIInterface()->setAiState(AI_STATE_EVADE);
                 pGuard->GetAIInterface()->setSplineRun();
                 pGuard->GetAIInterface()->MoveTo(introMoveLoc.x, introMoveLoc.y, introMoveLoc.z);
-                pGuard->Despawn(5000, 0);
+                pGuard->Despawn(4500, 0);
             }
         }
     }
@@ -2388,10 +2356,12 @@ void TheVioletHoldInstance::OnGameObjectPushToWorld(GameObject* pGo)
     if (pGo->GetEntry() == GO_ACTIVATION_CRYSTAL)
     {
         m_crystalGuids.push_back(pGo->GetLowGUID());
+        pGo->SetState(GO_STATE_CLOSED);
+        pGo->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
     }
 }
 
-void TheVioletHoldInstance::OnGameObjectActivate(GameObject* pGo, Player* plr)
+void TheVioletHoldInstance::OnGameObjectActivate(GameObject* pGo, Player* /*plr*/)
 {
     if (pGo->GetEntry() == GO_ACTIVATION_CRYSTAL)
     {
@@ -2402,9 +2372,9 @@ void TheVioletHoldInstance::OnGameObjectActivate(GameObject* pGo, Player* plr)
         }
 
         // Make object not selectable
-        pGo->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NONSELECTABLE);
-        pGo->SetState(GO_STATE_OPEN);
-        DoCrystalActivation();
+        pGo->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
+        pGo->SetState(GO_STATE_CLOSED);
+        spawnCreature(CN_DEFENSE_SYSTEM, DefenseSystemLocation.x, DefenseSystemLocation.y, DefenseSystemLocation.z, DefenseSystemLocation.o);
     }
 }
 
@@ -2504,7 +2474,6 @@ void TheVioletHoldInstance::OnCreatureDeath(Creature* pCreature, Unit* /*pKiller
             {
                 UpdateAchievCriteriaForPlayers(ACHIEV_CRIT_VOID_DANCE, 1);
             }
-            setData(pCreature->GetEntry(), Finished);
         }break;
         case CN_VOID_SENTRY:
         {
@@ -2521,19 +2490,7 @@ void TheVioletHoldInstance::OnCreatureDeath(Creature* pCreature, Unit* /*pKiller
         case CN_VIOLET_HOLD_GUARD:
         {
             sEventMgr.RemoveEvents(pCreature);
-            pCreature->Despawn(2000, 0);
-            for (std::vector<uint32>::iterator itr = m_guardsGuids.begin(); itr != m_guardsGuids.end();)
-            {
-                if ((*itr) == GET_LOWGUID_PART(pCreature->GetGUID()))
-                {
-                    m_guardsGuids.erase(itr);
-                    break;
-                }
-                ++itr;
-            }
-            spawnCreature(CN_VIOLET_HOLD_GUARD, pCreature->GetSpawnX(), pCreature->GetSpawnY(), pCreature->GetSpawnZ(), pCreature->GetSpawnO());
-            // Modify corpse despawn event to make it well suitible
-            sEventMgr.AddEvent(pCreature, &Creature::OnRemoveCorpse, EVENT_CREATURE_REMOVE_CORPSE, 1000, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
+            pCreature->Despawn(2000, 1000);
         }break;
         case CN_MORAGG:
         {
